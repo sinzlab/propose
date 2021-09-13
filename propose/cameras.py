@@ -1,5 +1,8 @@
 import numpy as np
 
+Point2D = np.ndarray
+Point3D = np.ndarray
+
 
 class Camera(object):
     """
@@ -33,7 +36,7 @@ class Camera(object):
         """
         return np.concatenate((self.rotation_matrix, self.translation_vector), axis=0) @ self.intrinsic_matrix
 
-    def proj2D(self, points: np.ndarray) -> np.ndarray:
+    def proj2D(self, points: Point3D) -> Point2D:
         """
         Computes the projection of a 3D point onto the 2D camera space
         :param points: 3D points (x, y, z)
@@ -50,7 +53,24 @@ class Camera(object):
 
         return projected_points
 
-    def _unpack_intrinsic_matrix(self):
+    def distort_points(self, points: Point2D) -> Point2D:
+        """
+        Applies the radial and tangetial distortion to the pixel points.
+        :param points: Undistorted 2D points in pixel space.
+        :return: Distorted 2D points in pixel space.
+        """
+        image_points = self._pixel_to_image_points(points)
+
+        kappa = self._radial_distortion(image_points)
+        rho = self._tangential_distortion(image_points)
+
+        distorted_image_points = image_points + image_points * kappa + rho
+
+        pixel_points = self._image_to_pixel_points(distorted_image_points)
+
+        return pixel_points
+
+    def _unpack_intrinsic_matrix(self) -> tuple[float, float, float, float, float]:
         """
         Unpacks the intrinsic matrix which is of the format
             [ fx   , 0 , 0 ]
@@ -67,7 +87,7 @@ class Camera(object):
 
         return fx, fy, cx, cy, skew
 
-    def _pixel_to_image_points(self, pixel_points):
+    def _pixel_to_image_points(self, pixel_points: Point2D) -> Point2D:
         """
         Transforms points from pixel space to image space by computing
         x' = (x - cx) / fx
@@ -85,7 +105,7 @@ class Camera(object):
 
         return np.stack([x_norm, y_norm], axis=1)
 
-    def _image_to_pixel_points(self, image_points):
+    def _image_to_pixel_points(self, image_points: Point2D) -> Point2D:
         """
         Transforms points from image space to pixel space by computing
         x' = x * fx + cx
@@ -103,7 +123,7 @@ class Camera(object):
 
         return pixel_points
 
-    def _radial_distortion(self, image_points):
+    def _radial_distortion(self, image_points: Point2D) -> np.ndarray:
         """
         Occurs when light rays bend near the edge of the lens.
         Radial Distortion:
@@ -112,7 +132,7 @@ class Camera(object):
         where x, y are normalised in image coordinates nad translated to the optical center (x - cx) / fx, (y - cy) / fy.
         ki are the distortion coefficients.
         r^2 = x^2 + y^2
-        :param image_points:
+        :param image_points: 2D points in the normalised image space
         :return: (1 + k1*r^2 + k2*r^4 + k3*r^6)
         """
         r2 = image_points.__pow__(2).sum(axis=1)
@@ -126,7 +146,7 @@ class Camera(object):
 
         return kappa
 
-    def _tangential_distortion(self, image_points):
+    def _tangential_distortion(self, image_points: Point2D) -> np.ndarray:
         """
         Occurs when the lens and image plane are not in parallel.
         Tangential Distortion:
@@ -134,6 +154,8 @@ class Camera(object):
          y_dist = y + [2 * p2 * x * y + p1 * (r^2 + 2 * y^2)]
 
         p1 and p2 are tangential distortion coefficients.
+        :param image_points: 2D points in the normalised image space
+        :return: [dx, dy]
         """
         p = self.tangential_distortion.squeeze()
 
@@ -145,20 +167,3 @@ class Camera(object):
         ]).T
 
         return rho
-
-    def distort_points(self, points):
-        """
-        Applies the radial and tangetial distortion to the pixel points.
-        :param points: Undistorted 2D points in pixel space.
-        :return: Distorted 2D points in pixel space.
-        """
-        image_points = self._pixel_to_image_points(points)
-
-        kappa = self._radial_distortion(image_points)
-        rho = self._tangential_distortion(image_points)
-
-        distorted_image_points = image_points + image_points * kappa + rho
-
-        pixel_points = self._image_to_pixel_points(distorted_image_points)
-
-        return pixel_points
