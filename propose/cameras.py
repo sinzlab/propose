@@ -45,7 +45,7 @@ class Camera(object):
 
         extended_points = np.concatenate((points, np.ones((points.shape[0], 1))), axis=1)
 
-        projected_points = extended_points @ camera_matrix
-        projected_points = projected_points[:, :2] / projected_points[:, 2:]
+        projected_points = extended_points @ camera_matrix  # (u, v, z)
+        projected_points = projected_points[:, :2] / projected_points[:, 2:]  # (u/z, v/z)
 
         return projected_points
