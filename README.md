@@ -1,2 +1,2 @@
-# propose
-PRObabilistic POSE estimation
+# PROPOSE
+**PRO**babilistic **POSE** estimation
