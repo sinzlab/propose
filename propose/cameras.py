@@ -15,13 +15,8 @@ class Camera(object):
         :param rotation_matrix: 3x3 matrix, describes the camera's rotation in space.
         :param translation_vector: 1x3 vector, describes the cameras location in space.
         :param tangential_distortion: 1x2 vector, describes the distortion between the lens and the image plane.
-        :param radial_distortion: 1x2 vector, describes how light bends near the edges of the lens.
+        :param radial_distortion: 1x2 or 1x3 vector, describes how light bends near the edges of the lens.
         """
-        assert intrinsic_matrix.shape == (3, 3)
-        assert rotation_matrix.shape == (3, 3)
-        assert translation_vector.shape == (1, 3)
-        assert tangential_distortion.shape == (1, 2)
-        assert radial_distortion.shape == (1, 2) or radial_distortion.shape == (1, 3)
 
         self.intrinsic_matrix = intrinsic_matrix
         self.rotation_matrix = rotation_matrix
