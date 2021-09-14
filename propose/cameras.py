@@ -9,7 +9,7 @@ class Camera(object):
     Camera class for managing camera related operations and storing camera data.
     """
     def __init__(self, intrinsic_matrix: np.ndarray, rotation_matrix: np.ndarray, translation_vector: np.ndarray,
-                 tangential_distortion: np.ndarray, radial_distortion: np.ndarray):
+                 tangential_distortion: np.ndarray, radial_distortion: np.ndarray, frame: np.ndarray):
         """
         :param intrinsic_matrix: 3x3 matrix, transforms the 3D camera coordinates to 2D homogeneous image coordinates.
         :param rotation_matrix: 3x3 matrix, describes the camera's rotation in space.
@@ -23,6 +23,7 @@ class Camera(object):
         self.translation_vector = translation_vector
         self.tangential_distortion = tangential_distortion
         self.radial_distortion = radial_distortion
+        self.frame = frame
 
     def camera_matrix(self) -> np.ndarray:
         """
@@ -31,9 +32,10 @@ class Camera(object):
         """
         return np.concatenate((self.rotation_matrix, self.translation_vector), axis=0) @ self.intrinsic_matrix
 
-    def proj2D(self, points: Point3D) -> Point2D:
+    def proj2D(self, points: Point3D, distort: bool = True) -> Point2D:
         """
         Computes the projection of a 3D point onto the 2D camera space
+        :param distort: bool [default = True] Determines whether camera distortion should be applied to the points.
         :param points: 3D points (x, y, z)
         :return: Projected 2D points (x, y)
         """
@@ -46,9 +48,12 @@ class Camera(object):
         projected_points = extended_points @ camera_matrix  # (u, v, z)
         projected_points = projected_points[:, :2] / projected_points[:, 2:]  # (u/z, v/z)
 
+        if distort:
+            projected_points = self.distort(projected_points)
+
         return projected_points
 
-    def distort_points(self, points: Point2D) -> Point2D:
+    def distort(self, points: Point2D) -> Point2D:
         """
         Applies the radial and tangetial distortion to the pixel points.
         :param points: Undistorted 2D points in pixel space.
@@ -59,7 +64,7 @@ class Camera(object):
         kappa = self._radial_distortion(image_points)
         rho = self._tangential_distortion(image_points)
 
-        distorted_image_points = image_points * kappa + rho
+        distorted_image_points = image_points * kappa[:, np.newaxis] + rho
 
         pixel_points = self._image_to_pixel_points(distorted_image_points)
 

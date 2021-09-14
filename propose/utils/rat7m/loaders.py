@@ -23,7 +23,8 @@ def load_cameras(path: str) -> dict:
                         rotation_matrix=camera_calibration['rotationMatrix'],
                         translation_vector=camera_calibration['translationVector'],
                         tangential_distortion=camera_calibration['TangentialDistortion'],
-                        radial_distortion=camera_calibration['RadialDistortion'])
+                        radial_distortion=camera_calibration['RadialDistortion'],
+                        frame=camera_calibration['frame'])
 
         cameras[camera_name] = camera
 
@@ -46,20 +47,3 @@ def load_mocap(path: str) -> np.ndarray:
         mocap.append(dataset[markernames[i]])
 
     return np.stack(mocap, axis=2)
-
-# if __name__ == '__main__':
-# from pathlib import Path
-# home = str(Path.home())
-# path = f'{home}/data/rat7m/mocap-s4-d1.mat'
-# # data = sio.loadmat(path)
-# cams = load_cameras(path)
-
-#
-# for camera_idx in range(6):
-#     for i in range(6):
-#         data['cameras'][0][0][camera_idx][0][0][i] = 0
-#
-# for join_idx in range(20):
-#     data['mocap'][0][0][join_idx] = np.zeros((1, 3))
-#
-# sio.savemat('../../../tests/mock_data/mocap-mock.mat', data)
