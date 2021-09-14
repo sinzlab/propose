@@ -183,6 +183,6 @@ def test_distort_points():
     camera = Camera(intrinsic_matrix, rotation_matrix, translation_vector, tangential_distortion, radial_distortion)
 
     points = np.array([[1, 2]])
-    pixel_points = np.array([[-6, -7]])
+    pixel_points = np.array([[-3, -4]])
 
     np.testing.assert_array_equal(camera.distort_points(points), pixel_points)

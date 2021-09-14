@@ -64,7 +64,7 @@ class Camera(object):
         kappa = self._radial_distortion(image_points)
         rho = self._tangential_distortion(image_points)
 
-        distorted_image_points = image_points + image_points * kappa + rho
+        distorted_image_points = image_points * kappa + rho
 
         pixel_points = self._image_to_pixel_points(distorted_image_points)
 
