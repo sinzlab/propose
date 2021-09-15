@@ -14,7 +14,6 @@ def test_pose_init():
     np.testing.assert_array_equal(pose.marker_positions, np.zeros((4, 3)))
 
     assert pose.marker_names == ['a', 'b', 'c', 'd']
-    assert pose.markers_dict == markers
 
 
 def test_rat7m_init():

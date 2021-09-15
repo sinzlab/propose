@@ -3,9 +3,22 @@ import numpy as np
 
 class BasePose(object):
     def __init__(self, **kwargs):
-        self.markers_dict = kwargs
         self.marker_names = list(kwargs.keys())
-        self.marker_positions = np.array(list(kwargs.values()))
+
+        for marker_name in self.marker_names:
+            setattr(self, marker_name, kwargs[marker_name])
+
+    @property
+    def marker_positions(self):
+        positions = []
+        for name in self.marker_names:
+            positions.append(getattr(self, name))
+
+        return np.array(positions)
+
+    @property
+    def shape(self):
+        return self.marker_positions.shape
 
 
 class PoseSet(object):

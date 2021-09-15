@@ -1,4 +1,4 @@
-from .base import BasePose, PoseSet
+from .base import BasePose
 
 
 class Rat7mPose(BasePose):
@@ -25,26 +25,6 @@ class Rat7mPose(BasePose):
                  Offset2,
                  **kwargs
                  ):
-        self.HeadF = HeadF
-        self.HeadB = HeadB
-        self.HeadL = HeadL
-        self.SpineF = SpineF
-        self.SpineM = SpineM
-        self.SpineL = SpineL
-        self.HipL = HipL
-        self.KneeL = KneeL
-        self.ShinL = ShinL
-        self.HipR = HipR
-        self.KneeR = KneeR
-        self.ShinR = ShinR
-        self.ElbowL = ElbowL
-        self.ArmL = ArmL
-        self.ShoulderL = ShoulderL
-        self.ElbowR = ElbowR
-        self.ArmR = ArmR
-        self.ShoulderR = ShoulderR
-        self.Offset1 = Offset1
-        self.Offset2 = Offset2
 
         super().__init__(
             HeadF=HeadF,
