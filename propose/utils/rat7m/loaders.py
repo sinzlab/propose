@@ -1,7 +1,7 @@
 from propose.cameras import Camera
+from propose.poses import Rat7mPose, PoseSet
 
 import scipy.io as sio
-import numpy as np
 
 
 def load_cameras(path: str) -> dict:
@@ -31,19 +31,22 @@ def load_cameras(path: str) -> dict:
     return cameras
 
 
-def load_mocap(path: str) -> np.ndarray:
+def load_mocap(path: str) -> PoseSet:
     """
     Loads mocap datafor the Rat7M dataset.
     :param path: path to the mocap file (e.g. /path/to/mocap-s4-d1.mat)
-    :return: [Nd array] Mocap positions [frame, xyz, joint]
+    :return: [Nd array] a PoseSet of [frame, joint, xyz]
     """
     d = sio.loadmat(path, struct_as_record=False)
     dataset = vars(d["mocap"][0][0])
 
-    markernames = dataset['_fieldnames']
+    dataset.pop('_fieldnames')
 
-    mocap = []
-    for i in range(len(markernames)):
-        mocap.append(dataset[markernames[i]])
+    poses = []
+    n_poses = list(dataset.values())[0].shape[0]
 
-    return np.stack(mocap, axis=2)
+    for pose_idx in range(n_poses):
+        pose_dict = {marker_name: dataset[marker_name][pose_idx] for marker_name in dataset}
+        poses.append(Rat7mPose(**pose_dict))
+
+    return PoseSet(poses)
