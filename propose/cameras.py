@@ -39,6 +39,9 @@ class Camera(object):
         :param points: 3D points (x, y, z)
         :return: Projected 2D points (x, y)
         """
+        if len(points.shape) == 1:
+            points = points[np.newaxis]
+
         assert points.shape[1] == 3
 
         camera_matrix = self.camera_matrix()

@@ -20,6 +20,17 @@ class BasePose(object):
     def shape(self):
         return self.marker_positions.shape
 
+    def proj2D(self, camera):
+        marker_dict = {}
+        for name in self.marker_names:
+            marker_pos = getattr(self, name)
+            marker_dict[name] = camera.proj2D(marker_pos).squeeze()
+
+        return self.__class__(**marker_dict)
+
+    def plot(self, ax):
+        raise NotImplementedError('The plot functionality has not been defined for this pose')
+
 
 class PoseSet(object):
     def __init__(self, poses):

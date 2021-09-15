@@ -100,6 +100,14 @@ def test_camera_proj2D_with_distortion():
     np.testing.assert_array_equal(camera.proj2D(quaternion[:, :3], distort=True), projected_points)
 
 
+def test_camera_proj2D_with_single_point():
+    set_global_vars()
+
+    camera = Camera(intrinsic_matrix, rotation_matrix, translation_vector, tangential_distortion, radial_distortion, frame)
+
+    proj = camera.proj2D(np.array([1, 2, 3]))
+
+
 def test_unpack_intrinsic_matrix():
     """
     Unpack the intrinsic matrix
