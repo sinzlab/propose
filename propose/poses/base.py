@@ -43,8 +43,27 @@ class PoseSet(object):
         return len(self.poses)
 
     def __getitem__(self, item):
+        if isinstance(item, slice):
+            return self.__class__(self.poses[item])
         return self.poses[item]
 
     @property
     def shape(self):
         return self.pose_positions.shape
+
+    def proj2D(self, camera):
+        pose2Ds = [pose.proj2D(camera) for pose in self.poses]
+
+        return self.__class__(pose2Ds)
+
+    def animate(self, ax):
+        pose = self.poses[0]
+
+        line_actors = pose.plot(ax)
+
+        def animate(i):
+            pose = self.poses[i]
+
+            pose.animate(line_actors)
+
+        return line_actors, animate

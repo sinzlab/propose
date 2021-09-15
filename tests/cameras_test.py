@@ -105,7 +105,7 @@ def test_camera_proj2D_with_single_point():
 
     camera = Camera(intrinsic_matrix, rotation_matrix, translation_vector, tangential_distortion, radial_distortion, frame)
 
-    proj = camera.proj2D(np.array([1, 2, 3]))
+    camera.proj2D(np.array([1, 2, 3]))
 
 
 def test_unpack_intrinsic_matrix():

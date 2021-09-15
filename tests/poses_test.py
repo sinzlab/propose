@@ -78,6 +78,8 @@ def test_rat7m_plot():
     pose = create_pose()
 
     ax = Mock()
+    ax.plot = Mock(return_value=[1])
+
     actors = pose.plot(ax)
     assert len(actors) == 20
 
@@ -101,5 +103,25 @@ def test_PoseSet_init():
     assert pose_set.pose_positions.shape == (10, 20, 3)
 
     assert isinstance(pose_set[0], BasePose)
+
+
+def test_PoseSet_slice_selection():
+    poses = [create_pose() for _ in range(10)]
+    pose_set = PoseSet(poses)
+
+    sliced_pose_set = pose_set[3:5]
+    assert isinstance(sliced_pose_set, PoseSet)
+    assert sliced_pose_set.shape == (2, 20, 3)
+
+
+def test_PoseSet_can_be_proj2D():
+    poses = [create_pose() for _ in range(10)]
+    pose_set = PoseSet(poses)
+
+    camera = create_mock_camera()
+    pose2D_set = pose_set.proj2D(camera)
+
+    assert pose_set != pose2D_set
+    assert pose2D_set.shape == (10, 20, 2)
 
 
