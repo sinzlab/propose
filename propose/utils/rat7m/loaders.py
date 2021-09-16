@@ -1,7 +1,9 @@
 from propose.cameras import Camera
-from propose.poses import Rat7mPose, PoseSet
+from propose.poses import Rat7mPose
 
 import scipy.io as sio
+
+import numpy as np
 
 
 def load_cameras(path: str) -> dict:
@@ -24,14 +26,14 @@ def load_cameras(path: str) -> dict:
                         translation_vector=camera_calibration['translationVector'],
                         tangential_distortion=camera_calibration['TangentialDistortion'],
                         radial_distortion=camera_calibration['RadialDistortion'],
-                        frame=camera_calibration['frame'])
+                        frames=camera_calibration['frame'])
 
         cameras[camera_name] = camera
 
     return cameras
 
 
-def load_mocap(path: str) -> PoseSet:
+def load_mocap(path: str) -> Rat7mPose:
     """
     Loads mocap datafor the Rat7M dataset.
     :param path: path to the mocap file (e.g. /path/to/mocap-s4-d1.mat)
@@ -42,11 +44,15 @@ def load_mocap(path: str) -> PoseSet:
 
     dataset.pop('_fieldnames')
 
-    poses = []
-    n_poses = list(dataset.values())[0].shape[0]
+    marker_names = Rat7mPose.marker_names
 
-    for pose_idx in range(n_poses):
-        pose_dict = {marker_name: dataset[marker_name][pose_idx] for marker_name in dataset}
-        poses.append(Rat7mPose(**pose_dict))
+    n_frames = dataset[marker_names[0]].shape[0]
+    n_poses = 20
+    n_dims = 3
 
-    return PoseSet(poses)
+    poses = np.empty((n_frames, n_poses, n_dims))
+    for idx, marker_name in enumerate(marker_names):
+         poses[:, idx, :] = dataset[marker_name]
+
+    return Rat7mPose(poses)
+

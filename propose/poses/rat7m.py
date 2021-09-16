@@ -1,64 +1,34 @@
-from .base import BasePose
+from propose.poses.base import BasePose
 
-import matplotlib.pyplot as plt
 import numpy as np
 
 
 class Rat7mPose(BasePose):
-    def __init__(self,
-                 HeadF,
-                 HeadB,
-                 HeadL,
-                 SpineF,
-                 SpineM,
-                 SpineL,
-                 HipL,
-                 KneeL,
-                 ShinL,
-                 HipR,
-                 KneeR,
-                 ShinR,
-                 ElbowL,
-                 ArmL,
-                 ShoulderL,
-                 ElbowR,
-                 ArmR,
-                 ShoulderR,
-                 Offset1,
-                 Offset2,
-                 **kwargs
-                 ):
+    marker_names = [
+        'HeadF',
+        'HeadB',
+        'HeadL',
+        'SpineF',
+        'SpineM',
+        'SpineL',
+        'Offset1',
+        'Offset2',
+        'HipL',
+        'HipR',
+        'ElbowL',
+        'ArmL',
+        'ShoulderL',
+        'ShoulderR',
+        'ElbowR',
+        'ArmR',
+        'KneeR',
+        'KneeL',
+        'ShinL',
+        'ShinR',
+    ]
 
-        super().__init__(
-            HeadF=HeadF,
-            HeadB=HeadB,
-            HeadL=HeadL,
-            SpineF=SpineF,
-            SpineM=SpineM,
-            SpineL=SpineL,
-            HipL=HipL,
-            KneeL=KneeL,
-            ShinL=ShinL,
-            HipR=HipR,
-            KneeR=KneeR,
-            ShinR=ShinR,
-            ElbowL=ElbowL,
-            ArmL=ArmL,
-            ShoulderL=ShoulderL,
-            ElbowR=ElbowR,
-            ArmR=ArmR,
-            ShoulderR=ShoulderR,
-            Offset1=Offset1,
-            Offset2=Offset2,
-        )
-
-    def _edge(self, marker_name_1, marker_name_2):
-        n_dims = self.shape[-1]
-
-        marker_pos_1 = getattr(self, marker_name_1)
-        marker_pos_2 = getattr(self, marker_name_2)
-
-        return [[marker_pos_1[dim], marker_pos_2[dim]] for dim in range(n_dims)]
+    def __init__(self, pose_matrix):
+        super().__init__(pose_matrix)
 
     @property
     def edge_groups(self):
@@ -108,32 +78,3 @@ class Rat7mPose(BasePose):
             'arm_l': arm_l_edges,
             'arm_r': arm_r_edges,
         }
-
-    @property
-    def edge_groups_flat(self):
-        edge_groups = self.edge_groups
-        return np.array([
-            *edge_groups['head'],
-            *edge_groups['spine'],
-            *edge_groups['leg_l'],
-            *edge_groups['leg_r'],
-            *edge_groups['arm_l'],
-            *edge_groups['arm_r']
-        ])
-
-    def plot(self, ax, cmap=plt.get_cmap("tab10")):
-        edge_groups = self.edge_groups
-
-        line_actors = []
-        for edge_group_name, c in zip(edge_groups, cmap.colors):
-            for edge in edge_groups[edge_group_name]:
-                line_actors.append(*ax.plot(*edge, c=c))
-
-        return line_actors
-
-    def animate(self, line_actors):
-        updates = self.edge_groups_flat
-        for line_actor, update in zip(line_actors, updates):
-            line_actor.set_data(update[0], update[1])
-            if len(update) == 3:
-                line_actor.set_3d_properties(update[2])
