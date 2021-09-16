@@ -33,10 +33,10 @@ class BasePose(object):
         return self.__class__(self.pose_matrix[item])
 
     def __str__(self):
-        return f'{self.__name__}(shape={self.shape}, pose_matrix={self.pose_matrix.__str__()})'
+        return f'{self.__class__.__name__}(shape={self.shape}, pose_matrix={self.pose_matrix.__str__()})'
 
     def __repr__(self):
-        return f'{self.__name__}(shape={self.shape}, pose_matrix={self.pose_matrix.__repr__()})'
+        return f'{self.__class__.__name__}(shape={self.shape}, pose_matrix={self.pose_matrix.__repr__()})'
 
     @property
     def shape(self):
@@ -81,6 +81,9 @@ class BasePose(object):
                 line_actors.append(*ax.plot(*edge, c=c))
 
         return line_actors
+
+    def copy(self):
+        return self.__class__(self.pose_matrix)
 
     def update(self, line_actors: list):
         """

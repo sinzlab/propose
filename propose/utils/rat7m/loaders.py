@@ -26,7 +26,7 @@ def load_cameras(path: str) -> dict:
                         translation_vector=camera_calibration['translationVector'],
                         tangential_distortion=camera_calibration['TangentialDistortion'],
                         radial_distortion=camera_calibration['RadialDistortion'],
-                        frames=camera_calibration['frame'])
+                        frames=camera_calibration['frame'].squeeze())
 
         cameras[camera_name] = camera
 

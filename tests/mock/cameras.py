@@ -22,6 +22,6 @@ def create_mock_camera():
     tangential_distortion = np.array([[1, 2]])
     radial_distortion = np.array([[1, 2]])
 
-    frame = np.array([0])
+    frame = np.arange(0, 10)
 
     return Camera(intrinsic_matrix, rotation_matrix, translation_vector, tangential_distortion, radial_distortion, frame)
