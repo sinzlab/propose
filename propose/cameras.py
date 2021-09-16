@@ -9,13 +9,14 @@ class Camera(object):
     Camera class for managing camera related operations and storing camera data.
     """
     def __init__(self, intrinsic_matrix: np.ndarray, rotation_matrix: np.ndarray, translation_vector: np.ndarray,
-                 tangential_distortion: np.ndarray, radial_distortion: np.ndarray, frame: np.ndarray):
+                 tangential_distortion: np.ndarray, radial_distortion: np.ndarray, frames: np.ndarray):
         """
         :param intrinsic_matrix: 3x3 matrix, transforms the 3D camera coordinates to 2D homogeneous image coordinates.
         :param rotation_matrix: 3x3 matrix, describes the camera's rotation in space.
         :param translation_vector: 1x3 vector, describes the cameras location in space.
         :param tangential_distortion: 1x2 vector, describes the distortion between the lens and the image plane.
         :param radial_distortion: 1x2 or 1x3 vector, describes how light bends near the edges of the lens.
+        :param frames: the mapping of corresponding frames in the video.
         """
 
         self.intrinsic_matrix = intrinsic_matrix
@@ -23,7 +24,7 @@ class Camera(object):
         self.translation_vector = translation_vector
         self.tangential_distortion = tangential_distortion
         self.radial_distortion = radial_distortion
-        self.frame = frame
+        self.frames = frames
 
     def camera_matrix(self) -> np.ndarray:
         """
@@ -35,21 +36,18 @@ class Camera(object):
     def proj2D(self, points: Point3D, distort: bool = True) -> Point2D:
         """
         Computes the projection of a 3D point onto the 2D camera space
+        :param points: 3D points (x, y, z) (important to have the 3d points on the last axis)
         :param distort: bool [default = True] Determines whether camera distortion should be applied to the points.
-        :param points: 3D points (x, y, z)
         :return: Projected 2D points (x, y)
         """
-        if len(points.shape) == 1:
-            points = points[np.newaxis]
-
-        assert points.shape[1] == 3
+        assert points.shape[-1] == 3
 
         camera_matrix = self.camera_matrix()
 
-        extended_points = np.concatenate((points, np.ones((points.shape[0], 1))), axis=1)
+        extended_points = np.concatenate((points, np.ones((*points.shape[:-1], 1))), axis=-1)
 
         projected_points = extended_points @ camera_matrix  # (u, v, z)
-        projected_points = projected_points[:, :2] / projected_points[:, 2:]  # (u/z, v/z)
+        projected_points = projected_points[..., :2] / projected_points[..., 2:]  # (u/z, v/z)
 
         if distort:
             projected_points = self.distort(projected_points)
@@ -67,7 +65,7 @@ class Camera(object):
         kappa = self._radial_distortion(image_points)
         rho = self._tangential_distortion(image_points)
 
-        distorted_image_points = image_points * kappa[:, np.newaxis] + rho
+        distorted_image_points = image_points * kappa[..., np.newaxis] + rho
 
         pixel_points = self._image_to_pixel_points(distorted_image_points)
 
@@ -103,10 +101,10 @@ class Camera(object):
 
         centered_points = pixel_points - np.array([[cx, cy]])
 
-        y_norm = centered_points[:, 1] / fy
-        x_norm = (centered_points[:, 0] - skew * y_norm) / fx
+        y_norm = centered_points[..., 1] / fy
+        x_norm = (centered_points[..., 0] - skew * y_norm) / fx
 
-        return np.stack([x_norm, y_norm], axis=1)
+        return np.stack([x_norm, y_norm], axis=-1)
 
     def _image_to_pixel_points(self, image_points: Point2D) -> Point2D:
         """
@@ -120,9 +118,9 @@ class Camera(object):
         fx, fy, cx, cy, skew = self._unpack_intrinsic_matrix()
 
         pixel_points = np.stack([
-            (image_points[:, 0] * fx) + cx + (skew * image_points[:, 1]),
-            image_points[:, 1] * fy + cy
-        ], axis=1)
+            (image_points[..., 0] * fx) + cx + (skew * image_points[..., 1]),
+            image_points[..., 1] * fy + cy
+        ], axis=-1)
 
         return pixel_points
 
@@ -138,7 +136,7 @@ class Camera(object):
         :param image_points: 2D points in the normalised image space
         :return: (1 + k1*r^2 + k2*r^4 + k3*r^6)
         """
-        r2 = image_points.__pow__(2).sum(axis=1)
+        r2 = image_points.__pow__(2).sum(axis=-1)
         r4 = r2 ** 2
         r6 = r2 ** 3
 
@@ -162,11 +160,11 @@ class Camera(object):
         """
         p = self.tangential_distortion.squeeze()
 
-        r2 = image_points.__pow__(2).sum(axis=1)
+        r2 = image_points.__pow__(2).sum(axis=-1)
 
-        rho = np.array([
-            2 * p[0] * image_points[:, 0] * image_points[:, 1] + p[1] * (r2 + 2 * image_points[:, 0] ** 2),
-            2 * p[1] * image_points[:, 0] * image_points[:, 1] + p[0] * (r2 + 2 * image_points[:, 1] ** 2)
-        ]).T
+        rho = np.stack([
+            2 * p[0] * image_points[..., 0] * image_points[..., 1] + p[1] * (r2 + 2 * image_points[..., 0] ** 2),
+            2 * p[1] * image_points[..., 0] * image_points[..., 1] + p[0] * (r2 + 2 * image_points[..., 1] ** 2)
+        ], axis=-1)
 
         return rho
