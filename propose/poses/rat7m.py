@@ -4,6 +4,9 @@ import numpy as np
 
 
 class Rat7mPose(BasePose):
+    """
+    Pose Class for the Rat7M dataset.
+    """
     marker_names = [
         'HeadF',
         'HeadB',
@@ -32,6 +35,10 @@ class Rat7mPose(BasePose):
 
     @property
     def edge_groups(self):
+        """
+        Edge groups for plotting.
+        :return: dict of edge groups
+        """
         head_edges = np.array([
             self._edge('HeadF', 'HeadB'),
             self._edge('HeadF', 'HeadL'),

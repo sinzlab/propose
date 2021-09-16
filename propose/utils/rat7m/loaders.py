@@ -37,7 +37,7 @@ def load_mocap(path: str) -> Rat7mPose:
     """
     Loads mocap datafor the Rat7M dataset.
     :param path: path to the mocap file (e.g. /path/to/mocap-s4-d1.mat)
-    :return: [Nd array] a PoseSet of [frame, joint, xyz]
+    :return: [Nd array] a Rat7mPose of [frame, joint, xyz]
     """
     d = sio.loadmat(path, struct_as_record=False)
     dataset = vars(d["mocap"][0][0])
