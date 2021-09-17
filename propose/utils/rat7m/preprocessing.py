@@ -67,7 +67,13 @@ def apply_mask(mask: Mask, pose: Rat7mPose, cameras: dict[Camera] = None) -> tup
     return masked_pose
 
 
-def switch_arms_elbows(pose):
+def switch_arms_elbows(pose: Rat7mPose) -> Rat7mPose:
+    """
+    Detects were arms and elbows are switched and switches them back.
+    Arms and elbows are considered as switched if the arm is above the elbow.
+    :param pose: Rat7mPose instance
+    :return: Rat7mPose instance with fixed arms and elbows
+    """
     frames = np.arange(pose.shape[0])
 
     pose_matrix = pose.pose_matrix.copy()
@@ -88,3 +94,18 @@ def switch_arms_elbows(pose):
     pose_matrix[:, right_marker_idx[1]] = right_arm[frames, 1 - right_switch]
 
     return Rat7mPose(pose_matrix)
+
+
+def normalize_scale(pose: Rat7mPose) -> Rat7mPose:
+    """
+    Normalises the scale of the graph by dividing the graph by the length of the edge between SpineM and SpineF.
+    As a result, all the edges in the graph have a length relative to the length of the edge between SpineM and SpineF.
+    :param pose: Rat7mPose instance
+    :return: Rat7mPose instance with normalised scale
+    """
+    reference_edge = pose.SpineF - pose.SpineM
+    reference_edge_length = np.linalg.norm(reference_edge.pose_matrix, axis=1)
+
+    norm_pose_matrix = pose.pose_matrix / reference_edge_length[:, np.newaxis, np.newaxis]
+
+    return Rat7mPose(norm_pose_matrix)

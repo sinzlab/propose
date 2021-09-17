@@ -38,6 +38,9 @@ class BasePose(object):
     def __repr__(self):
         return f'{self.__class__.__name__}(shape={self.shape}, pose_matrix={self.pose_matrix.__repr__()})'
 
+    def __sub__(self, other):
+        return self.__class__(self.pose_matrix - other.pose_matrix)
+
     @property
     def shape(self):
         return self.pose_matrix.shape
