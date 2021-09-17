@@ -26,6 +26,16 @@ class Camera(object):
         self.radial_distortion = radial_distortion
         self.frames = frames
 
+    def copy(self):
+        return self.__class__(
+            intrinsic_matrix=self.intrinsic_matrix,
+            rotation_matrix=self.rotation_matrix,
+            translation_vector=self.translation_vector,
+            tangential_distortion=self.tangential_distortion,
+            radial_distortion=self.radial_distortion,
+            frames=self.frames
+        )
+
     def camera_matrix(self) -> np.ndarray:
         """
         Computes the camera matrix (M) from the rotation matrix (R) translation vector (t) and intrinsic matrix (C)
