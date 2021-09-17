@@ -109,3 +109,32 @@ def normalize_scale(pose: Rat7mPose) -> Rat7mPose:
     norm_pose_matrix = pose.pose_matrix / reference_edge_length[:, np.newaxis, np.newaxis]
 
     return Rat7mPose(norm_pose_matrix)
+
+
+def normalize_rotation(pose: Rat7mPose) -> Rat7mPose:
+    """
+    Rotate the pose such that SpineF and SpineM always lay on the Y-axis.
+    :param pose: Rat7mPose instance
+    :return: Rat7mPose instance with normalised rotation
+    """
+    reference_edge = pose.SpineF - pose.SpineM
+
+    norm = np.linalg.norm(reference_edge.pose_matrix[:, :2], axis=1)
+    n_frames = pose.shape[0]
+
+    uy = reference_edge[:, 1] / norm
+    ux = reference_edge[:, 0] / norm
+
+    zeros = np.zeros(n_frames)
+    ones = np.ones(n_frames)
+
+    rotation_matrix = np.array([
+        [uy, ux, zeros],
+        [-ux, uy, zeros],
+        [zeros, zeros, ones],
+    ])
+    rotation_matrix = np.moveaxis(rotation_matrix, -1, 0)
+
+    rotated_pose_matrix = pose.pose_matrix @ rotation_matrix
+
+    return Rat7mPose(rotated_pose_matrix)
