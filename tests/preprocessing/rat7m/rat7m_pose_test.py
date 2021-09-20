@@ -34,7 +34,7 @@ def test_switch_arms_legs():
     np.testing.assert_array_equal(pose.pose_matrix[:, marker_idx[3], 2], np.zeros(10))
 
 
-def test_normalise_scaling():
+def test_normalize_scaling():
     np.random.seed(1)
     pose_matrix = np.random.random(size=(10, 20, 3))
     pose = Rat7mPose(pose_matrix)
@@ -55,7 +55,7 @@ def test_normalise_scaling():
     np.testing.assert_array_almost_equal(test_ratio, norm_test_ratio)
 
 
-def test_normalise_rotation():
+def test_normalize_rotation():
     np.random.seed(1)
     pose_matrix = np.random.random(size=(10, 20, 3))
 
