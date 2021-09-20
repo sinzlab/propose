@@ -142,8 +142,8 @@ def normalize_rotation(pose: Rat7mPose) -> Rat7mPose:
 
 def center_pose(pose: Rat7mPose) -> Rat7mPose:
     """
-    Center the pose such that SpineF is always in [0, 0, 0]
+    Center the pose such that SpineM is always in [0, 0, 0]
     :param pose: Rat7mPose instance
     :return: Rat7mPose instance with pose centered around SpineF
     """
-    return pose.copy() - pose.SpineF[:, np.newaxis]
+    return pose.copy() - pose.SpineM[:, np.newaxis]
