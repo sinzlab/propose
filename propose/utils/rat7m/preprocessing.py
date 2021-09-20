@@ -104,9 +104,9 @@ def normalize_scale(pose: Rat7mPose) -> Rat7mPose:
     :return: Rat7mPose instance with normalised scale
     """
     reference_edge = pose.SpineF - pose.SpineM
-    reference_edge_length = np.linalg.norm(reference_edge.pose_matrix, axis=1)
+    reference_edge_length = np.linalg.norm(reference_edge.pose_matrix, axis=1).mean()
 
-    norm_pose_matrix = pose.pose_matrix / reference_edge_length[:, np.newaxis, np.newaxis]
+    norm_pose_matrix = pose.pose_matrix / reference_edge_length
 
     return Rat7mPose(norm_pose_matrix)
 

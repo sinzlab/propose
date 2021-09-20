@@ -110,16 +110,16 @@ def test_normalise_scaling():
     reference_edge = pose.SpineF - pose.SpineM
     test_edge = pose.ArmL - pose.ElbowL
 
-    test_ratio = np.linalg.norm(test_edge, axis=1) / np.linalg.norm(reference_edge, axis=1)
+    test_ratio = np.linalg.norm(test_edge, axis=1) / np.linalg.norm(reference_edge, axis=1).mean()
 
     norm_pose = pp.normalize_scale(pose)
 
     norm_reference_edge = norm_pose.SpineF - norm_pose.SpineM
     norm_test_edge = norm_pose.ArmL - norm_pose.ElbowL
 
-    norm_test_ratio = np.linalg.norm(norm_test_edge, axis=1) / np.linalg.norm(norm_reference_edge, axis=1)
+    norm_test_ratio = np.linalg.norm(norm_test_edge, axis=1) / np.linalg.norm(norm_reference_edge, axis=1).mean()
 
-    np.testing.assert_array_almost_equal(np.linalg.norm(norm_reference_edge, axis=1), np.ones(10))
+    np.testing.assert_array_almost_equal(np.linalg.norm(norm_reference_edge, axis=1), np.linalg.norm(reference_edge, axis=1) / np.linalg.norm(reference_edge, axis=1).mean())
     np.testing.assert_array_almost_equal(test_ratio, norm_test_ratio)
 
 
