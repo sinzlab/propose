@@ -2,13 +2,13 @@ import numpy as np
 from propose.cameras import Camera
 
 
-def create_mock_camera():
-    rotation_matrix = np.array([
-        [1, 0, 0],
-        [0, 0.5, 0.5],
-        [0, 0.5, 0.5]
-    ])
-
+def create_mock_camera(
+        rotation_matrix=np.array([
+            [1, 0, 0],
+            [0, 0.5, 0.5],
+            [0, 0.5, 0.5]
+        ])
+):
     translation_vector = np.array([
         [1, 2, 3]
     ])
