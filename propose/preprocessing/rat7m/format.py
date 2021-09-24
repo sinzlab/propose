@@ -24,7 +24,7 @@ def convert_movies_to_images(dirname: str, data_key: str, full_run: bool = False
     for movie_file in tqdm(movie_files, desc='Converting MP4 to JPG'):
         match = re.search(movie_rgx, movie_file)
         camera_id = match.group(1)
-        chunk = int(match.group(2))
+        chunk = match.group(2)
 
         output_image_dir = Path(dirname + f'/images/{data_key}/{data_key}-camera{camera_id}-{chunk}')
 
