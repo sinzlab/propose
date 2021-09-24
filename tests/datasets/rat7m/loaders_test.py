@@ -1,6 +1,6 @@
 from propose.cameras import Camera
 from propose.poses import Rat7mPose
-from propose.utils.rat7m.loaders import load_mocap, load_cameras
+from propose.datasets.rat7m.loaders import load_mocap, load_cameras
 
 path = './tests/mock/data/mocap-mock.mat'
 
