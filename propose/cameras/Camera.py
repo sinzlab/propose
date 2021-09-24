@@ -29,8 +29,8 @@ class Camera(object):
         self.radial_distortion = radial_distortion
         self.frames = frames
 
-    def copy(self):
-        return self.__class__(
+    def to_dict(self):
+        return dict(
             intrinsic_matrix=self.intrinsic_matrix,
             rotation_matrix=self.rotation_matrix,
             translation_vector=self.translation_vector,
@@ -38,6 +38,9 @@ class Camera(object):
             radial_distortion=self.radial_distortion,
             frames=self.frames
         )
+
+    def copy(self):
+        return self.__class__(**self.to_dict())
 
     def camera_matrix(self) -> npt.NDArray[float]:
         """
@@ -181,16 +184,3 @@ class Camera(object):
         ], axis=-1)
 
         return rho
-
-    def to_numpy(self):
-        return np.array([
-            self.intrinsic_matrix,
-            self.rotation_matrix,
-            self.translation_vector,
-            self.tangential_distortion,
-            self.radial_distortion,
-            self.frames
-        ], dtype=object)
-
-    def save(self, path):
-        np.save(path, self.to_numpy())

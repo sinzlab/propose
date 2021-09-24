@@ -270,9 +270,28 @@ def test_distort_single_point():
 def test_distort_multi_points():
     set_global_vars()
 
-    camera = Camera(intrinsic_matrix, rotation_matrix, translation_vector, tangential_distortion, radial_distortion, frames)
+    camera = Camera(intrinsic_matrix, rotation_matrix, translation_vector, tangential_distortion, radial_distortion,
+                    frames)
 
     points = np.array([[1, 2], [1, 2], [1, 2]])
     pixel_points = np.array([[-3, -4], [-3, -4], [-3, -4]])
 
     np.testing.assert_array_equal(camera.distort(points), pixel_points)
+
+
+def test_camera_to_dict():
+    set_global_vars()
+
+    camera = Camera(intrinsic_matrix, rotation_matrix, translation_vector, tangential_distortion, radial_distortion,
+                    frames)
+
+    camera_dict = camera.to_dict()
+
+    assert camera_dict == dict(
+        intrinsic_matrix=camera.intrinsic_matrix,
+        rotation_matrix=camera.rotation_matrix,
+        translation_vector=camera.translation_vector,
+        tangential_distortion=camera.tangential_distortion,
+        radial_distortion=camera.radial_distortion,
+        frames=camera.frames
+    )

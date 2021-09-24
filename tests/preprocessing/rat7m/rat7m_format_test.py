@@ -12,7 +12,7 @@ def test_convert_movies_to_images(tqdm_mock, os_mock, Path_mock, ffmpeg_mock):
 
     os_mock.listdir = MagicMock(return_value=['s0-d0-camera1-0.mp4'])
 
-    tqdm_mock.side_effect = lambda x: x
+    tqdm_mock.side_effect = lambda x, *args, **kwargs: x
 
     pp.convert_movies_to_images(dirname, datakey)
 

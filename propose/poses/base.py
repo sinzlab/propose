@@ -88,6 +88,13 @@ class BasePose(object):
     def copy(self):
         return self.__class__(self.pose_matrix)
 
+    def save(self, path):
+        np.save(path, self.pose_matrix)
+
+    @classmethod
+    def load(cls, path):
+        return cls(np.load(path))
+
     def update(self, line_actors: list):
         """
         Animation helper function. Updates the data for the line_actors

@@ -2,7 +2,7 @@ from propose.poses import Rat7mPose, BasePose
 import numpy as np
 from .mock import create_mock_camera
 
-from unittest.mock import Mock
+from unittest.mock import Mock, patch, call
 
 
 def test_pose_init():
@@ -55,4 +55,16 @@ def test_pose_can_be_proj2D():
     np.testing.assert_array_equal(camera.proj2D(pose.pose_matrix), pose2D)
 
 
+@patch('propose.poses.base.np')
+def test_save(numpy_mock):
+    pose = create_pose()
 
+    numpy_mock.load = Mock(return_value=pose.pose_matrix)
+    numpy_mock.save = Mock()
+
+    pose.save('path')
+    loaded_pose = Rat7mPose.load('path')
+
+    assert numpy_mock.save.mock_calls[0] == call('path', pose.pose_matrix)
+    assert numpy_mock.load.mock_calls[0] == call('path')
+    assert isinstance(loaded_pose, Rat7mPose)
