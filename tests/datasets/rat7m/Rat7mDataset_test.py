@@ -142,3 +142,44 @@ def test_getitem(imageio_mock, open_mock, pickle_mock, Rat7mPose_mock):
     assert imageio_mock.imread.mock_calls[3] == call(
         f'{dirname}/images/{data_key}/{data_key}-camera1-3500/{data_key}-camera1-00001.jpg')
     np.testing.assert_array_equal(pose, poses[0])
+
+
+@patch('propose.datasets.rat7m.Rat7mDataset.Rat7mPose')
+@patch('propose.datasets.rat7m.Rat7mDataset.pickle')
+@patch('builtins.open')
+@patch('propose.datasets.rat7m.Rat7mDataset.imageio')
+def test_getitem_misaligned_image_pose(imageio_mock, open_mock, pickle_mock, Rat7mPose_mock):
+    poses = np.zeros((7000, 20, 3))
+    cameras = {
+        'Camera1': MagicMock(),
+        'Camera2': MagicMock(),
+        'Camera3': MagicMock(),
+    }
+
+    cameras['Camera1'].frames.__getitem__ = MagicMock(side_effect=lambda x: x + 1)
+    cameras['Camera2'].frames.__getitem__ = MagicMock(side_effect=lambda x: x + 1)
+
+    Rat7mPose_mock.load = MagicMock(return_value=poses)
+    pickle_mock.load = MagicMock(return_value=cameras)
+
+    imageio_mock.imread = MagicMock(return_value=np.zeros((100, 100, 3)))
+
+    dirname = ''
+    data_key = ''
+
+    dataset = Rat7mDataset(
+        'images',
+        'poses',
+        'cameras',
+        dirname=dirname,
+        data_key=data_key,
+        transforms=[]
+    )
+
+    # Selecting object for first camera
+    camera, pose, image = dataset[0]
+
+    assert camera == cameras['Camera1']
+    assert imageio_mock.imread.mock_calls[0] == call(
+        f'{dirname}/images/{data_key}/{data_key}-camera1-0/{data_key}-camera1-00002.jpg')
+    np.testing.assert_array_equal(pose, poses[0])

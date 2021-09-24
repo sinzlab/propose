@@ -38,7 +38,7 @@ class Rat7mDataset(TransformDataset):
 
         chunk = camera.frames[pose_idx] // CHUNK_SIZE * CHUNK_SIZE
 
-        image_idx = pose_idx + 1 - chunk
+        image_idx = camera.frames[pose_idx] + 1 - chunk
 
         image_path = f'{self.image_dir}/{self.data_key}-{camera_key.lower()}-{chunk}/{self.data_key}-{camera_key.lower()}-{image_idx:05d}.jpg'
 
