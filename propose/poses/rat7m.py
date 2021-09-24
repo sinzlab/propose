@@ -33,6 +33,40 @@ class Rat7mPose(BasePose):
     def __init__(self, pose_matrix):
         super().__init__(pose_matrix)
 
+    def set_adjacency_matrix(self):
+        self.adjacency_matrix = np.eye(len(self.marker_names))
+
+        edges = [
+            self.get_edge('HeadF', 'HeadB'),
+            self.get_edge('HeadF', 'HeadL'),
+            self.get_edge('HeadF', 'SpineF'),
+            self.get_edge('HeadL', 'SpineF'),
+            self.get_edge('HeadL', 'HeadB'),
+            self.get_edge('HeadB', 'SpineF'),
+            self.get_edge('SpineF', 'SpineM'),
+            self.get_edge('SpineM', 'SpineL'),
+            self.get_edge('SpineF', 'Offset1'),
+            self.get_edge('SpineM', 'Offset1'),
+            self.get_edge('SpineM', 'Offset2'),
+            self.get_edge('SpineL', 'Offset2'),
+            self.get_edge('SpineL', 'HipL'),
+            self.get_edge('HipL', 'KneeL'),
+            self.get_edge('KneeL', 'ShinL'),
+            self.get_edge('SpineL', 'HipR'),
+            self.get_edge('HipR', 'KneeR'),
+            self.get_edge('KneeR', 'ShinR'),
+            self.get_edge('SpineF', 'ShoulderL'),
+            self.get_edge('ShoulderL', 'ElbowL'),
+            self.get_edge('ElbowL', 'ArmL'),
+            self.get_edge('SpineF', 'ShoulderR'),
+            self.get_edge('ShoulderR', 'ElbowR'),
+            self.get_edge('ElbowR', 'ArmR'),
+        ]
+
+        for edge in edges:
+            self.adjacency_matrix[edge] = 1
+            self.adjacency_matrix[edge[::-1]] = 1
+
     @property
     def edge_groups(self):
         """

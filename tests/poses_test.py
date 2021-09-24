@@ -9,16 +9,13 @@ def test_pose_init():
     shape = (10, 20, 3)
     pose_matrix = np.zeros(shape)
 
-    pose = BasePose(pose_matrix)
+    try:
+        BasePose(pose_matrix)
+    except NotImplementedError as e:
+        assert str(e) == 'Adjacency matrix has not been setup'
 
-    np.testing.assert_array_equal(pose_matrix, pose.pose_matrix)
 
-    assert pose.shape == shape
-
-
-def create_pose():
-    pose_matrix = np.zeros((10, 20, 3))
-
+def create_pose(pose_matrix=np.zeros((10, 20, 3))):
     pose = Rat7mPose(
         pose_matrix
     )
@@ -27,13 +24,19 @@ def create_pose():
 
 
 def test_rat7m_init():
-    pose = create_pose()
+    shape = (10, 20, 3)
+    pose_matrix = np.zeros(shape)
+    pose = create_pose(pose_matrix)
 
     assert isinstance(pose, BasePose)
 
     assert list(pose.edge_groups.keys()) == ['head', 'spine', 'leg_l', 'leg_r', 'arm_l', 'arm_r']
 
     assert len(pose.edge_groups_flat) == 20
+
+    np.testing.assert_array_equal(pose_matrix, pose.pose_matrix)
+
+    assert pose.shape == shape
 
 
 def test_rat7m_plot():
@@ -68,3 +71,29 @@ def test_save(numpy_mock):
     assert numpy_mock.save.mock_calls[0] == call('path', pose.pose_matrix)
     assert numpy_mock.load.mock_calls[0] == call('path')
     assert isinstance(loaded_pose, Rat7mPose)
+
+
+def test_adjacency():
+    pose = create_pose()
+
+    np.testing.assert_array_equal(pose.adjacency_matrix, np.array(
+        [[1., 1., 1., 1., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., ],
+         [1., 1., 1., 1., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., ],
+         [1., 1., 1., 1., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., ],
+         [1., 1., 1., 1., 1., 0., 1., 0., 0., 0., 0., 0., 1., 1., 0., 0., 0., 0., 0., 0., ],
+         [0., 0., 0., 1., 1., 1., 1., 1., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., ],
+         [0., 0., 0., 0., 1., 1., 0., 1., 1., 1., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., ],
+         [0., 0., 0., 1., 1., 0., 1., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., ],
+         [0., 0., 0., 0., 1., 1., 0., 1., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., ],
+         [0., 0., 0., 0., 0., 1., 0., 0., 1., 0., 0., 0., 0., 0., 0., 0., 0., 1., 0., 0., ],
+         [0., 0., 0., 0., 0., 1., 0., 0., 0., 1., 0., 0., 0., 0., 0., 0., 1., 0., 0., 0., ],
+         [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 1., 1., 0., 0., 0., 0., 0., 0., 0., ],
+         [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 1., 0., 0., 0., 0., 0., 0., 0., 0., ],
+         [0., 0., 0., 1., 0., 0., 0., 0., 0., 0., 1., 0., 1., 0., 0., 0., 0., 0., 0., 0., ],
+         [0., 0., 0., 1., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 1., 0., 0., 0., 0., 0., ],
+         [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 1., 1., 0., 0., 0., 0., ],
+         [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 1., 0., 0., 0., 0., ],
+         [0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 0., 0., 0., 0., 0., 0., 1., 0., 0., 1., ],
+         [0., 0., 0., 0., 0., 0., 0., 0., 1., 0., 0., 0., 0., 0., 0., 0., 0., 1., 1., 0., ],
+         [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 1., 0., ],
+         [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 0., 0., 1., ]]))

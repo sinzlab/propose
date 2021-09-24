@@ -7,6 +7,7 @@ class BasePose(object):
     Base class for poses. Provides and structure for storing pose information and plotting poses.
     """
     marker_names = []
+    adjacency_matrix = None
 
     def __init__(self, pose_matrix: np.ndarray):
         """
@@ -15,6 +16,8 @@ class BasePose(object):
         self.pose_matrix = pose_matrix
 
         self.__array_struct__ = self.pose_matrix.__array_struct__
+
+        self.set_adjacency_matrix()
 
     def __getattr__(self, item):
         """
@@ -44,6 +47,9 @@ class BasePose(object):
     @property
     def shape(self):
         return self.pose_matrix.shape
+
+    def get_edge(self, marker_name_1: str, marker_name_2: str):
+        return self.marker_names.index(marker_name_1), self.marker_names.index(marker_name_2)
 
     def _edge(self, marker_name_1: str, marker_name_2: str):
         """
@@ -130,3 +136,6 @@ class BasePose(object):
     @property
     def edge_groups(self):
         raise NotImplementedError('Edge groups have not been defined for this pose')
+
+    def set_adjacency_matrix(self):
+        raise NotImplementedError('Adjacency matrix has not been setup')
