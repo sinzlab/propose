@@ -44,6 +44,9 @@ class BasePose(object):
     def __sub__(self, other):
         return self.__class__(self.pose_matrix - other.pose_matrix)
 
+    def __len__(self):
+        return self.shape[0]
+
     @property
     def shape(self):
         return self.pose_matrix.shape

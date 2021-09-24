@@ -45,7 +45,7 @@ def test_pose_and_cameras_loaded(open_mock, pickle_mock, Rat7mPose_mock):
     assert dataset.poses == Rat7mPose_mock.load()
     assert dataset.cameras == pickle_mock.load()
     assert Rat7mPose_mock.load.mock_calls[0] == call(f'{dirname}/poses/{data_key}.npy')
-    assert open_mock.mock_calls[0] == call(f'{dirname}/cameras/{data_key}.pickle')
+    assert open_mock.mock_calls[0] == call(f'{dirname}/cameras/{data_key}.pickle', 'rb')
 
 
 @patch('propose.datasets.rat7m.Rat7mDataset.Rat7mPose')
@@ -115,26 +115,30 @@ def test_getitem(imageio_mock, open_mock, pickle_mock, Rat7mPose_mock):
     camera, pose, image = dataset[0]
 
     assert camera == cameras['Camera1']
-    assert imageio_mock.imread.mock_calls[0] == call(f'{dirname}/images/{data_key}/{data_key}-camera1-0.pickle')
+    assert imageio_mock.imread.mock_calls[0] == call(
+        f'{dirname}/images/{data_key}/{data_key}-camera1-0/{data_key}-camera1-00001.jpg')
     np.testing.assert_array_equal(pose, poses[0])
 
     # Selecting object for second camera
     camera, pose, image = dataset[7000 * 1]
 
     assert camera == cameras['Camera2']
-    assert imageio_mock.imread.mock_calls[1] == call(f'{dirname}/images/{data_key}/{data_key}-camera2-0.pickle')
+    assert imageio_mock.imread.mock_calls[1] == call(
+        f'{dirname}/images/{data_key}/{data_key}-camera2-0/{data_key}-camera2-00001.jpg')
     np.testing.assert_array_equal(pose, poses[0])
 
     # Selecting object second pose for second camera
     camera, pose, image = dataset[7000 * 1 + 1]
 
     assert camera == cameras['Camera2']
-    assert imageio_mock.imread.mock_calls[2] == call(f'{dirname}/images/{data_key}/{data_key}-camera2-0.pickle')
+    assert imageio_mock.imread.mock_calls[2] == call(
+        f'{dirname}/images/{data_key}/{data_key}-camera2-0/{data_key}-camera2-00002.jpg')
     np.testing.assert_array_equal(pose, poses[1])
 
     # Selecting object from second chunk for first camera
     camera, pose, image = dataset[3500]
 
     assert camera == cameras['Camera1']
-    assert imageio_mock.imread.mock_calls[3] == call(f'{dirname}/images/{data_key}/{data_key}-camera1-3500.pickle')
+    assert imageio_mock.imread.mock_calls[3] == call(
+        f'{dirname}/images/{data_key}/{data_key}-camera1-3500/{data_key}-camera1-00001.jpg')
     np.testing.assert_array_equal(pose, poses[0])
