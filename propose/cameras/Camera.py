@@ -1,15 +1,18 @@
 import numpy as np
+import numpy.typing as npt
 
-Point2D = np.ndarray
-Point3D = np.ndarray
+Point2D = npt.NDArray[float]
+Point3D = npt.NDArray[float]
 
 
 class Camera(object):
     """
     Camera class for managing camera related operations and storing camera data.
     """
-    def __init__(self, intrinsic_matrix: np.ndarray, rotation_matrix: np.ndarray, translation_vector: np.ndarray,
-                 tangential_distortion: np.ndarray, radial_distortion: np.ndarray, frames: np.ndarray):
+
+    def __init__(self, intrinsic_matrix: npt.NDArray[float], rotation_matrix: npt.NDArray[float],
+                 translation_vector: npt.NDArray[float], tangential_distortion: npt.NDArray[float],
+                 radial_distortion: npt.NDArray[float], frames: npt.NDArray[float]):
         """
         :param intrinsic_matrix: 3x3 matrix, transforms the 3D camera coordinates to 2D homogeneous image coordinates.
         :param rotation_matrix: 3x3 matrix, describes the camera's rotation in space.
@@ -36,7 +39,7 @@ class Camera(object):
             frames=self.frames
         )
 
-    def camera_matrix(self) -> np.ndarray:
+    def camera_matrix(self) -> npt.NDArray[float]:
         """
         Computes the camera matrix (M) from the rotation matrix (R) translation vector (t) and intrinsic matrix (C)
         :return: Camera matrix. M = [R | t]C
@@ -134,7 +137,7 @@ class Camera(object):
 
         return pixel_points
 
-    def _radial_distortion(self, image_points: Point2D) -> np.ndarray:
+    def _radial_distortion(self, image_points: Point2D) -> npt.NDArray[float]:
         """
         Occurs when light rays bend near the edge of the lens.
         Radial Distortion:
@@ -157,7 +160,7 @@ class Camera(object):
 
         return kappa
 
-    def _tangential_distortion(self, image_points: Point2D) -> np.ndarray:
+    def _tangential_distortion(self, image_points: Point2D) -> npt.NDArray[float]:
         """
         Occurs when the lens and image plane are not in parallel.
         Tangential Distortion:
@@ -178,3 +181,16 @@ class Camera(object):
         ], axis=-1)
 
         return rho
+
+    def to_numpy(self):
+        return np.array([
+            self.intrinsic_matrix,
+            self.rotation_matrix,
+            self.translation_vector,
+            self.tangential_distortion,
+            self.radial_distortion,
+            self.frames
+        ], dtype=object)
+
+    def save(self, path):
+        np.save(path, self.to_numpy())
