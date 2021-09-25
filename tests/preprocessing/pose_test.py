@@ -5,6 +5,8 @@ from tests.mock.cameras import create_mock_camera
 
 import numpy as np
 
+from scipy.spatial.transform import Rotation as R
+
 
 def test_normalize_std():
     np.random.seed(1)
@@ -21,24 +23,29 @@ def test_normalize_std():
 
 
 def test_rotate_to_camera():
+    gen_rot = np.array([
+        [1, 1, 1],
+        [1, 1, 1],
+        [1, 1, 1]
+    ])
+
+    r = R.from_matrix(gen_rot)
+    theta = np.arctan(gen_rot[0, 1] / gen_rot[0, 0])
+
     rot_matrix = np.array([
-        [1, 1, 0],
-        [1, 1, 0],
+        [np.cos(theta), -np.sin(theta), 0],
+        [np.sin(theta), np.cos(theta), 0],
         [0, 0, 1]
     ])
 
     camera_1 = create_mock_camera(rot_matrix)
-    camera_2 = create_mock_camera(np.array([
-        [1, 1, 1],
-        [1, 1, 1],
-        [1, 1, 1]
-    ]))
+    camera_2 = create_mock_camera(gen_rot)
 
     pose_matrix = np.random.random(size=(10, 20, 3))
     pose = Rat7mPose(pose_matrix)
 
     rot_pose = pp.rotate_to_camera(pose, camera_1)
-    np.testing.assert_array_equal(rot_pose.pose_matrix, pose.pose_matrix @ rot_matrix)
+    np.testing.assert_array_almost_equal(rot_pose.pose_matrix, pose.pose_matrix @ rot_matrix)
 
     rot_pose = pp.rotate_to_camera(pose, camera_2)
-    np.testing.assert_array_equal(rot_pose.pose_matrix, pose.pose_matrix @ rot_matrix)
+    np.testing.assert_array_almost_equal(rot_pose.pose_matrix, pose.pose_matrix @ rot_matrix)
