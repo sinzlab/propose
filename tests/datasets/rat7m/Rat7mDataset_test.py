@@ -1,6 +1,6 @@
-import os
-
 from propose.datasets.rat7m.Rat7mDataset import Rat7mDataset
+from propose.poses.rat7m import Rat7mPose
+
 from neuralpredictors.data.datasets import TransformDataset
 
 from unittest.mock import MagicMock, patch, call
@@ -13,12 +13,8 @@ import numpy as np
 @patch('builtins.open')
 def test_is_a_transform_dataset(open_mock, pickle_mock, Rat7mPose_mock):
     dataset = Rat7mDataset(
-        'images',
-        'poses',
-        'cameras',
         dirname='',
-        data_key='',
-        transforms=[]
+        data_key=''
     )
 
     assert isinstance(dataset, TransformDataset)
@@ -34,9 +30,6 @@ def test_pose_and_cameras_loaded(open_mock, pickle_mock, Rat7mPose_mock):
     data_key = ''
 
     dataset = Rat7mDataset(
-        'images',
-        'poses',
-        'cameras',
         dirname=dirname,
         data_key=data_key,
         transforms=[]
@@ -52,7 +45,7 @@ def test_pose_and_cameras_loaded(open_mock, pickle_mock, Rat7mPose_mock):
 @patch('propose.datasets.rat7m.Rat7mDataset.pickle')
 @patch('builtins.open')
 def test_len(open_mock, pickle_mock, Rat7mPose_mock):
-    poses = np.zeros((10, 20, 3))
+    poses = Rat7mPose(np.zeros((10, 20, 3)))
     cameras = {
         'Camera1': MagicMock(),
         'Camera2': MagicMock(),
@@ -66,9 +59,6 @@ def test_len(open_mock, pickle_mock, Rat7mPose_mock):
     data_key = ''
 
     dataset = Rat7mDataset(
-        'images',
-        'poses',
-        'cameras',
         dirname=dirname,
         data_key=data_key,
         transforms=[]
@@ -82,7 +72,7 @@ def test_len(open_mock, pickle_mock, Rat7mPose_mock):
 @patch('builtins.open')
 @patch('propose.datasets.rat7m.Rat7mDataset.imageio')
 def test_getitem(imageio_mock, open_mock, pickle_mock, Rat7mPose_mock):
-    poses = np.zeros((7000, 20, 3))
+    poses = Rat7mPose(np.zeros((7000, 20, 3)))
     cameras = {
         'Camera1': MagicMock(),
         'Camera2': MagicMock(),
@@ -101,9 +91,6 @@ def test_getitem(imageio_mock, open_mock, pickle_mock, Rat7mPose_mock):
     data_key = ''
 
     dataset = Rat7mDataset(
-        'images',
-        'poses',
-        'cameras',
         dirname=dirname,
         data_key=data_key,
         transforms=[]
@@ -112,7 +99,10 @@ def test_getitem(imageio_mock, open_mock, pickle_mock, Rat7mPose_mock):
     # Test Cases
 
     # Selecting object for first camera
-    camera, pose, image = dataset[0]
+    data = dataset[0]
+    camera = data.cameras
+    pose = data.poses
+    image = data.images
 
     assert camera == cameras['Camera1']
     assert imageio_mock.imread.mock_calls[0] == call(
@@ -120,7 +110,9 @@ def test_getitem(imageio_mock, open_mock, pickle_mock, Rat7mPose_mock):
     np.testing.assert_array_equal(pose, poses[0])
 
     # Selecting object for second camera
-    camera, pose, image = dataset[7000 * 1]
+    data = dataset[7000 * 1]
+    camera = data.cameras
+    pose = data.poses
 
     assert camera == cameras['Camera2']
     assert imageio_mock.imread.mock_calls[1] == call(
@@ -128,7 +120,9 @@ def test_getitem(imageio_mock, open_mock, pickle_mock, Rat7mPose_mock):
     np.testing.assert_array_equal(pose, poses[0])
 
     # Selecting object second pose for second camera
-    camera, pose, image = dataset[7000 * 1 + 1]
+    data = dataset[7000 * 1 + 1]
+    camera = data.cameras
+    pose = data.poses
 
     assert camera == cameras['Camera2']
     assert imageio_mock.imread.mock_calls[2] == call(
@@ -136,7 +130,9 @@ def test_getitem(imageio_mock, open_mock, pickle_mock, Rat7mPose_mock):
     np.testing.assert_array_equal(pose, poses[1])
 
     # Selecting object from second chunk for first camera
-    camera, pose, image = dataset[3500]
+    data = dataset[3500]
+    camera = data.cameras
+    pose = data.poses
 
     assert camera == cameras['Camera1']
     assert imageio_mock.imread.mock_calls[3] == call(
@@ -168,16 +164,15 @@ def test_getitem_misaligned_image_pose(imageio_mock, open_mock, pickle_mock, Rat
     data_key = ''
 
     dataset = Rat7mDataset(
-        'images',
-        'poses',
-        'cameras',
         dirname=dirname,
         data_key=data_key,
         transforms=[]
     )
 
     # Selecting object for first camera
-    camera, pose, image = dataset[0]
+    data = dataset[0]
+    camera = data.cameras
+    pose = data.poses
 
     assert camera == cameras['Camera1']
     assert imageio_mock.imread.mock_calls[0] == call(

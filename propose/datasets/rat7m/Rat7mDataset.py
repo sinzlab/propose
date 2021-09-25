@@ -1,6 +1,5 @@
 import pickle
 import imageio
-import torch
 
 from neuralpredictors.data.datasets import TransformDataset
 from propose.poses.rat7m import Rat7mPose
@@ -9,9 +8,15 @@ CHUNK_SIZE = 3500
 
 
 class Rat7mDataset(TransformDataset):
-    def __init__(self, *data_keys: str, dirname: str, data_key: str, transforms: list):
+    def __init__(self, dirname: str, data_key: str, transforms=None):
         self.dirname = dirname
         self.data_key = data_key
+
+        data_keys = [
+            'poses',
+            'cameras',
+            'images'
+        ]
 
         super().__init__(*data_keys, transforms=transforms)
 
@@ -37,11 +42,12 @@ class Rat7mDataset(TransformDataset):
         camera = self.cameras[camera_key]
 
         chunk = camera.frames[pose_idx] // CHUNK_SIZE * CHUNK_SIZE
-
         image_idx = camera.frames[pose_idx] + 1 - chunk
 
         image_path = f'{self.image_dir}/{self.data_key}-{camera_key.lower()}-{chunk}/{self.data_key}-{camera_key.lower()}-{image_idx:05d}.jpg'
-
         image = imageio.imread(image_path)
 
-        return camera, pose, torch.tensor(image)
+        data = self.data_point(poses=pose, cameras=camera, images=image)
+        data = self.transform(data)
+
+        return data
