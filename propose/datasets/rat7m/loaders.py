@@ -1,9 +1,20 @@
 from propose.cameras import Camera
 from propose.poses import Rat7mPose
+from propose.datasets.rat7m import Rat7mDataset
+import propose.datasets.rat7m.transforms as tr
+
+from neuralpredictors.data.transforms import ScaleInputs, ToTensor
+
+from collections import namedtuple
 
 import scipy.io as sio
 
 import numpy as np
+
+from torch.utils.data import DataLoader
+from torch.utils.data.sampler import SubsetRandomSampler
+
+TemporalSplit = namedtuple('TemporalSplit', ['train', 'validation', 'test'])
 
 
 def load_cameras(path: str) -> dict:
@@ -52,7 +63,72 @@ def load_mocap(path: str) -> Rat7mPose:
 
     poses = np.empty((n_frames, n_poses, n_dims))
     for idx, marker_name in enumerate(marker_names):
-         poses[:, idx, :] = dataset[marker_name]
+        poses[:, idx, :] = dataset[marker_name]
 
     return Rat7mPose(poses)
 
+
+def temporal_split_dataset(dataset: Rat7mDataset, train_frac: float = 0.6,
+                           validation_frac: float = 0.2) -> TemporalSplit:
+    """
+    Splits the Rat7mDataset into train and test datasets based on time. i.e. first train_frac% timesteps are used as
+    training data
+    :param dataset: Dataset for which to get split
+    :param train_frac: fraction of timesteps to be used for training
+    :param validation_frac: fraction of timesteps to be used for validation
+    :return: namedtuple with train and test indexes
+    """
+
+    n_frames = len(dataset.poses)
+    n_cameras = len(dataset.cameras)
+
+    train_frames = int(n_frames * train_frac)
+    val_frames = int(n_frames * validation_frac)
+
+    train = np.concatenate([np.arange(i * n_frames, i * n_frames + train_frames) for i in range(n_cameras)])
+    validation = np.concatenate(
+        [np.arange(i * n_frames + train_frames, i * n_frames + train_frames + val_frames) for i in range(n_cameras)])
+    test = np.concatenate(
+        [np.arange(i * n_frames + train_frames + val_frames, (i + 1) * n_frames) for i in range(n_cameras)])
+
+    return TemporalSplit(train=train, validation=validation, test=test)
+
+
+def static_loader(
+        path: str,
+        data_key: str,
+        batch_size: int,
+        cuda: bool = False
+) -> dict:
+    """
+    Constructs train, validation and test DataLoaders.
+    :param path: Path the data directory
+    :param data_key: data_key of the subject and day e.g. s1-d1
+    :param batch_size: Number of samples in each batch.
+    :param cuda: Whether cuda should be used
+    :return: Dict of DataLoaders.
+    """
+    transforms = [
+        tr.SwitchArmsElbows(),
+        tr.CropImageToPose(),
+        tr.RotatePoseToCamera(),
+        tr.CenterPose(),
+        tr.ScalePose(scale=0.03),
+        ScaleInputs(scale=0.1, multichannel=True, anti_aliasing=True),
+        tr.ToGraph(),
+        ToTensor(cuda)
+    ]
+
+    dat = Rat7mDataset(path, data_key=data_key, transforms=transforms)
+
+    split_dat = temporal_split_dataset(dat)
+
+    keys = ["train", "validation", "test"]
+
+    dataloaders = {}
+    for tier in keys:
+        subset_idx = getattr(split_dat, tier)
+        sampler = SubsetRandomSampler(subset_idx)
+        dataloaders[tier] = DataLoader(dat, sampler=sampler, batch_size=batch_size)
+
+    return dataloaders

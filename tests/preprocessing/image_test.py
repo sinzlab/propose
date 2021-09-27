@@ -20,3 +20,11 @@ def test_square_crop_to_pose():
 
     assert image.mock_calls[0][1][0][0] == slice(mean[1] - 5, mean[1] + 5, None)
     assert image.mock_calls[0][1][0][1] == slice(mean[0] - 5, mean[0] + 5, None)
+
+
+def test_scale_pixel_range():
+    image = np.ones((100, 100, 3))
+
+    scaled_image = pp.scale_pixel_range(image)
+
+    np.testing.assert_array_equal(image / 255, scaled_image)

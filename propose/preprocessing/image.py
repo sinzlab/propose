@@ -21,3 +21,12 @@ def square_crop_to_pose(image: Image, pose2D: BasePose, width: int = 350) -> Ima
     y_slice = slice(mean_xy[1] - padding, mean_xy[1] + padding)
 
     return image[y_slice, x_slice]
+
+
+def scale_pixel_range(image: Image) -> Image:
+    """
+    Scales image from pixel range [0, 255] range to pixel range [0, 1].
+    :param image: Image to be scaled with pixels in range [0, 255]
+    :return: Scaled image with pixel in range [0, 1]
+    """
+    return image / 255

@@ -100,3 +100,17 @@ def test_SwitchArmsElbows(pp_mock):
     pp_mock.switch_arms_elbows.assert_called_once_with(pose=pose)
 
     assert isinstance(res, data)
+
+
+@patch('propose.datasets.rat7m.transforms.pp')
+def test_ScalePixelRange(pp_mock):
+    np.random.seed(1)
+    data = namedtuple('Data', ['images'])
+
+    image = MagicMock()
+
+    res = tr.ScalePixelRange()(data(images=image))
+
+    pp_mock.scale_pixel_range.assert_called_once_with(image=image)
+
+    assert isinstance(res, data)

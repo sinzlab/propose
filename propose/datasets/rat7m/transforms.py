@@ -77,3 +77,11 @@ class SwitchArmsElbows(object):
         key_vals['poses'] = pp.switch_arms_elbows(pose=pose)
 
         return x.__class__(**key_vals)
+
+
+class ScalePixelRange(object):
+    def __call__(self, x):
+        key_vals = {k: v for k, v in zip(x._fields, x)}
+        key_vals['images'] = pp.scale_pixel_range(image=key_vals['images'])
+
+        return x.__class__(**key_vals)
