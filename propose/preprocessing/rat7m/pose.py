@@ -10,6 +10,9 @@ def switch_arms_elbows(pose: Rat7mPose) -> Rat7mPose:
     :param pose: Rat7mPose instance
     :return: Rat7mPose instance with fixed arms and elbows
     """
+    if len(pose.shape) < 3:
+        pose = pose.__class__(pose.pose_matrix[np.newaxis])
+
     frames = np.arange(pose.shape[0])
 
     pose_matrix = pose.pose_matrix.copy()
@@ -29,7 +32,7 @@ def switch_arms_elbows(pose: Rat7mPose) -> Rat7mPose:
     pose_matrix[:, right_marker_idx[0]] = right_arm[frames, right_switch]
     pose_matrix[:, right_marker_idx[1]] = right_arm[frames, 1 - right_switch]
 
-    return Rat7mPose(pose_matrix)
+    return Rat7mPose(pose_matrix.squeeze())
 
 
 def normalize_scale(pose: Rat7mPose) -> Rat7mPose:

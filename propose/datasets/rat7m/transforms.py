@@ -1,10 +1,7 @@
 import propose.preprocessing.rat7m as pp
 from propose.poses.rat7m import Rat7mPose
 
-import numpy.typing as npt
 from collections import namedtuple
-
-Image = npt.NDArray[float]
 
 
 class ScalePose(object):
@@ -31,7 +28,7 @@ class CenterPose(object):
         return x.__class__(**key_vals)
 
 
-class CropImage(object):
+class CropImageToPose(object):
     def __init__(self, width=350):
         self.width = width
 
@@ -49,7 +46,7 @@ class CropImage(object):
         return x.__class__(**key_vals)
 
 
-class RotateToCamera(object):
+class RotatePoseToCamera(object):
     def __call__(self, x):
         key_vals = {k: v for k, v in zip(x._fields, x)}
 
@@ -70,3 +67,13 @@ class ToGraph(object):
             pose_matrix=x.poses.pose_matrix,
             adjacency_matrix=x.poses.adjacency_matrix,
             image=x.images)
+
+
+class SwitchArmsElbows(object):
+    def __call__(self, x):
+        key_vals = {k: v for k, v in zip(x._fields, x)}
+        pose = key_vals['poses']
+
+        key_vals['poses'] = pp.switch_arms_elbows(pose=pose)
+
+        return x.__class__(**key_vals)

@@ -34,6 +34,59 @@ def test_switch_arms_legs():
     np.testing.assert_array_equal(pose.pose_matrix[:, marker_idx[3], 2], np.zeros(10))
 
 
+def test_switch_arms_legs_single_frame():
+    np.random.seed(1)
+    pose_matrix = np.random.random(size=(20, 3))
+
+    markers = ['ElbowL', 'ArmL', 'ElbowR', 'ArmR']
+    marker_idx = [Rat7mPose.marker_names.index(marker) for marker in markers]
+
+    pose_matrix[marker_idx[0]] = 0
+    pose_matrix[marker_idx[1]] = 0
+
+    pose_matrix[marker_idx[0]] = 0
+    pose_matrix[marker_idx[1]] = 1
+
+    pose_matrix[marker_idx[2]] = 0
+    pose_matrix[marker_idx[3]] = 0
+
+    pose_matrix[marker_idx[2]] = 0
+    pose_matrix[marker_idx[3]] = 1
+
+    pose = Rat7mPose(pose_matrix)
+
+    pose = pp.switch_arms_elbows(pose)
+
+    np.testing.assert_array_equal(pose.pose_matrix[marker_idx[0], 2], np.ones(1))
+    np.testing.assert_array_equal(pose.pose_matrix[marker_idx[1], 2], np.zeros(0))
+
+    np.testing.assert_array_equal(pose.pose_matrix[marker_idx[2], 2], np.ones(1))
+    np.testing.assert_array_equal(pose.pose_matrix[marker_idx[3], 2], np.zeros(0))
+
+    # Inverted Case
+    pose_matrix[marker_idx[0]] = 0
+    pose_matrix[marker_idx[1]] = 0
+
+    pose_matrix[marker_idx[0]] = 1
+    pose_matrix[marker_idx[1]] = 0
+
+    pose_matrix[marker_idx[2]] = 0
+    pose_matrix[marker_idx[3]] = 0
+
+    pose_matrix[marker_idx[2]] = 1
+    pose_matrix[marker_idx[3]] = 0
+
+    pose = Rat7mPose(pose_matrix)
+
+    pose = pp.switch_arms_elbows(pose)
+
+    np.testing.assert_array_equal(pose.pose_matrix[marker_idx[0], 2], np.ones(1))
+    np.testing.assert_array_equal(pose.pose_matrix[marker_idx[1], 2], np.zeros(0))
+
+    np.testing.assert_array_equal(pose.pose_matrix[marker_idx[2], 2], np.ones(1))
+    np.testing.assert_array_equal(pose.pose_matrix[marker_idx[3], 2], np.zeros(0))
+
+
 def test_normalize_scaling():
     np.random.seed(1)
     pose_matrix = np.random.random(size=(10, 20, 3))
