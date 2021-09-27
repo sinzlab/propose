@@ -33,6 +33,9 @@ class BasePose(object):
         return self.__class__(self.pose_matrix[..., idx, :])
 
     def __getitem__(self, item):
+        if isinstance(item, str):
+            return self.__getattr__(item)
+
         return self.__class__(self.pose_matrix[item])
 
     def __str__(self):
@@ -46,6 +49,9 @@ class BasePose(object):
 
     def __len__(self):
         return self.shape[0]
+
+    def __eq__(self, other):
+        return np.array_equal(self, other)
 
     @property
     def shape(self):

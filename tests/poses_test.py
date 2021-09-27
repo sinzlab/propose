@@ -58,6 +58,32 @@ def test_pose_can_be_proj2D():
     np.testing.assert_array_equal(camera.proj2D(pose.pose_matrix), pose2D)
 
 
+def test_get_by_marker_name():
+    pose_matrix = np.zeros((10, 20, 3))
+    pose = create_pose(pose_matrix)
+
+    np.testing.assert_array_equal(pose.HeadF, pose[:, 0])
+    np.testing.assert_array_equal(pose['HeadF'], pose[:, 0])
+
+    np.testing.assert_array_equal(pose.HeadB, pose[:, 1])
+    np.testing.assert_array_equal(pose['HeadB'], pose[:, 1])
+
+
+def test_pose_comparison():
+    pose_matrix = np.zeros((10, 20, 3))
+    pose1 = create_pose(pose_matrix)
+
+    pose_matrix = np.zeros((10, 20, 3))
+    pose2 = create_pose(pose_matrix)
+
+    pose_matrix = np.ones((10, 20, 3))
+    pose3 = create_pose(pose_matrix)
+
+    np.testing.assert_array_equal(pose1, pose1)
+    np.testing.assert_array_equal(pose1, pose2)
+    np.testing.assert_raises(AssertionError, np.testing.assert_array_equal, pose1, pose3)
+
+
 @patch('propose.poses.base.np')
 def test_save(numpy_mock):
     pose = create_pose()
