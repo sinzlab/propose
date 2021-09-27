@@ -69,18 +69,3 @@ def test_normalize_rotation():
     target_position = np.array([0, np.sqrt(2), 1])
 
     np.testing.assert_array_almost_equal(norm_pose.SpineF[4], target_position)
-
-
-def test_center_pose():
-    np.random.seed(1)
-    pose_matrix = np.random.random(size=(10, 20, 3))
-    pose = Rat7mPose(pose_matrix)
-
-    spine_m = pose.SpineM.pose_matrix.copy()
-    arm_r = pose.ArmR.pose_matrix.copy()
-
-    centered_pose = pp.center_pose(pose)
-
-    np.testing.assert_raises(AssertionError, np.testing.assert_array_equal, spine_m, centered_pose.SpineM.pose_matrix)
-    np.testing.assert_array_equal(centered_pose.SpineM.pose_matrix, np.zeros_like(centered_pose.SpineM.pose_matrix))
-    np.testing.assert_array_equal(centered_pose.ArmR.pose_matrix, arm_r - spine_m)

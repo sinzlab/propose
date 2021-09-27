@@ -9,7 +9,8 @@ from collections import namedtuple
 import numpy as np
 
 
-def test_ScalePose():
+@patch('propose.datasets.rat7m.transforms.pp')
+def test_ScalePose(pp_mock):
     np.random.seed(1)
     data = namedtuple('Data', ['poses'])
 
@@ -18,22 +19,12 @@ def test_ScalePose():
     pose = Rat7mPose(pose_matrix)
 
     scale = 0.5
-    norm_pose_matrix = pose_matrix * scale
-    tr = ScalePose(scale=scale)(data(poses=pose))
-    np.testing.assert_array_equal(tr.poses.pose_matrix, norm_pose_matrix)
-
-    scale = 2
-    norm_pose_matrix = pose_matrix * scale
-    tr = ScalePose(scale=scale)(data(poses=pose))
-    np.testing.assert_array_equal(tr.poses.pose_matrix, norm_pose_matrix)
-
-    scale = 1
-    norm_pose_matrix = pose_matrix * scale
-    tr = ScalePose(scale=scale)(data(poses=pose))
-    np.testing.assert_array_equal(tr.poses.pose_matrix, norm_pose_matrix)
+    ScalePose(scale=scale)(data(poses=pose))
+    pp_mock.scale_pose.assert_called_once_with(pose=pose, scale=scale)
 
 
-def test_CenterPose():
+@patch('propose.datasets.rat7m.transforms.pp')
+def test_CenterPose(pp_mock):
     np.random.seed(1)
     data = namedtuple('Data', ['poses'])
 
@@ -41,19 +32,9 @@ def test_CenterPose():
 
     pose = Rat7mPose(pose_matrix)
 
-    spine_m = pose[0].SpineM.pose_matrix.copy()
-    spine_f = pose[0].SpineF.pose_matrix.copy()
-    arm_r = pose[0].ArmR.pose_matrix.copy()
+    CenterPose(center_marker_name='SpineM')(data(poses=pose[0]))
 
-    tr = CenterPose(center_marker_name='SpineM')(data(poses=pose[0]))
-    np.testing.assert_raises(AssertionError, np.testing.assert_array_equal, spine_m, tr.poses.SpineM.pose_matrix)
-    np.testing.assert_array_equal(tr.poses.SpineM.pose_matrix, np.zeros_like(tr.poses.SpineM.pose_matrix))
-    np.testing.assert_array_equal(tr.poses.ArmR.pose_matrix, arm_r - spine_m)
-
-    tr = CenterPose(center_marker_name='SpineF')(data(poses=pose[0]))
-    np.testing.assert_raises(AssertionError, np.testing.assert_array_equal, spine_f, tr.poses.SpineF.pose_matrix)
-    np.testing.assert_array_equal(tr.poses.SpineF.pose_matrix, np.zeros_like(tr.poses.SpineF.pose_matrix))
-    np.testing.assert_array_equal(tr.poses.ArmR.pose_matrix, arm_r - spine_f)
+    pp_mock.center_pose.assert_called_once_with(pose=pose[0], center_marker_name='SpineM')
 
 
 @patch('propose.datasets.rat7m.transforms.pp')

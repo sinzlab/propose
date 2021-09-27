@@ -14,12 +14,7 @@ class ScalePose(object):
     def __call__(self, x):
         key_vals = {k: v for k, v in zip(x._fields, x)}
 
-        pose = x.poses
-        pose_matrix = pose.pose_matrix
-
-        pose_matrix *= self.scale
-
-        key_vals['poses'] = pose.__class__(pose_matrix)
+        key_vals['poses'] = pp.scale_pose(pose=x.poses, scale=self.scale)
 
         return x.__class__(**key_vals)
 
@@ -31,7 +26,7 @@ class CenterPose(object):
     def __call__(self, x):
         key_vals = {k: v for k, v in zip(x._fields, x)}
 
-        key_vals['poses'] = key_vals['poses'] - key_vals['poses'][self.center_marker_name]
+        key_vals['poses'] = pp.center_pose(pose=key_vals['poses'], center_marker_name=self.center_marker_name)
 
         return x.__class__(**key_vals)
 

@@ -49,3 +49,44 @@ def test_rotate_to_camera():
 
     rot_pose = pp.rotate_to_camera(pose, camera_2)
     np.testing.assert_array_almost_equal(rot_pose.pose_matrix, pose.pose_matrix @ rot_matrix)
+
+
+def test_center_pose_multi_frame():
+    np.random.seed(1)
+    pose_matrix = np.random.random(size=(10, 20, 3))
+    pose = Rat7mPose(pose_matrix)
+
+    spine_m = pose.SpineM.pose_matrix.copy()
+    arm_r = pose.ArmR.pose_matrix.copy()
+
+    centered_pose = pp.center_pose(pose)
+
+    np.testing.assert_raises(AssertionError, np.testing.assert_array_equal, spine_m, centered_pose.SpineM.pose_matrix)
+    np.testing.assert_array_equal(centered_pose.SpineM.pose_matrix, np.zeros_like(centered_pose.SpineM.pose_matrix))
+    np.testing.assert_array_equal(centered_pose.ArmR.pose_matrix, arm_r - spine_m)
+
+
+def test_center_pose_single_frame():
+    np.random.seed(1)
+    pose_matrix = np.random.random(size=(20, 3))
+    pose = Rat7mPose(pose_matrix)
+
+    spine_m = pose.SpineM.pose_matrix.copy()
+    arm_r = pose.ArmR.pose_matrix.copy()
+
+    centered_pose = pp.center_pose(pose)
+
+    np.testing.assert_raises(AssertionError, np.testing.assert_array_equal, spine_m, centered_pose.SpineM.pose_matrix)
+    np.testing.assert_array_equal(centered_pose.SpineM.pose_matrix, np.zeros_like(centered_pose.SpineM.pose_matrix))
+    np.testing.assert_array_equal(centered_pose.ArmR.pose_matrix, arm_r - spine_m)
+
+
+def test_scale_pose():
+    np.random.seed(1)
+    pose_matrix = np.random.random(size=(20, 3))
+    pose = Rat7mPose(pose_matrix)
+
+    scale = 2
+    scaled_pose = pp.scale_pose(pose, scale)
+
+    np.testing.assert_array_equal(scaled_pose, pose_matrix * scale)

@@ -53,3 +53,26 @@ def rotate_to_camera(pose: BasePose, camera: Camera):
     rot_pose_matrix = pose.pose_matrix.dot(yaw)
 
     return pose.__class__(rot_pose_matrix)
+
+
+def center_pose(pose: BasePose, center_marker_name: str = 'SpineM') -> BasePose:
+    """
+    Center the pose such that the selected marker is always in [0, 0, 0]
+    :param center_marker_name: Marker to which the pose should be centered to.
+    :param pose: BasePose instance
+    :return: BasePose instance with pose centered around SpineF
+    """
+    if len(pose.shape) == 3:
+        return pose.copy() - pose[center_marker_name][:, np.newaxis]
+
+    return pose.copy() - pose[center_marker_name]
+
+
+def scale_pose(pose: BasePose, scale: float) -> BasePose:
+    """
+    Scales the pose by a scale parameter
+    :param pose: Pose to be scaled
+    :param scale: float determining the scaling given as (p * s), where p is pose and s is the scaling parameter.
+    :return: scaled pose.
+    """
+    return pose.__class__(pose.pose_matrix * scale)
