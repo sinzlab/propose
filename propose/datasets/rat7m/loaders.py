@@ -96,7 +96,6 @@ def temporal_split_dataset(dataset: Rat7mDataset, train_frac: float = 0.6,
 
 def static_loader(
         path: str,
-        data_key: str,
         batch_size: int,
         cuda: bool = False
 ) -> dict:
@@ -119,7 +118,7 @@ def static_loader(
         ToTensor(cuda)
     ]
 
-    dat = Rat7mDataset(path, data_key=data_key, transforms=transforms)
+    dat = Rat7mDataset(path, transforms=transforms)
 
     split_dat = temporal_split_dataset(dat)
 

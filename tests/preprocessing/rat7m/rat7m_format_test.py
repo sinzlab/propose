@@ -16,10 +16,10 @@ def test_convert_movies_to_images(tqdm_mock, os_mock, Path_mock, ffmpeg_mock):
 
     pp.convert_movies_to_images(dirname, datakey)
 
-    assert Path_mock.mock_calls[0] == call(f'{dirname}/images/{datakey}/{datakey}-camera1-0')
+    assert Path_mock.mock_calls[0] == call(f'{dirname + datakey}/images/{datakey}-camera1-0')
 
-    assert ffmpeg_mock.mock_calls[0] == call.input(f'{dirname}/movies/{datakey}/{datakey}-camera1-0.mp4')
+    assert ffmpeg_mock.mock_calls[0] == call.input(f'{dirname + datakey}/movies/{datakey}-camera1-0.mp4')
     assert ffmpeg_mock.mock_calls[1] == call.output(ffmpeg_mock.input(),
-                                                    f'{dirname}/images/{datakey}/{datakey}-camera1-0/{datakey}-camera1-%05d.jpg',
+                                                    f'{dirname + datakey}/images/{datakey}-camera1-0/{datakey}-camera1-%05d.jpg',
                                                     format='image2', vcodec='mjpeg')
     assert ffmpeg_mock.mock_calls[2] == call.output().run(quiet=False)

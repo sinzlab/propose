@@ -54,7 +54,7 @@ def test_static_loader(dataset):
     dataset().poses = np.arange(0, 10)
     dataset().cameras = np.arange(0, 2)
 
-    dls = static_loader('', '', batch_size=1)
+    dls = static_loader('', batch_size=1)
 
     transforms = dataset.mock_calls[-1][2]['transforms']
 

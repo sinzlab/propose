@@ -1,3 +1,5 @@
+import os
+
 import pickle
 import imageio
 
@@ -8,9 +10,9 @@ CHUNK_SIZE = 3500
 
 
 class Rat7mDataset(TransformDataset):
-    def __init__(self, dirname: str, data_key: str, transforms=None):
+    def __init__(self, dirname: str, transforms=None):
         self.dirname = dirname
-        self.data_key = data_key
+        self.data_key = os.path.basename(dirname)
 
         data_keys = [
             'poses',
@@ -20,9 +22,9 @@ class Rat7mDataset(TransformDataset):
 
         super().__init__(*data_keys, transforms=transforms)
 
-        self.poses_path = f'{dirname}/poses/{data_key}.npy'
-        self.cameras_path = f'{dirname}/cameras/{data_key}.pickle'
-        self.image_dir = f'{dirname}/images/{data_key}'
+        self.poses_path = f'{dirname}/poses/{self.data_key}.npy'
+        self.cameras_path = f'{dirname}/cameras/{self.data_key}.pickle'
+        self.image_dir = f'{dirname}/images'
 
         self.poses = Rat7mPose.load(self.poses_path)
 

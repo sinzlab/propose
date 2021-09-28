@@ -16,7 +16,7 @@ def convert_movies_to_images(dirname: str, data_key: str, full_run: bool = False
     :param verbose: (bool, optional, default=False) whether detailed logs should be printed.
     :return: None
     """
-    movie_dir = dirname + f'/movies/{data_key}/'
+    movie_dir = dirname + f'{data_key}/movies/'
 
     movie_rgx = re.compile(f'{data_key}-camera(.)-(.*).mp4')
 
@@ -26,7 +26,7 @@ def convert_movies_to_images(dirname: str, data_key: str, full_run: bool = False
         camera_id = match.group(1)
         chunk = match.group(2)
 
-        output_image_dir = Path(dirname + f'/images/{data_key}/{data_key}-camera{camera_id}-{chunk}')
+        output_image_dir = Path(dirname + f'{data_key}/images/{data_key}-camera{camera_id}-{chunk}')
 
         output_image_dir.mkdir(parents=True, exist_ok=True)
 
@@ -38,9 +38,9 @@ def convert_movies_to_images(dirname: str, data_key: str, full_run: bool = False
         full_movie_path = movie_dir + movie_file
         stream = ffmpeg.input(full_movie_path)
         stream = ffmpeg.output(stream,
-                               dirname + f"/images/{data_key}/{data_key}-camera{camera_id}-{chunk}/{data_key}-camera{camera_id}-%05d.jpg",
+                               dirname + f"{data_key}/images/{data_key}-camera{camera_id}-{chunk}/{data_key}-camera{camera_id}-%05d.jpg",
                                format='image2',
                                vcodec='mjpeg')
         stream.run(quiet=verbose)
 
-    print(f'Images have been saved to: {dirname}/images/{data_key}')
+    print(f'Images have been saved to: {dirname}/{data_key}/images/')
