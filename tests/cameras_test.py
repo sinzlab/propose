@@ -39,7 +39,8 @@ def set_global_vars():
 def test_camera_init():
     set_global_vars()
 
-    camera = Camera(intrinsic_matrix, rotation_matrix, translation_vector, tangential_distortion, radial_distortion, frames)
+    camera = Camera(intrinsic_matrix, rotation_matrix, translation_vector, tangential_distortion, radial_distortion,
+                    frames)
 
     np.testing.assert_array_equal(camera.intrinsic_matrix, intrinsic_matrix)
     np.testing.assert_array_equal(camera.rotation_matrix, rotation_matrix)
@@ -55,7 +56,8 @@ def test_camera_matrix():
     """
     set_global_vars()
 
-    camera = Camera(intrinsic_matrix, rotation_matrix, translation_vector, tangential_distortion, radial_distortion, frames)
+    camera = Camera(intrinsic_matrix, rotation_matrix, translation_vector, tangential_distortion, radial_distortion,
+                    frames)
 
     np.testing.assert_array_equal(camera.camera_matrix(), camera_matrix)
 
@@ -69,14 +71,14 @@ def test_camera_proj2D_without_distortion():
     """
     set_global_vars()
 
-    camera = Camera(intrinsic_matrix, rotation_matrix, translation_vector, tangential_distortion, radial_distortion, frames)
+    camera = Camera(intrinsic_matrix, rotation_matrix, translation_vector, tangential_distortion, radial_distortion,
+                    frames)
 
     quaternion = np.array([[1, 2, 3, 1]])
     camera_matrix = camera.camera_matrix()
 
     projected_points = quaternion @ camera_matrix
     projected_points = projected_points[..., :2] / projected_points[..., 2:]
-
 
     np.testing.assert_array_equal(camera.proj2D(quaternion[..., :3], distort=False), projected_points)
 
@@ -90,14 +92,14 @@ def test_camera_proj2D_without_distortion_mulitple_axis():
     """
     set_global_vars()
 
-    camera = Camera(intrinsic_matrix, rotation_matrix, translation_vector, tangential_distortion, radial_distortion, frames)
+    camera = Camera(intrinsic_matrix, rotation_matrix, translation_vector, tangential_distortion, radial_distortion,
+                    frames)
 
     quaternion = np.array([[[1, 2, 3, 1]]])
     camera_matrix = camera.camera_matrix()
 
     projected_points = quaternion @ camera_matrix
     projected_points = projected_points[..., :2] / projected_points[..., 2:]
-
 
     np.testing.assert_array_equal(camera.proj2D(quaternion[..., :3], distort=False), projected_points)
 
@@ -111,7 +113,8 @@ def test_camera_proj2D_with_distortion():
     """
     set_global_vars()
 
-    camera = Camera(intrinsic_matrix, rotation_matrix, translation_vector, tangential_distortion, radial_distortion, frames)
+    camera = Camera(intrinsic_matrix, rotation_matrix, translation_vector, tangential_distortion, radial_distortion,
+                    frames)
 
     quaternion = np.array([[1, 2, 3, 1]])
     camera_matrix = camera.camera_matrix()
@@ -132,7 +135,8 @@ def test_camera_proj2D_with_distortion_multiple_axis():
     """
     set_global_vars()
 
-    camera = Camera(intrinsic_matrix, rotation_matrix, translation_vector, tangential_distortion, radial_distortion, frames)
+    camera = Camera(intrinsic_matrix, rotation_matrix, translation_vector, tangential_distortion, radial_distortion,
+                    frames)
 
     np.random.seed(1)
 
@@ -151,7 +155,8 @@ def test_camera_proj2D_with_distortion_multiple_axis():
 def test_camera_proj2D_with_single_point():
     set_global_vars()
 
-    camera = Camera(intrinsic_matrix, rotation_matrix, translation_vector, tangential_distortion, radial_distortion, frames)
+    camera = Camera(intrinsic_matrix, rotation_matrix, translation_vector, tangential_distortion, radial_distortion,
+                    frames)
 
     camera.proj2D(np.array([1, 2, 3]))
 
@@ -177,7 +182,8 @@ def test_unpack_intrinsic_matrix():
         [cx, cy, 1]
     ])
 
-    camera = Camera(intrinsic_matrix, rotation_matrix, translation_vector, tangential_distortion, radial_distortion, frames)
+    camera = Camera(intrinsic_matrix, rotation_matrix, translation_vector, tangential_distortion, radial_distortion,
+                    frames)
 
     _fx, _fy, _cx, _cy, _skew = camera._unpack_intrinsic_matrix()
 
@@ -191,7 +197,8 @@ def test_unpack_intrinsic_matrix():
 def test_pixel_to_image_points():
     set_global_vars()
 
-    camera = Camera(intrinsic_matrix, rotation_matrix, translation_vector, tangential_distortion, radial_distortion, frames)
+    camera = Camera(intrinsic_matrix, rotation_matrix, translation_vector, tangential_distortion, radial_distortion,
+                    frames)
 
     points = np.array([[1, 2]])
     normalised_points = np.array([[-1, -1]])
@@ -202,7 +209,8 @@ def test_pixel_to_image_points():
 def test_image_to_pixel_points():
     set_global_vars()
 
-    camera = Camera(intrinsic_matrix, rotation_matrix, translation_vector, tangential_distortion, radial_distortion, frames)
+    camera = Camera(intrinsic_matrix, rotation_matrix, translation_vector, tangential_distortion, radial_distortion,
+                    frames)
 
     points = np.array([[1, 2]])
     normalised_points = np.array([[-1, -1]])
@@ -223,7 +231,8 @@ def test_radial_distortion():
 
     global radial_distortion
 
-    camera = Camera(intrinsic_matrix, rotation_matrix, translation_vector, tangential_distortion, radial_distortion, frames)
+    camera = Camera(intrinsic_matrix, rotation_matrix, translation_vector, tangential_distortion, radial_distortion,
+                    frames)
 
     normalised_points = np.array([[1, 1], [1, 1]])
     distortion = np.array([11, 11])
@@ -233,7 +242,8 @@ def test_radial_distortion():
     radial_distortion = np.array([[1, 2, 3]])
     normalised_points = np.array([[1, 1]])
     distortion = np.array([35])
-    camera = Camera(intrinsic_matrix, rotation_matrix, translation_vector, tangential_distortion, radial_distortion, frames)
+    camera = Camera(intrinsic_matrix, rotation_matrix, translation_vector, tangential_distortion, radial_distortion,
+                    frames)
 
     np.testing.assert_array_equal(camera._radial_distortion(normalised_points), distortion)
 
@@ -248,7 +258,8 @@ def test_tangential_distortion():
     """
     set_global_vars()
 
-    camera = Camera(intrinsic_matrix, rotation_matrix, translation_vector, tangential_distortion, radial_distortion, frames)
+    camera = Camera(intrinsic_matrix, rotation_matrix, translation_vector, tangential_distortion, radial_distortion,
+                    frames)
 
     normalised_points = np.array([[1, 1], [1, 1]])
     distortion = np.array([[10, 8], [10, 8]])
@@ -259,7 +270,8 @@ def test_tangential_distortion():
 def test_distort_single_point():
     set_global_vars()
 
-    camera = Camera(intrinsic_matrix, rotation_matrix, translation_vector, tangential_distortion, radial_distortion, frames)
+    camera = Camera(intrinsic_matrix, rotation_matrix, translation_vector, tangential_distortion, radial_distortion,
+                    frames)
 
     points = np.array([[1, 2]])
     pixel_points = np.array([[-3, -4]])
