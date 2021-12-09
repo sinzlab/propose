@@ -22,10 +22,11 @@ class CondGCN(nn.Module):
 
         self.layers = nn.ModuleDict({
             # Self loop edges
-            'x->x': nn.Linear(in_features, hidden_features),
-            'c->c': nn.Linear(context_features, hidden_features),
+            'x': nn.Linear(in_features, hidden_features),
+            'c': nn.Linear(context_features, hidden_features),
             # Between node edges
-            'x<->x': nn.Linear(in_features, hidden_features),
+            'x->x': nn.Linear(in_features, hidden_features),
+            'x<-x': nn.Linear(in_features, hidden_features),
             'c->x': nn.Linear(context_features, hidden_features)
         })
 
@@ -37,14 +38,14 @@ class CondGCN(nn.Module):
     def forward(self, x_dict: dict, edge_index_dict: dict) -> tuple[dict, dict]:
         x, c = x_dict['x'], x_dict['c']
 
-        self_x = self.act(self.layers['x->x'](x))
+        self_x = self.act(self.layers['x'](x))
 
         message = self.aggregate(self.message(x_dict, edge_index_dict), self_x)
 
         x_dict['x'] = self.pool(message)
 
         if c is not None:
-            x_dict['c'] = self.act(self.layers['c->c'](c))
+            x_dict['c'] = self.act(self.layers['c'](c))
 
         return x_dict, edge_index_dict
 
@@ -56,9 +57,14 @@ class CondGCN(nn.Module):
         :return: message and destination index
         """
         for key in edge_index_dict.keys():
-            src_name, _, dst_name = key
+            src_name, direction, dst_name = key
             layer_name = ''.join(key)
             src, dst = edge_index_dict[key]
+
+            # If the edge is an inverse edge, swap the source and destination
+            if direction == '<-':
+                src_name, dst_name = dst_name, src_name
+                src, dst = dst, src
 
             shape = list(x_dict[dst_name].shape)
             shape[-1] = self.features['hidden']

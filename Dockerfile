@@ -1,5 +1,8 @@
 ARG BASE_IMAGE=sinzlab/pytorch:v3.8-torch1.7.0-cuda11.0-dj0.12.7
 
+ARG TORCH_VERSION="torch-1.9.0"
+ARG CUDA_VERSION="cu110"
+
 # Perform multistage build to pull private repo without leaving behind
 # private information (e.g. SSH key, Git token)
 FROM ${BASE_IMAGE} as base
@@ -11,9 +14,9 @@ WORKDIR /src
 # Use git credential-store to specify username and pass to use for pulling repo
 RUN git config --global credential.helper store &&\
     echo https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com >> ~/.git-credentials
-RUN git clone -b readout_position_regularizer https://github.com/sinzlab/neuralpredictors &&\
+RUN git clone https://github.com/sinzlab/neuralpredictors &&\
     git clone https://github.com/sinzlab/nnfabrik &&\
-    git clone https://github.com/sinzlab/data_port &&\
+    git clone https://github.com/sinzlab/data_port.git &&\
     git clone https://github.com/sinzlab/nexport
 
 FROM ${BASE_IMAGE}
@@ -26,4 +29,9 @@ RUN pip install -e /src/neuralpredictors &&\
     pip install -e /src/nexport
 
 RUN pip install -e /src/propose
+
+RUN pip install -r /src/propose/requirements.txt
+
+RUN pip install torch-scatter -f https://data.pyg.org/whl/torch-1.9.0+cu110.html
+RUN pip install torch-sparse -f https://data.pyg.org/whl/torch-1.9.0+cu110.html
 

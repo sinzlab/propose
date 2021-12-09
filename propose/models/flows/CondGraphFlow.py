@@ -1,9 +1,9 @@
 import torch
 
 from flows.GraphFlow import GraphFlow
-from transforms.transform import GraphAffineCouplingTransform, GraphCompositeTransform, GraphActNorm
 from nn.CondGNN import CondGNN
 
+from propose.models.transforms.transform import GraphAffineCouplingTransform, GraphCompositeTransform, GraphActNorm
 from propose.models.distributions import StandardNormal
 
 
