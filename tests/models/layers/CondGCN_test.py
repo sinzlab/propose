@@ -117,3 +117,60 @@ def test_message():
 
         assert m_dst.shape == (true_dst.shape[0], hidden_features)
         tt.assert_equal(dst, edge_index_dict[('c', '->', 'x')][-1])
+
+
+def test_aggregate():
+    in_features = 3
+    context_features = 2
+    out_features = 3
+    hidden_features = 10
+
+    model = CondGCN(
+        in_features=in_features,
+        context_features=context_features,
+        out_features=out_features,
+        hidden_features=hidden_features
+    )
+
+    x = torch.rand(4, in_features)
+    c = torch.rand(4, context_features)
+
+    x_dict = dict(
+        x=x,
+        c=c
+    )
+
+    edge_index_dict = {('c', '->', 'x'): torch.tensor([[0, 0], [1, 1], [2, 1]]).T}
+
+    message = model.message(x_dict, edge_index_dict)
+
+    aggr = model.aggregate(message, self_x=torch.randn(4, hidden_features))
+
+    assert aggr.shape == (4, hidden_features)
+
+
+def test_aggregate_options():
+    in_features = 3
+    context_features = 2
+    out_features = 3
+    hidden_features = 10
+
+    for aggr in ['mean', 'max', 'add']:
+        model = CondGCN(
+            in_features=in_features,
+            context_features=context_features,
+            out_features=out_features,
+            hidden_features=hidden_features,
+            aggr=aggr
+        )
+
+        x_dict = dict(
+            x=torch.rand(1, in_features),
+            c=torch.rand(1, context_features)
+        )
+
+        assert model.aggr == aggr
+
+        edge_index_dict = {('c', '->', 'x'): torch.tensor([[0, 0]]).T}
+
+        model(x_dict, edge_index_dict)
