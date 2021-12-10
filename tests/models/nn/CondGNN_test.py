@@ -6,7 +6,6 @@ from torch_geometric.data import HeteroData
 import torch.testing as tt
 
 import torch
-import torch.nn as nn
 
 from unittest.mock import MagicMock, patch, call
 
