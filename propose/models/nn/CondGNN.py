@@ -3,7 +3,7 @@ import torch.nn as nn
 
 from torch_geometric.data import HeteroData
 
-from layers.CondGCN import CondGCN
+from propose.models.layers.CondGCN import CondGCN
 
 from typing import Union
 
@@ -47,7 +47,7 @@ class CondGNN(nn.Module):
     def _get_edge_index(data: HeteroData) -> dict:
         """
         Ensure that there is an edge_index_dict in the data.
-        :param data:
+        :param data: HeteroData instance
         :return: edge_index_dict: dict
         """
         try:

@@ -1,7 +1,7 @@
 import torch
 
-from flows.GraphFlow import GraphFlow
-from nn.CondGNN import CondGNN
+from propose.models.flows.GraphFlow import GraphFlow
+from propose.models.nn.CondGNN import CondGNN
 
 from propose.models.transforms.transform import GraphAffineCouplingTransform, GraphCompositeTransform, GraphActNorm
 from propose.models.distributions import StandardNormal
