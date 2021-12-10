@@ -3,6 +3,8 @@ import torch.nn as nn
 
 import torch_sparse as ts
 
+from typing import Literal
+
 
 class CondGCN(nn.Module):
     """
@@ -10,7 +12,7 @@ class CondGCN(nn.Module):
     """
 
     def __init__(self, in_features: int = 3, context_features: int = 2, out_features: int = 3,
-                 hidden_features: int = 10):
+                 hidden_features: int = 10, aggr: Literal['add', 'mean', 'max'] = 'add') -> None:
         super().__init__()
 
         self.features = {
@@ -33,7 +35,7 @@ class CondGCN(nn.Module):
         self.pool = nn.Linear(hidden_features, out_features)
         self.act = nn.ReLU()
 
-        self.aggr = 'add'
+        self.aggr = aggr
 
     def forward(self, x_dict: dict, edge_index_dict: dict) -> tuple[dict, dict]:
         x, c = x_dict['x'], x_dict['c']
@@ -74,7 +76,7 @@ class CondGCN(nn.Module):
 
             # Walrus operator to create a tensor with the same shape as the destination tensor
             # and fill it with the message at the destination indices
-            (m := torch.zeros(shape))[dst] = message
+            (m := torch.zeros(shape, device=self.device))[dst] = message
 
             yield m[dst], dst
 
@@ -89,7 +91,7 @@ class CondGCN(nn.Module):
 
         index = torch.cat([
             *[i for _, i in message],  # concatenate all message indices
-            torch.arange(self_x.shape[0], dtype=torch.long)  # add self loop indices
+            torch.arange(self_x.shape[0], dtype=torch.long, device=self.device)  # add self loop indices
         ])
         index = torch.stack([
             index,
@@ -106,3 +108,7 @@ class CondGCN(nn.Module):
         _, aggr_message = ts.coalesce(index, value, m=index[0].max() + 1, n=index[1].max() + 1, op=self.aggr)
 
         return aggr_message
+
+    @property
+    def device(self):
+        return next(self.parameters()).device
