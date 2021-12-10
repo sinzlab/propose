@@ -1,7 +1,7 @@
-ARG BASE_IMAGE=sinzlab/pytorch:v3.8-torch1.7.0-cuda11.0-dj0.12.7
+ARG BASE_IMAGE=sinzlab/pytorch:v3.9-torch1.9.0-cuda11.1-dj0.12.7
 
 ARG TORCH_VERSION="torch-1.9.0"
-ARG CUDA_VERSION="cu110"
+ARG CUDA_VERSION="cu111"
 
 # Perform multistage build to pull private repo without leaving behind
 # private information (e.g. SSH key, Git token)
@@ -34,4 +34,3 @@ RUN pip install -r /src/propose/requirements.txt
 
 RUN pip install torch-scatter -f https://data.pyg.org/whl/torch-1.9.0+cu110.html
 RUN pip install torch-sparse -f https://data.pyg.org/whl/torch-1.9.0+cu110.html
-
