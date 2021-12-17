@@ -1,6 +1,7 @@
 import torch
 import torch.distributions as D
 import torch.nn.functional as F
+import torch.nn as nn
 
 from tqdm import tqdm
 
