@@ -97,8 +97,6 @@ class GraphFlow(Flow):
 
         Args:
             inputs: A `Tensor` of shape [batch_size, ...], the data to be transformed.
-            context: A `Tensor` of shape [batch_size, ...] or None, optional context associated
-                with the data.
 
         Returns:
             A `Tensor` of shape [batch_size, ...], the noise.
@@ -122,3 +120,7 @@ class GraphFlow(Flow):
         noise = HeteroData(noise)
 
         return noise
+
+    @property
+    def device(self):
+        return next(self.parameters()).device

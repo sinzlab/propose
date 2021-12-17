@@ -45,6 +45,8 @@ def supervised_trainer(dataloader, flow, optimizer=None, epochs=100):
     for epoch in range(epochs):
         pbar = tqdm(dataloader, desc=f'Epoch: {epoch + 1}/{epochs} | NLLoss: 0 | RecLoss: 0 | Batch')
         for data in pbar:
+            data.to(flow.device)
+
             optimizer.zero_grad()
 
             data_dict = data.to_dict()
@@ -71,6 +73,8 @@ def supervised_trainer(dataloader, flow, optimizer=None, epochs=100):
             loss = reg_prior_loss + reg_posterior_loss
             loss.backward()
 
+            nn.utils.clip_grad_norm_(flow.parameters(), max_norm=1.0)
+
             optimizer.step()
 
             pbar.set_description(
@@ -92,6 +96,8 @@ def semi_supervised_trainer(dataloader, flow, optimizer=None, epochs=100):
     for epoch in range(epochs):
         pbar = tqdm(dataloader, desc=f'Epoch: {epoch + 1}/{epochs} | NLLoss: 0 | RecLoss: 0 | Batch')
         for data in pbar:
+            data.to(flow.device)
+
             optimizer.zero_grad()
             M, q_M_m = flow.sample_and_log_prob(1, context=data)
 

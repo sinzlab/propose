@@ -191,7 +191,7 @@ class GraphCompositeTransform(CompositeTransform):
     def _cascade(inputs, funcs):
         batch_size = inputs['x'].batch.shape[0]
         outputs = inputs
-        total_logabsdet = torch.zeros(batch_size)
+        total_logabsdet = torch.zeros(batch_size, device=inputs['x']['x'].device)
         for func in funcs:
             outputs, logabsdet = func(outputs)
             total_logabsdet += logabsdet
