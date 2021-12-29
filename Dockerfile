@@ -16,7 +16,7 @@ RUN git config --global credential.helper store &&\
     echo https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com >> ~/.git-credentials
 
 FROM ${BASE_IMAGE}
-COPY --from=base /src /src
+#COPY --from=base /src /src
 ADD . /src/propose
 
 RUN pip install -e /src/propose
