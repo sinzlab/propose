@@ -38,3 +38,9 @@ services:
       - "8888:8888"
     entrypoint: /usr/local/bin/python3
     command: /src/propose/run.py
+
+  pytest:
+    build: .
+    volumes:
+      - .:/src/propose
+    entrypoint: [ "pytest" ]
