@@ -14,19 +14,10 @@ WORKDIR /src
 # Use git credential-store to specify username and pass to use for pulling repo
 RUN git config --global credential.helper store &&\
     echo https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com >> ~/.git-credentials
-RUN git clone https://github.com/sinzlab/neuralpredictors &&\
-    git clone https://github.com/sinzlab/nnfabrik &&\
-    git clone https://github.com/sinzlab/data_port.git &&\
-    git clone https://github.com/sinzlab/nexport
 
 FROM ${BASE_IMAGE}
 COPY --from=base /src /src
 ADD . /src/propose
-
-RUN pip install -e /src/neuralpredictors &&\
-    pip install -e /src/nnfabrik &&\
-    pip install -e /src/data_port &&\
-    pip install -e /src/nexport
 
 RUN pip install -e /src/propose
 
