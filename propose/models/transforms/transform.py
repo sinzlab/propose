@@ -19,7 +19,9 @@ class GraphAffineCouplingTransform(CouplingTransform):
         )
 
         if self.unconditional_transform is not None:
-            identity_split, logabsdet_identity = self.unconditional_transform(identity_split)
+            identity_split, logabsdet_identity = self.unconditional_transform(
+                identity_split
+            )
             logabsdet += logabsdet_identity
 
         outputs = self._join_splits(inputs, identity_split, transform_split)
@@ -46,8 +48,8 @@ class GraphAffineCouplingTransform(CouplingTransform):
         return outputs, logabsdet
 
     def _join_splits(self, inputs, identity_split, transform_split):
-        inputs['x']['x'][..., self.identity_features] = identity_split['x']['x']
-        inputs['x']['x'][..., self.transform_features] = transform_split['x']['x']
+        inputs["x"]["x"][..., self.identity_features] = identity_split["x"]["x"]
+        inputs["x"]["x"][..., self.transform_features] = transform_split["x"]["x"]
 
         outputs = HeteroData(inputs)
 
@@ -61,11 +63,11 @@ class GraphAffineCouplingTransform(CouplingTransform):
 
         identity_split = {
             **inputs_dict,
-            'x': dict(x=inputs['x']['x'][..., self.identity_features]),
+            "x": dict(x=inputs["x"]["x"][..., self.identity_features]),
         }
         transform_split = {
             **inputs_dict,
-            'x': dict(x=inputs['x']['x'][..., self.transform_features]),
+            "x": dict(x=inputs["x"]["x"][..., self.transform_features]),
         }
 
         return inputs_dict, identity_split, transform_split
@@ -75,7 +77,7 @@ class GraphAffineCouplingTransform(CouplingTransform):
 
     def _scale_and_shift(self, transform_params):
         unconstrained_scale = transform_params[..., self.num_transform_features:]
-        shift = transform_params[..., :self.num_transform_features]
+        shift = transform_params[..., : self.num_transform_features]
         scale = torch.sigmoid(unconstrained_scale + 2) + 1e-3
         return scale, shift
 
@@ -83,10 +85,7 @@ class GraphAffineCouplingTransform(CouplingTransform):
         scale, shift = self._scale_and_shift(transform_params)
         log_scale = torch.log(scale)
 
-        outputs = {
-            **inputs,
-            'x': dict(x=inputs['x']['x'] * scale + shift)
-        }
+        outputs = {**inputs, "x": dict(x=inputs["x"]["x"] * scale + shift)}
 
         if log_scale.dim() == 3:
             log_scale = log_scale.mean(dim=1)
@@ -97,10 +96,7 @@ class GraphAffineCouplingTransform(CouplingTransform):
         scale, shift = self._scale_and_shift(transform_params)
         log_scale = torch.log(scale)
 
-        outputs = {
-            **inputs,
-            'x': dict(x=(inputs['x']['x'] - shift) / scale)
-        }
+        outputs = {**inputs, "x": dict(x=(inputs["x"]["x"] - shift) / scale)}
 
         if log_scale.dim() == 3:
             log_scale = log_scale.mean(dim=1)
@@ -131,7 +127,7 @@ class GraphActNorm(Transform):
 
     def _initialize(self, inputs):
         """Data-dependent initialization, s.t. post-actnorm activations have zero mean and unit
-        variance. """
+        variance."""
         dims = list(range(inputs.dim()))[:-1]
         with torch.no_grad():
             std = inputs.std(dim=dims)
@@ -141,7 +137,7 @@ class GraphActNorm(Transform):
             self.initialized.data = torch.tensor(True, dtype=torch.bool)
 
     def forward(self, inputs, context=None):
-        x = inputs['x']['x']
+        x = inputs["x"]["x"]
 
         if self.training and not self.initialized:
             self._initialize(x)
@@ -153,19 +149,13 @@ class GraphActNorm(Transform):
         logabsdet = torch.sum(self.log_scale) * scaled_x.new_ones(batch_size)
 
         inputs_dict = inputs.to_dict()
-        outputs = {
-            **inputs_dict,
-            'x': {
-                **inputs_dict['x'],
-                'x': scaled_x
-            }
-        }
+        outputs = {**inputs_dict, "x": {**inputs_dict["x"], "x": scaled_x}}
         outputs = HeteroData(outputs)
 
         return outputs, logabsdet
 
     def inverse(self, inputs, context=None):
-        x = inputs['x']['x']
+        x = inputs["x"]["x"]
 
         scale, shift = self.scale.view(1, -1), self.shift.view(1, -1)
         scaled_x = (x - shift) / scale
@@ -174,13 +164,7 @@ class GraphActNorm(Transform):
         logabsdet = -torch.sum(self.log_scale) * scaled_x.new_ones(batch_size)
 
         inputs_dict = inputs.to_dict()
-        outputs = {
-            **inputs_dict,
-            'x': {
-                **inputs_dict['x'],
-                'x': scaled_x
-            }
-        }
+        outputs = {**inputs_dict, "x": {**inputs_dict["x"], "x": scaled_x}}
         outputs = HeteroData(outputs)
 
         return outputs, logabsdet
@@ -189,9 +173,9 @@ class GraphActNorm(Transform):
 class GraphCompositeTransform(CompositeTransform):
     @staticmethod
     def _cascade(inputs, funcs):
-        batch_size = inputs['x'].batch.shape[0]
+        batch_size = inputs["x"].batch.shape[0]
         outputs = inputs
-        total_logabsdet = torch.zeros(batch_size, device=inputs['x']['x'].device)
+        total_logabsdet = torch.zeros(batch_size, device=inputs["x"]["x"].device)
         for func in funcs:
             outputs, logabsdet = func(outputs)
             total_logabsdet += logabsdet

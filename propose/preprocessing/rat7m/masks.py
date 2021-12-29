@@ -13,7 +13,7 @@ def mask_marker_failure(pose: Rat7mPose, log_distance_threshold: float = 2) -> M
     :param log_distance_threshold: (optional) a parameter for the mask to determine where the
     :return: A boolean mask where True means that frame is to be masked
     """
-    markers = ['ElbowL', 'ShoulderL', 'ArmL', 'ElbowR', 'ShoulderR', 'ArmR']
+    markers = ["ElbowL", "ShoulderL", "ArmL", "ElbowR", "ShoulderR", "ArmR"]
     marker_idx = [pose.marker_names.index(marker) for marker in markers]
 
     selected_matrix = pose.pose_matrix[:, marker_idx]

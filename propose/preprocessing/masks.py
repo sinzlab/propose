@@ -18,7 +18,9 @@ def mask_nans(pose: BasePose) -> Mask:
     return mask
 
 
-def apply_mask(mask: Mask, pose: BasePose, cameras: dict[Camera] = None) -> tuple[BasePose, dict[Camera]]:
+def apply_mask(
+        mask: Mask, pose: BasePose, cameras: dict[Camera] = None
+) -> tuple[BasePose, dict[Camera]]:
     """
     Removes frames which have at least one joint missing from the mocap data.
     :param mask: boolean mask that is to be applied to pose and cameras, where True means that frame is to be masked
@@ -32,7 +34,9 @@ def apply_mask(mask: Mask, pose: BasePose, cameras: dict[Camera] = None) -> tupl
         masked_cameras = {}
         for camera_key in cameras:
             masked_cameras[camera_key] = cameras[camera_key].copy()
-            masked_cameras[camera_key].frames = masked_cameras[camera_key].frames[np.invert(mask)]
+            masked_cameras[camera_key].frames = masked_cameras[camera_key].frames[
+                np.invert(mask)
+            ]
 
         return masked_pose, masked_cameras
 

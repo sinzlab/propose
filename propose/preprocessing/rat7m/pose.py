@@ -17,8 +17,12 @@ def switch_arms_elbows(pose: Rat7mPose) -> Rat7mPose:
 
     pose_matrix = pose.pose_matrix.copy()
 
-    left_marker_idx = [Rat7mPose.marker_names.index(marker) for marker in ['ElbowL', 'ArmL']]
-    right_marker_idx = [Rat7mPose.marker_names.index(marker) for marker in ['ElbowR', 'ArmR']]
+    left_marker_idx = [
+        Rat7mPose.marker_names.index(marker) for marker in ["ElbowL", "ArmL"]
+    ]
+    right_marker_idx = [
+        Rat7mPose.marker_names.index(marker) for marker in ["ElbowR", "ArmR"]
+    ]
 
     left_arm = pose_matrix[:, left_marker_idx]
     right_arm = pose_matrix[:, right_marker_idx]
@@ -67,11 +71,13 @@ def normalize_rotation(pose: Rat7mPose) -> Rat7mPose:
     zeros = np.zeros(n_frames)
     ones = np.ones(n_frames)
 
-    rotation_matrix = np.array([
-        [uy, ux, zeros],
-        [-ux, uy, zeros],
-        [zeros, zeros, ones],
-    ])
+    rotation_matrix = np.array(
+        [
+            [uy, ux, zeros],
+            [-ux, uy, zeros],
+            [zeros, zeros, ones],
+        ]
+    )
     rotation_matrix = np.moveaxis(rotation_matrix, -1, 0)
 
     rotated_pose_matrix = pose.pose_matrix @ rotation_matrix

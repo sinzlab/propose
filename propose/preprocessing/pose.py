@@ -44,18 +44,14 @@ def rotate_to_camera(pose: BasePose, camera: Camera):
     cos = 1 / np.sqrt(1 + tan ** 2)  # Cos expressed in terms of tan
     sin = cos * tan
 
-    yaw = np.array([
-        [cos, -sin, 0],
-        [sin, cos, 0],
-        [0, 0, 1]
-    ])
+    yaw = np.array([[cos, -sin, 0], [sin, cos, 0], [0, 0, 1]])
 
     rot_pose_matrix = pose.pose_matrix.dot(yaw)
 
     return pose.__class__(rot_pose_matrix)
 
 
-def center_pose(pose: BasePose, center_marker_name: str = 'SpineM') -> BasePose:
+def center_pose(pose: BasePose, center_marker_name: str = "SpineM") -> BasePose:
     """
     Center the pose such that the selected marker is always in [0, 0, 0]
     :param center_marker_name: Marker to which the pose should be centered to.

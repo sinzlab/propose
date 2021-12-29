@@ -13,8 +13,12 @@ from nflows.flows.base import Flow
 from torch.optim.optimizer import Optimizer
 
 
-def prior_trainer(dataloader: Union[TorchGeometricDataLoader, TorchDataLoader],
-                  flow: Flow, optimizer: Optional[Optimizer] = None, epochs: int = 100) -> None:
+def prior_trainer(
+        dataloader: Union[TorchGeometricDataLoader, TorchDataLoader],
+        flow: Flow,
+        optimizer: Optional[Optimizer] = None,
+        epochs: int = 100,
+) -> None:
     """
     Train only the prior part of the model in a supervised fashion.
     :param dataloader: dataloader for the supervised training
@@ -27,7 +31,7 @@ def prior_trainer(dataloader: Union[TorchGeometricDataLoader, TorchDataLoader],
         optimizer = torch.optim.Adam(flow.parameters(), lr=0.001, weight_decay=1e-5)
 
     for epoch in range(epochs):
-        pbar = tqdm(dataloader, desc=f'Epoch: {epoch + 1}/{epochs} | Loss: {0} | Batch')
+        pbar = tqdm(dataloader, desc=f"Epoch: {epoch + 1}/{epochs} | Loss: {0} | Batch")
         for data in pbar:
             optimizer.zero_grad()
 
@@ -41,4 +45,6 @@ def prior_trainer(dataloader: Union[TorchGeometricDataLoader, TorchDataLoader],
 
             optimizer.step()
 
-            pbar.set_description(f'Epoch: {epoch + 1}/{epochs} | Loss {loss.item():.4f} | Batch')
+            pbar.set_description(
+                f"Epoch: {epoch + 1}/{epochs} | Loss {loss.item():.4f} | Batch"
+            )

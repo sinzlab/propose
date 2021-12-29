@@ -19,7 +19,10 @@ def supervised_trainer(dataloader, flow, optimizer=None, epochs=100):
         optimizer = torch.optim.Adam(flow.parameters(), lr=0.001, weight_decay=1e-5)
 
     for epoch in range(epochs):
-        pbar = tqdm(dataloader, desc=f'Epoch: {epoch + 1}/{epochs} | NLLoss: 0 | RecLoss: 0 | Batch')
+        pbar = tqdm(
+            dataloader,
+            desc=f"Epoch: {epoch + 1}/{epochs} | NLLoss: 0 | RecLoss: 0 | Batch",
+        )
         for data in pbar:
             data.to(flow.device)
 
@@ -39,4 +42,5 @@ def supervised_trainer(dataloader, flow, optimizer=None, epochs=100):
             optimizer.step()
 
             pbar.set_description(
-                f'Epoch: {epoch + 1}/{epochs} | Loss {loss.item():.4f} | Batch')
+                f"Epoch: {epoch + 1}/{epochs} | Loss {loss.item():.4f} | Batch"
+            )

@@ -14,7 +14,7 @@ import numpy as np
 from torch.utils.data import DataLoader
 from torch.utils.data.sampler import SubsetRandomSampler
 
-TemporalSplit = namedtuple('TemporalSplit', ['train', 'validation', 'test'])
+TemporalSplit = namedtuple("TemporalSplit", ["train", "validation", "test"])
 
 
 def load_cameras(path: str) -> dict:
@@ -26,18 +26,20 @@ def load_cameras(path: str) -> dict:
     data = sio.loadmat(path, struct_as_record=False)
     camera_data = vars(data["cameras"][0][0])
 
-    camera_names = camera_data['_fieldnames']
+    camera_names = camera_data["_fieldnames"]
 
     cameras = {}
     for camera_name in camera_names:
         camera_calibration = vars(camera_data[camera_name][0][0])
 
-        camera = Camera(intrinsic_matrix=camera_calibration['IntrinsicMatrix'],
-                        rotation_matrix=camera_calibration['rotationMatrix'],
-                        translation_vector=camera_calibration['translationVector'],
-                        tangential_distortion=camera_calibration['TangentialDistortion'],
-                        radial_distortion=camera_calibration['RadialDistortion'],
-                        frames=camera_calibration['frame'].squeeze())
+        camera = Camera(
+            intrinsic_matrix=camera_calibration["IntrinsicMatrix"],
+            rotation_matrix=camera_calibration["rotationMatrix"],
+            translation_vector=camera_calibration["translationVector"],
+            tangential_distortion=camera_calibration["TangentialDistortion"],
+            radial_distortion=camera_calibration["RadialDistortion"],
+            frames=camera_calibration["frame"].squeeze(),
+        )
 
         cameras[camera_name] = camera
 
@@ -53,7 +55,7 @@ def load_mocap(path: str) -> Rat7mPose:
     d = sio.loadmat(path, struct_as_record=False)
     dataset = vars(d["mocap"][0][0])
 
-    dataset.pop('_fieldnames')
+    dataset.pop("_fieldnames")
 
     marker_names = Rat7mPose.marker_names
 
@@ -68,8 +70,9 @@ def load_mocap(path: str) -> Rat7mPose:
     return Rat7mPose(poses)
 
 
-def temporal_split_dataset(dataset: Rat7mDataset, train_frac: float = 0.6,
-                           validation_frac: float = 0.2) -> TemporalSplit:
+def temporal_split_dataset(
+        dataset: Rat7mDataset, train_frac: float = 0.6, validation_frac: float = 0.2
+) -> TemporalSplit:
     """
     Splits the Rat7mDataset into train and test datasets based on time. i.e. first train_frac% timesteps are used as
     training data
@@ -85,20 +88,28 @@ def temporal_split_dataset(dataset: Rat7mDataset, train_frac: float = 0.6,
     train_frames = int(n_frames * train_frac)
     val_frames = int(n_frames * validation_frac)
 
-    train = np.concatenate([np.arange(i * n_frames, i * n_frames + train_frames) for i in range(n_cameras)])
+    train = np.concatenate(
+        [np.arange(i * n_frames, i * n_frames + train_frames) for i in range(n_cameras)]
+    )
     validation = np.concatenate(
-        [np.arange(i * n_frames + train_frames, i * n_frames + train_frames + val_frames) for i in range(n_cameras)])
+        [
+            np.arange(
+                i * n_frames + train_frames, i * n_frames + train_frames + val_frames
+            )
+            for i in range(n_cameras)
+        ]
+    )
     test = np.concatenate(
-        [np.arange(i * n_frames + train_frames + val_frames, (i + 1) * n_frames) for i in range(n_cameras)])
+        [
+            np.arange(i * n_frames + train_frames + val_frames, (i + 1) * n_frames)
+            for i in range(n_cameras)
+        ]
+    )
 
     return TemporalSplit(train=train, validation=validation, test=test)
 
 
-def static_loader(
-        path: str,
-        batch_size: int,
-        cuda: bool = False
-) -> dict:
+def static_loader(path: str, batch_size: int, cuda: bool = False) -> dict:
     """
     Constructs train, validation and test DataLoaders.
     :param path: Path the data directory
@@ -115,7 +126,7 @@ def static_loader(
         tr.ScalePose(scale=0.03),
         ScaleInputs(scale=0.1, multichannel=True, anti_aliasing=True),
         tr.ToGraph(),
-        ToTensor(cuda)
+        ToTensor(cuda),
     ]
 
     dat = Rat7mDataset(path, transforms=transforms)

@@ -11,19 +11,21 @@ class ScalePose(object):
     def __call__(self, x):
         key_vals = {k: v for k, v in zip(x._fields, x)}
 
-        key_vals['poses'] = pp.scale_pose(pose=x.poses, scale=self.scale)
+        key_vals["poses"] = pp.scale_pose(pose=x.poses, scale=self.scale)
 
         return x.__class__(**key_vals)
 
 
 class CenterPose(object):
-    def __init__(self, center_marker_name='SpineM'):
+    def __init__(self, center_marker_name="SpineM"):
         self.center_marker_name = center_marker_name
 
     def __call__(self, x):
         key_vals = {k: v for k, v in zip(x._fields, x)}
 
-        key_vals['poses'] = pp.center_pose(pose=key_vals['poses'], center_marker_name=self.center_marker_name)
+        key_vals["poses"] = pp.center_pose(
+            pose=key_vals["poses"], center_marker_name=self.center_marker_name
+        )
 
         return x.__class__(**key_vals)
 
@@ -35,13 +37,15 @@ class CropImageToPose(object):
     def __call__(self, x):
         key_vals = {k: v for k, v in zip(x._fields, x)}
 
-        pose = key_vals['poses']
-        image = key_vals['images']
-        camera = key_vals['cameras']
+        pose = key_vals["poses"]
+        image = key_vals["images"]
+        camera = key_vals["cameras"]
 
         pose2D = Rat7mPose(camera.proj2D(pose))
 
-        key_vals['images'] = pp.square_crop_to_pose(image=image, pose2D=pose2D, width=self.width)
+        key_vals["images"] = pp.square_crop_to_pose(
+            image=image, pose2D=pose2D, width=self.width
+        )
 
         return x.__class__(**key_vals)
 
@@ -50,31 +54,34 @@ class RotatePoseToCamera(object):
     def __call__(self, x):
         key_vals = {k: v for k, v in zip(x._fields, x)}
 
-        pose = key_vals['poses']
-        camera = key_vals['cameras']
+        pose = key_vals["poses"]
+        camera = key_vals["cameras"]
 
-        key_vals['poses'] = pp.rotate_to_camera(pose=pose, camera=camera)
+        key_vals["poses"] = pp.rotate_to_camera(pose=pose, camera=camera)
 
         return x.__class__(**key_vals)
 
 
 class ToGraph(object):
     def __init__(self):
-        self.graph_data_point = namedtuple("GraphDataPoint", ('pose_matrix', 'adjacency_matrix', 'image'))
+        self.graph_data_point = namedtuple(
+            "GraphDataPoint", ("pose_matrix", "adjacency_matrix", "image")
+        )
 
     def __call__(self, x):
         return self.graph_data_point(
             pose_matrix=x.poses.pose_matrix,
             adjacency_matrix=x.poses.adjacency_matrix,
-            image=x.images)
+            image=x.images,
+        )
 
 
 class SwitchArmsElbows(object):
     def __call__(self, x):
         key_vals = {k: v for k, v in zip(x._fields, x)}
-        pose = key_vals['poses']
+        pose = key_vals["poses"]
 
-        key_vals['poses'] = pp.switch_arms_elbows(pose=pose)
+        key_vals["poses"] = pp.switch_arms_elbows(pose=pose)
 
         return x.__class__(**key_vals)
 
@@ -82,6 +89,6 @@ class SwitchArmsElbows(object):
 class ScalePixelRange(object):
     def __call__(self, x):
         key_vals = {k: v for k, v in zip(x._fields, x)}
-        key_vals['images'] = pp.scale_pixel_range(image=key_vals['images'])
+        key_vals["images"] = pp.scale_pixel_range(image=key_vals["images"])
 
         return x.__class__(**key_vals)

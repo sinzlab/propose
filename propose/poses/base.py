@@ -6,6 +6,7 @@ class BasePose(object):
     """
     Base class for poses. Provides and structure for storing pose information and plotting poses.
     """
+
     marker_names = []
     adjacency_matrix = None
 
@@ -39,10 +40,10 @@ class BasePose(object):
         return self.__class__(self.pose_matrix[item])
 
     def __str__(self):
-        return f'{self.__class__.__name__}(shape={self.shape}, pose_matrix={self.pose_matrix.__str__()})'
+        return f"{self.__class__.__name__}(shape={self.shape}, pose_matrix={self.pose_matrix.__str__()})"
 
     def __repr__(self):
-        return f'{self.__class__.__name__}(shape={self.shape}, pose_matrix={self.pose_matrix.__repr__()})'
+        return f"{self.__class__.__name__}(shape={self.shape}, pose_matrix={self.pose_matrix.__repr__()})"
 
     def __sub__(self, other):
         return self.__class__(self.pose_matrix - other.pose_matrix)
@@ -58,7 +59,9 @@ class BasePose(object):
         return self.pose_matrix.shape
 
     def get_edge(self, marker_name_1: str, marker_name_2: str):
-        return self.marker_names.index(marker_name_1), self.marker_names.index(marker_name_2)
+        return self.marker_names.index(marker_name_1), self.marker_names.index(
+            marker_name_2
+        )
 
     def _edge(self, marker_name_1: str, marker_name_2: str):
         """
@@ -72,7 +75,10 @@ class BasePose(object):
         marker_pos_1 = getattr(self, marker_name_1)
         marker_pos_2 = getattr(self, marker_name_2)
 
-        return [[marker_pos_1[..., dim].pose_matrix, marker_pos_2[..., dim].pose_matrix] for dim in range(n_dims)]
+        return [
+            [marker_pos_1[..., dim].pose_matrix, marker_pos_2[..., dim].pose_matrix]
+            for dim in range(n_dims)
+        ]
 
     @property
     def edge_groups_flat(self) -> np.ndarray:
@@ -144,7 +150,7 @@ class BasePose(object):
 
     @property
     def edge_groups(self):
-        raise NotImplementedError('Edge groups have not been defined for this pose')
+        raise NotImplementedError("Edge groups have not been defined for this pose")
 
     def set_adjacency_matrix(self):
-        raise NotImplementedError('Adjacency matrix has not been setup')
+        raise NotImplementedError("Adjacency matrix has not been setup")

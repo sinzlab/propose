@@ -29,10 +29,10 @@ class SinglePointDataset(PointDataset):
 
         for i in range(samples):
             data = HeteroData()
-            data['x'].x = self.prior.sample((1,))
-            data['c'].x = data['x'].x[..., :2]
+            data["x"].x = self.prior.sample((1,))
+            data["c"].x = data["x"].x[..., :2]
 
-            data['c', '->', 'x'].edge_index = torch.LongTensor([[0, 0]]).T
+            data["c", "->", "x"].edge_index = torch.LongTensor([[0, 0]]).T
 
             data_list.append(data)
 
@@ -60,33 +60,39 @@ class ThreePointDataset(PointDataset):
 
             data = HeteroData()
 
-            data['x'].x = torch.stack([M1, M2, M3]).squeeze()
-            data['c'].x = data['x'].x[..., :2]
+            data["x"].x = torch.stack([M1, M2, M3]).squeeze()
+            data["c"].x = data["x"].x[..., :2]
 
-            data['c', '->', 'x'].edge_index = torch.LongTensor([[0, 0], [1, 1], [2, 2]]).T
-            data['x', '->', 'x'].edge_index = torch.LongTensor([[0, 1], [1, 2]]).T
-            data['x', '<-', 'x'].edge_index = torch.LongTensor([[0, 1], [1, 2]]).T
+            data["c", "->", "x"].edge_index = torch.LongTensor(
+                [[0, 0], [1, 1], [2, 2]]
+            ).T
+            data["x", "->", "x"].edge_index = torch.LongTensor([[0, 1], [1, 2]]).T
+            data["x", "<-", "x"].edge_index = torch.LongTensor([[0, 1], [1, 2]]).T
             data_list.append(data)
 
             for r in [1, 2]:
                 for combs in combinations([(0, 0), (1, 1), (2, 2)], r=r):
                     data = HeteroData()
-                    data['x'].x = torch.stack([M1, M2, M3]).squeeze()
-                    data['c'].x = data['x'].x[..., :2]
+                    data["x"].x = torch.stack([M1, M2, M3]).squeeze()
+                    data["c"].x = data["x"].x[..., :2]
 
-                    data['c', '->', 'x'].edge_index = torch.LongTensor([*combs]).T
-                    data['x', '->', 'x'].edge_index = torch.LongTensor([[0, 1], [1, 2]]).T
-                    data['x', '<-', 'x'].edge_index = torch.LongTensor([[0, 1], [1, 2]]).T
+                    data["c", "->", "x"].edge_index = torch.LongTensor([*combs]).T
+                    data["x", "->", "x"].edge_index = torch.LongTensor(
+                        [[0, 1], [1, 2]]
+                    ).T
+                    data["x", "<-", "x"].edge_index = torch.LongTensor(
+                        [[0, 1], [1, 2]]
+                    ).T
 
                     data_list.append(data)
 
             data = HeteroData()
-            data['x'].x = torch.stack([M1, M2, M3]).squeeze()
-            data['c'].x = data['x'].x[..., :2]
+            data["x"].x = torch.stack([M1, M2, M3]).squeeze()
+            data["c"].x = data["x"].x[..., :2]
 
-            data['c', '->', 'x'].edge_index = torch.LongTensor([[0, 0], [2, 2]]).T
-            data['x', '->', 'x'].edge_index = torch.LongTensor([[0, 1], [1, 2]]).T
-            data['x', '<-', 'x'].edge_index = torch.LongTensor([[0, 1], [1, 2]]).T
+            data["c", "->", "x"].edge_index = torch.LongTensor([[0, 0], [2, 2]]).T
+            data["x", "->", "x"].edge_index = torch.LongTensor([[0, 1], [1, 2]]).T
+            data["x", "<-", "x"].edge_index = torch.LongTensor([[0, 1], [1, 2]]).T
 
             data_list.append(data)
 

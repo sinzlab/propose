@@ -9,17 +9,15 @@ def get_x_graph(data: HeteroData) -> HeteroData:
     """
     data_dict = data.to_dict()
 
-    M_only_graph = {
-        'x': {**data_dict['x']}
-    }
+    M_only_graph = {"x": {**data_dict["x"]}}
 
     try:
-        M_only_graph[('x', '->', 'x')] = {**data_dict[('x', '->', 'x')]}
+        M_only_graph[("x", "->", "x")] = {**data_dict[("x", "->", "x")]}
     except KeyError:
         pass
 
     try:
-        M_only_graph[('x', '<-', 'x')] = {**data_dict[('x', '<-', 'x')]}
+        M_only_graph[("x", "<-", "x")] = {**data_dict[("x", "<-", "x")]}
     except KeyError:
         pass
 

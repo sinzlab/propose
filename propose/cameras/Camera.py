@@ -10,9 +10,15 @@ class Camera(object):
     Camera class for managing camera related operations and storing camera data.
     """
 
-    def __init__(self, intrinsic_matrix: npt.NDArray[float], rotation_matrix: npt.NDArray[float],
-                 translation_vector: npt.NDArray[float], tangential_distortion: npt.NDArray[float],
-                 radial_distortion: npt.NDArray[float], frames: npt.NDArray[float]):
+    def __init__(
+            self,
+            intrinsic_matrix: npt.NDArray[float],
+            rotation_matrix: npt.NDArray[float],
+            translation_vector: npt.NDArray[float],
+            tangential_distortion: npt.NDArray[float],
+            radial_distortion: npt.NDArray[float],
+            frames: npt.NDArray[float],
+    ):
         """
         :param intrinsic_matrix: 3x3 matrix, transforms the 3D camera coordinates to 2D homogeneous image coordinates.
         :param rotation_matrix: 3x3 matrix, describes the camera's rotation in space.
@@ -36,7 +42,7 @@ class Camera(object):
             translation_vector=self.translation_vector,
             tangential_distortion=self.tangential_distortion,
             radial_distortion=self.radial_distortion,
-            frames=self.frames
+            frames=self.frames,
         )
 
     def copy(self):
@@ -47,7 +53,10 @@ class Camera(object):
         Computes the camera matrix (M) from the rotation matrix (R) translation vector (t) and intrinsic matrix (C)
         :return: Camera matrix. M = [R | t]C
         """
-        return np.concatenate((self.rotation_matrix, self.translation_vector), axis=0) @ self.intrinsic_matrix
+        return (
+                np.concatenate((self.rotation_matrix, self.translation_vector), axis=0)
+                @ self.intrinsic_matrix
+        )
 
     def proj2D(self, points: Point3D, distort: bool = True) -> Point2D:
         """
@@ -60,10 +69,14 @@ class Camera(object):
 
         camera_matrix = self.camera_matrix()
 
-        extended_points = np.concatenate((points, np.ones((*points.shape[:-1], 1))), axis=-1)
+        extended_points = np.concatenate(
+            (points, np.ones((*points.shape[:-1], 1))), axis=-1
+        )
 
         projected_points = extended_points @ camera_matrix  # (u, v, z)
-        projected_points = projected_points[..., :2] / projected_points[..., 2:]  # (u/z, v/z)
+        projected_points = (
+                projected_points[..., :2] / projected_points[..., 2:]
+        )  # (u/z, v/z)
 
         if distort:
             projected_points = self.distort(projected_points)
@@ -133,10 +146,13 @@ class Camera(object):
         """
         fx, fy, cx, cy, skew = self._unpack_intrinsic_matrix()
 
-        pixel_points = np.stack([
-            (image_points[..., 0] * fx) + cx + (skew * image_points[..., 1]),
-            image_points[..., 1] * fy + cy
-        ], axis=-1)
+        pixel_points = np.stack(
+            [
+                (image_points[..., 0] * fx) + cx + (skew * image_points[..., 1]),
+                image_points[..., 1] * fy + cy,
+            ],
+            axis=-1,
+        )
 
         return pixel_points
 
@@ -157,7 +173,7 @@ class Camera(object):
         r6 = r2 ** 3
 
         k = np.zeros(3)
-        k[:self.radial_distortion.shape[1]] = self.radial_distortion.squeeze()
+        k[: self.radial_distortion.shape[1]] = self.radial_distortion.squeeze()
 
         kappa = 1 + (k[0] * r2) + (k[1] * r4) + (k[2] * r6)
 
@@ -178,9 +194,14 @@ class Camera(object):
 
         r2 = image_points.__pow__(2).sum(axis=-1)
 
-        rho = np.stack([
-            2 * p[0] * image_points[..., 0] * image_points[..., 1] + p[1] * (r2 + 2 * image_points[..., 0] ** 2),
-            2 * p[1] * image_points[..., 0] * image_points[..., 1] + p[0] * (r2 + 2 * image_points[..., 1] ** 2)
-        ], axis=-1)
+        rho = np.stack(
+            [
+                2 * p[0] * image_points[..., 0] * image_points[..., 1]
+                + p[1] * (r2 + 2 * image_points[..., 0] ** 2),
+                2 * p[1] * image_points[..., 0] * image_points[..., 1]
+                + p[0] * (r2 + 2 * image_points[..., 1] ** 2),
+            ],
+            axis=-1,
+        )
 
         return rho

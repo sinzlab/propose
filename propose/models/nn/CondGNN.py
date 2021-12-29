@@ -9,14 +9,25 @@ from typing import Union
 
 
 class CondGNN(nn.Module):
-    def __init__(self, in_features: int = 3, context_features: int = 2, out_features: int = 3,
-                 hidden_features: int = 10):
+    def __init__(
+            self,
+            in_features: int = 3,
+            context_features: int = 2,
+            out_features: int = 3,
+            hidden_features: int = 10,
+    ):
         super().__init__()
 
-        self.layers = nn.ModuleList([
-            CondGCN(in_features, context_features, hidden_features, hidden_features),
-            CondGCN(hidden_features, hidden_features, out_features, hidden_features)
-        ])
+        self.layers = nn.ModuleList(
+            [
+                CondGCN(
+                    in_features, context_features, hidden_features, hidden_features
+                ),
+                CondGCN(
+                    hidden_features, hidden_features, out_features, hidden_features
+                ),
+            ]
+        )
 
     def forward(self, data: Union[HeteroData, dict]) -> torch.Tensor:
         if isinstance(data, dict):
@@ -28,7 +39,7 @@ class CondGNN(nn.Module):
         for layer in self.layers:
             x_dict, edge_index_dict = layer(x_dict, edge_index_dict)
 
-        return x_dict['x']
+        return x_dict["x"]
 
     @staticmethod
     def _get_x_dict(data: HeteroData) -> dict:
@@ -38,8 +49,8 @@ class CondGNN(nn.Module):
         :return: x_dict: dict
         """
         x_dict = data.x_dict
-        if 'c' not in x_dict:
-            x_dict['c'] = None
+        if "c" not in x_dict:
+            x_dict["c"] = None
 
         return x_dict
 

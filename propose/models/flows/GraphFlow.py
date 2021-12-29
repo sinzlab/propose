@@ -30,7 +30,7 @@ class GraphFlow(Flow):
     def _log_prob(self, inputs):
         noise, logabsdet = self._transform(inputs)
 
-        log_prob = self._distribution.log_prob(noise['x']['x'])
+        log_prob = self._distribution.log_prob(noise["x"]["x"])
 
         return log_prob + logabsdet
 
@@ -65,8 +65,10 @@ class GraphFlow(Flow):
             return torch.cat(samples, dim=0)
 
     def _sample(self, num_samples, context):
-        num_nodes = context['x']['x'].shape[0] if context is not None else 1
-        noise = self._distribution.sample((num_samples * num_nodes)).reshape((num_nodes, num_samples, 3))
+        num_nodes = context["x"]["x"].shape[0] if context is not None else 1
+        noise = self._distribution.sample((num_samples * num_nodes)).reshape(
+            (num_nodes, num_samples, 3)
+        )
 
         noise = self._noise_to_hetero(noise, context)
 
@@ -79,9 +81,11 @@ class GraphFlow(Flow):
 
         For flows, this is more efficient that calling `sample` and `log_prob` separately.
         """
-        num_nodes = context['x']['x'].shape[0] if context is not None else 1
+        num_nodes = context["x"]["x"].shape[0] if context is not None else 1
 
-        noise, log_prob = self._distribution.sample_and_log_prob((num_samples * num_nodes))
+        noise, log_prob = self._distribution.sample_and_log_prob(
+            (num_samples * num_nodes)
+        )
 
         noise = noise.reshape((num_nodes, num_samples, 3))
         log_prob = log_prob.reshape((num_nodes, num_samples)).mean(-1)
@@ -107,15 +111,9 @@ class GraphFlow(Flow):
     @staticmethod
     def _noise_to_hetero(noise, context):
         context_dict = context.to_dict()
-        noise = {
-            **context_dict,
-            'x': {
-                **context_dict['x'],
-                'x': noise
-            }
-        }
-        if 'c' in noise:
-            noise['c']['x'] = noise['c']['x'].unsqueeze(1)
+        noise = {**context_dict, "x": {**context_dict["x"], "x": noise}}
+        if "c" in noise:
+            noise["c"]["x"] = noise["c"]["x"].unsqueeze(1)
 
         noise = HeteroData(noise)
 
