@@ -17,7 +17,7 @@ def test_only_x_is_returned():
         ('c', '->', 'x'): dict(edge_index=torch.zeros(2, 10))
     })
 
-    x_graph = get_x_graph(data.to_dict())
+    x_graph = get_x_graph(data)
     x_graph_dict = x_graph.to_dict()
 
     assert 'c' not in x_graph_dict

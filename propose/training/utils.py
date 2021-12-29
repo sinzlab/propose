@@ -1,12 +1,14 @@
 from torch_geometric.data import HeteroData
 
 
-def get_x_graph(data_dict: dict) -> HeteroData:
+def get_x_graph(data: HeteroData) -> HeteroData:
     """
     Get the graph with only x nodes from the data dictionary.
-    :param data_dict: data dictionary
+    :param data: HeteroData object
     :return: Graph with only x nodes
     """
+    data_dict = data.to_dict()
+
     M_only_graph = {
         'x': {**data_dict['x']}
     }

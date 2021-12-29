@@ -31,7 +31,7 @@ def prior_trainer(dataloader: Union[TorchGeometricDataLoader, TorchDataLoader],
         for data in pbar:
             optimizer.zero_grad()
 
-            x_graph = get_x_graph(data.to_dict())
+            x_graph = get_x_graph(data)
             x_graph.to(flow.device)
 
             loss = -flow.log_prob(x_graph).mean()

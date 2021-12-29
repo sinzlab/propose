@@ -30,6 +30,9 @@ class SinglePointDataset(PointDataset):
         for i in range(samples):
             data = HeteroData()
             data['x'].x = self.prior.sample((1,))
+            data['c'].x = data['x'].x[..., :2]
+
+            data['c', '->', 'x'].edge_index = torch.LongTensor([[0, 0]]).T
 
             data_list.append(data)
 
