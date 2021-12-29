@@ -40,7 +40,5 @@ services:
     command: /src/propose/run.py
 
   pytest:
-    build: .
-    volumes:
-      - .:/src/propose
+    <<: *common
     entrypoint: [ "pytest" ]
