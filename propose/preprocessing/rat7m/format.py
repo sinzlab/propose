@@ -8,7 +8,7 @@ CHUNK_SIZE = 3500
 
 
 def convert_movies_to_images(
-        dirname: str, data_key: str, full_run: bool = False, verbose: bool = False
+    dirname: str, data_key: str, full_run: bool = False, verbose: bool = False
 ):
     """
     Converts MP4 videos from the dataset directory to JPG images.

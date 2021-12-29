@@ -10,11 +10,11 @@ from typing import Union
 
 class CondGNN(nn.Module):
     def __init__(
-            self,
-            in_features: int = 3,
-            context_features: int = 2,
-            out_features: int = 3,
-            hidden_features: int = 10,
+        self,
+        in_features: int = 3,
+        context_features: int = 2,
+        out_features: int = 3,
+        hidden_features: int = 10,
     ):
         super().__init__()
 

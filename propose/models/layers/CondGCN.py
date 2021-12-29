@@ -12,12 +12,12 @@ class FastCondGCN(nn.Module):
     """
 
     def __init__(
-            self,
-            in_features: int = 3,
-            context_features: int = 2,
-            out_features: int = 3,
-            hidden_features: int = 10,
-            aggr: Literal["add", "mean", "max"] = "add",
+        self,
+        in_features: int = 3,
+        context_features: int = 2,
+        out_features: int = 3,
+        hidden_features: int = 10,
+        aggr: Literal["add", "mean", "max"] = "add",
     ) -> None:
         super().__init__()
 
@@ -61,7 +61,7 @@ class FastCondGCN(nn.Module):
         return x_dict, edge_index_dict
 
     def message(
-            self, embeds: dict, edge_index_dict: dict
+        self, embeds: dict, edge_index_dict: dict
     ) -> tuple[torch.Tensor, torch.Tensor]:
         keys = {"x": ["x", "x->x", "x<-x"], "c": ["c", "c->x"]}
         for key in edge_index_dict.keys():
@@ -81,7 +81,7 @@ class FastCondGCN(nn.Module):
                 (idx + 1) * self.features["hidden"],
             )
 
-            message = embeds[src_name][src, ..., output_select[0]: output_select[1]]
+            message = embeds[src_name][src, ..., output_select[0] : output_select[1]]
 
             if embeds[src_name].dim() == 3 and src_name == "c":
                 message = message.repeat_interleave(embeds["x"].shape[1], dim=1)
@@ -89,7 +89,7 @@ class FastCondGCN(nn.Module):
             yield message, dst
 
     def aggregate(
-            self, message: tuple[torch.Tensor, torch.Tensor], self_x: torch.Tensor
+        self, message: tuple[torch.Tensor, torch.Tensor], self_x: torch.Tensor
     ) -> torch.Tensor:
         """
         Aggregates the messages according to the aggregation method.
@@ -131,12 +131,12 @@ class CondGCN(nn.Module):
     """
 
     def __init__(
-            self,
-            in_features: int = 3,
-            context_features: int = 2,
-            out_features: int = 3,
-            hidden_features: int = 10,
-            aggr: Literal["add", "mean", "max"] = "add",
+        self,
+        in_features: int = 3,
+        context_features: int = 2,
+        out_features: int = 3,
+        hidden_features: int = 10,
+        aggr: Literal["add", "mean", "max"] = "add",
     ) -> None:
         super().__init__()
 
@@ -179,7 +179,7 @@ class CondGCN(nn.Module):
         return x_dict, edge_index_dict
 
     def message(
-            self, x_dict: dict, edge_index_dict: dict
+        self, x_dict: dict, edge_index_dict: dict
     ) -> tuple[torch.Tensor, torch.Tensor]:
         """
         Computes the message for each edge.
@@ -240,7 +240,7 @@ class CondGCN(nn.Module):
     #
     #     return aggr_message
     def aggregate(
-            self, message: tuple[torch.Tensor, torch.Tensor], self_x: torch.Tensor
+        self, message: tuple[torch.Tensor, torch.Tensor], self_x: torch.Tensor
     ) -> torch.Tensor:
         """
         Aggregates the messages according to the aggregation method.

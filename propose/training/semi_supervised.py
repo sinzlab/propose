@@ -48,11 +48,11 @@ def semi_supervised_trainer(dataloader, flow, optimizer=None, epochs=100):
             reg_posterior_loss = -flow.log_prob(data).mean()
 
             loss = (
-                    100 * rec_loss
-                    + posterior_loss
-                    + prior_loss
-                    + reg_prior_loss
-                    + reg_posterior_loss
+                100 * rec_loss
+                + posterior_loss
+                + prior_loss
+                + reg_prior_loss
+                + reg_posterior_loss
             )
             loss.backward()
 

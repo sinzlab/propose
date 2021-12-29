@@ -76,7 +76,7 @@ class GraphAffineCouplingTransform(CouplingTransform):
         return 2
 
     def _scale_and_shift(self, transform_params):
-        unconstrained_scale = transform_params[..., self.num_transform_features:]
+        unconstrained_scale = transform_params[..., self.num_transform_features :]
         shift = transform_params[..., : self.num_transform_features]
         scale = torch.sigmoid(unconstrained_scale + 2) + 1e-3
         return scale, shift

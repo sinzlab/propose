@@ -13,7 +13,7 @@ from propose.models.distributions import StandardNormal
 
 class CondGraphFlow(GraphFlow):
     def __init__(
-            self, features=3, num_layers=5, context_features=2, hidden_features=100
+        self, features=3, num_layers=5, context_features=2, hidden_features=100
     ):
         def create_net(in_features, out_features):
             return CondGNN(

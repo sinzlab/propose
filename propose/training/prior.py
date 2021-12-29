@@ -14,10 +14,10 @@ from torch.optim.optimizer import Optimizer
 
 
 def prior_trainer(
-        dataloader: Union[TorchGeometricDataLoader, TorchDataLoader],
-        flow: Flow,
-        optimizer: Optional[Optimizer] = None,
-        epochs: int = 100,
+    dataloader: Union[TorchGeometricDataLoader, TorchDataLoader],
+    flow: Flow,
+    optimizer: Optional[Optimizer] = None,
+    epochs: int = 100,
 ) -> None:
     """
     Train only the prior part of the model in a supervised fashion.

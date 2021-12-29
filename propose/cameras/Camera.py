@@ -11,13 +11,13 @@ class Camera(object):
     """
 
     def __init__(
-            self,
-            intrinsic_matrix: npt.NDArray[float],
-            rotation_matrix: npt.NDArray[float],
-            translation_vector: npt.NDArray[float],
-            tangential_distortion: npt.NDArray[float],
-            radial_distortion: npt.NDArray[float],
-            frames: npt.NDArray[float],
+        self,
+        intrinsic_matrix: npt.NDArray[float],
+        rotation_matrix: npt.NDArray[float],
+        translation_vector: npt.NDArray[float],
+        tangential_distortion: npt.NDArray[float],
+        radial_distortion: npt.NDArray[float],
+        frames: npt.NDArray[float],
     ):
         """
         :param intrinsic_matrix: 3x3 matrix, transforms the 3D camera coordinates to 2D homogeneous image coordinates.
@@ -54,8 +54,8 @@ class Camera(object):
         :return: Camera matrix. M = [R | t]C
         """
         return (
-                np.concatenate((self.rotation_matrix, self.translation_vector), axis=0)
-                @ self.intrinsic_matrix
+            np.concatenate((self.rotation_matrix, self.translation_vector), axis=0)
+            @ self.intrinsic_matrix
         )
 
     def proj2D(self, points: Point3D, distort: bool = True) -> Point2D:
@@ -75,7 +75,7 @@ class Camera(object):
 
         projected_points = extended_points @ camera_matrix  # (u, v, z)
         projected_points = (
-                projected_points[..., :2] / projected_points[..., 2:]
+            projected_points[..., :2] / projected_points[..., 2:]
         )  # (u/z, v/z)
 
         if distort:

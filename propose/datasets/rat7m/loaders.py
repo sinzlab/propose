@@ -71,7 +71,7 @@ def load_mocap(path: str) -> Rat7mPose:
 
 
 def temporal_split_dataset(
-        dataset: Rat7mDataset, train_frac: float = 0.6, validation_frac: float = 0.2
+    dataset: Rat7mDataset, train_frac: float = 0.6, validation_frac: float = 0.2
 ) -> TemporalSplit:
     """
     Splits the Rat7mDataset into train and test datasets based on time. i.e. first train_frac% timesteps are used as
