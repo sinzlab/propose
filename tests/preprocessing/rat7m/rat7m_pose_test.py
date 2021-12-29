@@ -8,7 +8,7 @@ def test_switch_arms_legs():
     np.random.seed(1)
     pose_matrix = np.random.random(size=(10, 20, 3))
 
-    markers = ['ElbowL', 'ArmL', 'ElbowR', 'ArmR']
+    markers = ["ElbowL", "ArmL", "ElbowR", "ArmR"]
     marker_idx = [Rat7mPose.marker_names.index(marker) for marker in markers]
 
     pose_matrix[:, marker_idx[0]] = 0
@@ -38,7 +38,7 @@ def test_switch_arms_legs_single_frame():
     np.random.seed(1)
     pose_matrix = np.random.random(size=(20, 3))
 
-    markers = ['ElbowL', 'ArmL', 'ElbowR', 'ArmR']
+    markers = ["ElbowL", "ArmL", "ElbowR", "ArmR"]
     marker_idx = [Rat7mPose.marker_names.index(marker) for marker in markers]
 
     pose_matrix[marker_idx[0]] = 0
@@ -95,16 +95,26 @@ def test_normalize_scaling():
     reference_edge = pose.SpineF - pose.SpineM
     test_edge = pose.ArmL - pose.ElbowL
 
-    test_ratio = np.linalg.norm(test_edge, axis=1) / np.linalg.norm(reference_edge, axis=1).mean()
+    test_ratio = (
+        np.linalg.norm(test_edge, axis=1)
+        / np.linalg.norm(reference_edge, axis=1).mean()
+    )
 
     norm_pose = pp.normalize_scale(pose)
 
     norm_reference_edge = norm_pose.SpineF - norm_pose.SpineM
     norm_test_edge = norm_pose.ArmL - norm_pose.ElbowL
 
-    norm_test_ratio = np.linalg.norm(norm_test_edge, axis=1) / np.linalg.norm(norm_reference_edge, axis=1).mean()
+    norm_test_ratio = (
+        np.linalg.norm(norm_test_edge, axis=1)
+        / np.linalg.norm(norm_reference_edge, axis=1).mean()
+    )
 
-    np.testing.assert_array_almost_equal(np.linalg.norm(norm_reference_edge, axis=1), np.linalg.norm(reference_edge, axis=1) / np.linalg.norm(reference_edge, axis=1).mean())
+    np.testing.assert_array_almost_equal(
+        np.linalg.norm(norm_reference_edge, axis=1),
+        np.linalg.norm(reference_edge, axis=1)
+        / np.linalg.norm(reference_edge, axis=1).mean(),
+    )
     np.testing.assert_array_almost_equal(test_ratio, norm_test_ratio)
 
 
@@ -112,8 +122,8 @@ def test_normalize_rotation():
     np.random.seed(1)
     pose_matrix = np.random.random(size=(10, 20, 3))
 
-    pose_matrix[4, Rat7mPose.marker_names.index('SpineM')] = np.array([0, 0, 0])
-    pose_matrix[4, Rat7mPose.marker_names.index('SpineF')] = np.array([1, 1, 1])
+    pose_matrix[4, Rat7mPose.marker_names.index("SpineM")] = np.array([0, 0, 0])
+    pose_matrix[4, Rat7mPose.marker_names.index("SpineF")] = np.array([1, 1, 1])
 
     pose = Rat7mPose(pose_matrix)
 

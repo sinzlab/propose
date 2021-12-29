@@ -8,7 +8,7 @@ def test_mask_marker_failure():
     np.random.seed(1)
     pose_matrix = np.random.normal(size=(10, 20, 3), loc=0, scale=1e3)
 
-    markers = ['ElbowL', 'ShoulderL', 'ArmL', 'ElbowR', 'ShoulderR', 'ArmR']
+    markers = ["ElbowL", "ShoulderL", "ArmL", "ElbowR", "ShoulderR", "ArmR"]
     marker_idx = [Rat7mPose.marker_names.index(marker) for marker in markers]
 
     pose_matrix[5:7, marker_idx[0]] = np.zeros(3)

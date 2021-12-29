@@ -9,10 +9,10 @@ from collections import namedtuple
 import numpy as np
 
 
-@patch('propose.datasets.rat7m.transforms.pp')
+@patch("propose.datasets.rat7m.transforms.pp")
 def test_ScalePose(pp_mock):
     np.random.seed(1)
-    data = namedtuple('Data', ['poses'])
+    data = namedtuple("Data", ["poses"])
 
     pose_matrix = np.random.random(size=(10, 20, 3))
 
@@ -23,25 +23,27 @@ def test_ScalePose(pp_mock):
     pp_mock.scale_pose.assert_called_once_with(pose=pose, scale=scale)
 
 
-@patch('propose.datasets.rat7m.transforms.pp')
+@patch("propose.datasets.rat7m.transforms.pp")
 def test_CenterPose(pp_mock):
     np.random.seed(1)
-    data = namedtuple('Data', ['poses'])
+    data = namedtuple("Data", ["poses"])
 
     pose_matrix = np.random.random(size=(10, 20, 3))
 
     pose = Rat7mPose(pose_matrix)
 
-    tr.CenterPose(center_marker_name='SpineM')(data(poses=pose[0]))
+    tr.CenterPose(center_marker_name="SpineM")(data(poses=pose[0]))
 
-    pp_mock.center_pose.assert_called_once_with(pose=pose[0], center_marker_name='SpineM')
+    pp_mock.center_pose.assert_called_once_with(
+        pose=pose[0], center_marker_name="SpineM"
+    )
 
 
-@patch('propose.datasets.rat7m.transforms.pp')
+@patch("propose.datasets.rat7m.transforms.pp")
 def test_CropImage(pp_mock):
     np.random.seed(1)
     camera = create_mock_camera()
-    data = namedtuple('Data', ['poses', 'images', 'cameras'])
+    data = namedtuple("Data", ["poses", "images", "cameras"])
 
     pose_matrix = np.random.uniform(0, 100, size=(20, 3))
     pose = Rat7mPose(pose_matrix)
@@ -53,14 +55,16 @@ def test_CropImage(pp_mock):
     width = 10
     tr.CropImageToPose(width=width)(data(poses=pose, images=image, cameras=camera))
 
-    pp_mock.square_crop_to_pose.assert_called_once_with(image=image, pose2D=pose2D, width=width)
+    pp_mock.square_crop_to_pose.assert_called_once_with(
+        image=image, pose2D=pose2D, width=width
+    )
 
 
-@patch('propose.datasets.rat7m.transforms.pp')
+@patch("propose.datasets.rat7m.transforms.pp")
 def test_RotateToCamera(pp_mock):
     np.random.seed(1)
     camera = create_mock_camera()
-    data = namedtuple('Data', ['poses', 'cameras'])
+    data = namedtuple("Data", ["poses", "cameras"])
 
     pose_matrix = np.random.uniform(0, 100, size=(20, 3))
     pose = Rat7mPose(pose_matrix)
@@ -72,7 +76,7 @@ def test_RotateToCamera(pp_mock):
 
 def test_ToGraph():
     np.random.seed(1)
-    data = namedtuple('Data', ['poses', 'images'])
+    data = namedtuple("Data", ["poses", "images"])
 
     pose_matrix = np.random.uniform(0, 100, size=(20, 3))
     pose = Rat7mPose(pose_matrix)
@@ -86,11 +90,11 @@ def test_ToGraph():
     np.testing.assert_array_equal(res.image, images)
 
 
-@patch('propose.datasets.rat7m.transforms.pp')
+@patch("propose.datasets.rat7m.transforms.pp")
 def test_SwitchArmsElbows(pp_mock):
     np.random.seed(1)
     camera = create_mock_camera()
-    data = namedtuple('Data', ['poses', 'cameras'])
+    data = namedtuple("Data", ["poses", "cameras"])
 
     pose_matrix = np.random.uniform(0, 100, size=(20, 3))
     pose = Rat7mPose(pose_matrix)
@@ -102,10 +106,10 @@ def test_SwitchArmsElbows(pp_mock):
     assert isinstance(res, data)
 
 
-@patch('propose.datasets.rat7m.transforms.pp')
+@patch("propose.datasets.rat7m.transforms.pp")
 def test_ScalePixelRange(pp_mock):
     np.random.seed(1)
-    data = namedtuple('Data', ['images'])
+    data = namedtuple("Data", ["images"])
 
     image = MagicMock()
 

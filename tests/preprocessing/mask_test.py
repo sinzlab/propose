@@ -15,7 +15,10 @@ def test_mask_nans():
 
     mask = pp.mask_nans(pose)
 
-    np.testing.assert_array_equal(mask, np.array([True, True, True, False, False, False, False, False, False, False]))
+    np.testing.assert_array_equal(
+        mask,
+        np.array([True, True, True, False, False, False, False, False, False, False]),
+    )
 
 
 def test_apply_mask_with_camera():
@@ -32,8 +35,8 @@ def test_apply_mask_with_camera():
     masked_pose, masked_cameras = pp.apply_mask(mask, pose, cameras)
 
     np.testing.assert_array_equal(masked_pose.pose_matrix, pose_matrix[3:])
-    np.testing.assert_array_equal(cameras['Camera1'].frames, np.arange(0, 10))
-    np.testing.assert_array_equal(masked_cameras['Camera1'].frames, np.arange(3, 10))
+    np.testing.assert_array_equal(cameras["Camera1"].frames, np.arange(0, 10))
+    np.testing.assert_array_equal(masked_cameras["Camera1"].frames, np.arange(3, 10))
 
 
 def test_apply_mask_without_camera():
