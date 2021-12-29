@@ -3,5 +3,3 @@ repos:
   rev: 19.3b0
   hooks:
     - id: black
-      name: black
-      entry: black --check propose tests
