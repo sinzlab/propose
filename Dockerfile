@@ -27,5 +27,3 @@ RUN pip install torch-scatter -f https://data.pyg.org/whl/torch-1.9.0+cu111.html
 RUN pip install torch-sparse -f https://data.pyg.org/whl/torch-1.9.0+cu111.html
 
 WORKDIR /
-
-RUN pwd
