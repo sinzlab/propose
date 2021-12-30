@@ -14,7 +14,7 @@ x-shared: &common
   volumes:
     - .:/src/propose
     - ./notebooks:/notebooks
-    - /mnt/scratch07/nexport:/nexport
+    - ./tests:/tests
   env_file:
     - .env
 
@@ -24,7 +24,6 @@ services:
     volumes:
       - .:/src/propose
       - ./notebooks:/notebooks
-      - /var/sinz-shared:/data
     ports:
       - "8888:8888"
 
@@ -33,7 +32,6 @@ services:
     volumes:
       - .:/src/propose
       - ./notebooks:/notebooks
-      - /var/sinz-shared:/data
     ports:
       - "8888:8888"
     entrypoint: /usr/local/bin/python3
@@ -45,5 +43,4 @@ services:
       - .:/src/propose
       - ./tests:/tests
       - ./notebooks:/notebooks
-      - /var/sinz-shared:/data
     entrypoint: [ "pytest" ]
