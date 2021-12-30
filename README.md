@@ -2,9 +2,10 @@
 
 **PRO**babilistic **POSE** estimation
 
-[![Test](/workflows/Test/badge.svg)](/actions/workflows/test.yml)
-[![Black](/workflows/Black/badge.svg)](/actions/workflows/black.yml)
+[![Test](https://github.com/PPierzc/propose/workflows/Test/badge.svg)](https://github.com/PPierzc/propose/actions/workflows/test.yml)
+[![Black](https://github.com/PPierzc/propose/workflows/Black/badge.svg)](https://github.com/PPierzc/propose/actions/workflows/black.yml)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![codecov](https://codecov.io/gh/PPierzc/propose/branch/main/graph/badge.svg?token=PYI1Z06426)](https://codecov.io/gh/PPierzc/propose)
 
 ### Requirements
 This project requires that you have the following installed:

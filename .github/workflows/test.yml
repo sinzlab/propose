@@ -11,8 +11,6 @@ jobs:
         run: echo "GITHUB_USER=${{ github.actor }}" >> .env && echo "GITHUB_TOKEN=${{ github.token }}" >> .env
       - name: Build test image
         run: docker-compose build pytest
-      - name: PWD
-        run: pwd
       - name: Run tests and generate coverage report
         run: docker-compose run -v "$PWD/reports:/reports" pytest --cov --cov-report=xml:/reports/coverage.xml tests
       - name: Upload coverage report to Codecov
