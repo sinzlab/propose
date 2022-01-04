@@ -42,5 +42,4 @@ services:
     volumes:
       - .:/src/propose
       - ./tests:/tests
-      - ./notebooks:/notebooks
     entrypoint: [ "pytest" ]
