@@ -3,7 +3,7 @@ import torch.nn as nn
 
 from torch_geometric.data import HeteroData
 
-from propose.models.layers.CondGCN import CondGCN
+from propose.models.layers.CondGCN import CondGCN, FastCondGCN
 
 from typing import Union
 
@@ -15,15 +15,18 @@ class CondGNN(nn.Module):
         context_features: int = 2,
         out_features: int = 3,
         hidden_features: int = 10,
+        gcn_type: str = "slow",
     ):
         super().__init__()
 
+        self.gcn = CondGCN if gcn_type == "slow" else FastCondGCN
+
         self.layers = nn.ModuleList(
             [
-                CondGCN(
+                self.gcn(
                     in_features, context_features, hidden_features, hidden_features
                 ),
-                CondGCN(
+                self.gcn(
                     hidden_features, hidden_features, out_features, hidden_features
                 ),
             ]

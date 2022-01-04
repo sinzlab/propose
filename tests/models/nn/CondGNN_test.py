@@ -1,5 +1,5 @@
 from propose.models.nn.CondGNN import CondGNN
-from propose.models.layers.CondGCN import CondGCN
+from propose.models.layers.CondGCN import CondGCN, FastCondGCN
 
 from torch_geometric.data import HeteroData
 
@@ -12,6 +12,14 @@ from unittest.mock import MagicMock, patch, call
 
 def test_smoke():
     CondGNN()
+
+
+def test_use_fast_or_slow():
+    model = CondGNN()
+    assert model.gcn is CondGCN
+
+    model = CondGNN(gcn_type="fast")
+    assert model.gcn is FastCondGCN
 
 
 def test_architecture_should_have_2_layers():
@@ -89,11 +97,7 @@ def test_get_edge_index_empty():
     model = CondGNN()
     x = torch.rand(10, 3)
 
-    data = HeteroData(
-        {
-            "x": dict(x=x),
-        }
-    )
+    data = HeteroData({"x": dict(x=x)})
 
     edge_index_dict = model._get_edge_index(data)
 
@@ -127,11 +131,7 @@ def test_forward(cond_gcn_mock, module_list_mock):
 
     x = torch.rand(10, 3)
 
-    data = HeteroData(
-        {
-            "x": dict(x=x),
-        }
-    )
+    data = HeteroData({"x": dict(x=x)})
 
     out = model.forward(data)
 
