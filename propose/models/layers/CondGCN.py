@@ -43,9 +43,7 @@ class FastCondGCN(nn.Module):
     def forward(self, x_dict: dict, edge_index_dict: dict) -> tuple[dict, dict]:
         x, c = x_dict["x"], x_dict["c"]
 
-        embeds = {
-            "x": self.act(self.joint_layers["x"](x)),
-        }
+        embeds = {"x": self.act(self.joint_layers["x"](x))}
         if c is not None:
             embeds["c"] = self.act(self.joint_layers["c"](c))
             x_dict["c"] = embeds["c"][:, ..., : self.features["hidden"]]
@@ -202,43 +200,9 @@ class CondGCN(nn.Module):
 
             # Message computation from source to destination according to the edge type with activation
             message = self.act(self.layers[layer_name](x_dict[src_name][src]))
-            #
-            # # Walrus operator to create a tensor with the same shape as the destination tensor
-            # # and fill it with the message at the destination indices
-            # (m := torch.zeros(shape, device=self.device))[dst] = message
 
             yield message, dst
-            # yield m[dst], dst
 
-    # def aggregate(self, message: tuple[torch.Tensor, torch.Tensor], self_x: torch.Tensor) -> torch.Tensor:
-    #     """
-    #     Aggregates the messages according to the aggregation method.
-    #     :param message: message tensor
-    #     :param self_x: self loop features
-    #     :return: aggregated message
-    #     """
-    #     # message = list(message)
-    #     message = list(zip(*message))
-    #
-    #     index = torch.cat([
-    #         *[i for _, i in message],  # concatenate all message indices
-    #         torch.arange(self_x.shape[0], dtype=torch.long, device=self.device)  # add self loop indices
-    #     ])
-    #     index = torch.stack([
-    #         index,
-    #         torch.zeros_like(index)  # Only one column index, thus all zeros
-    #     ])
-    #
-    #     # Concatenate all messages with self loop features
-    #     value = torch.cat([
-    #         *[v for v, _ in message],
-    #         self_x
-    #     ])
-    #
-    #     # Aggregates the messages according to the aggregation method where the same index is used
-    #     _, aggr_message = ts.coalesce(index, value, m=index[0].max() + 1, n=index[1].max() + 1, op=self.aggr)
-    #
-    #     return aggr_message
     def aggregate(
         self, message: tuple[torch.Tensor, torch.Tensor], self_x: torch.Tensor
     ) -> torch.Tensor:
