@@ -14,6 +14,24 @@ class GraphFlow(Flow):
     Adaptation of Flow class for Hetero data.
     """
 
+    def embed_inputs(self, inputs):
+        """Embed the context inputs into the flow.
+
+        Args:
+            inputs: Tensor, input variables.
+
+        Returns:
+            A Tensor containing the embedded inputs, with shape [num_nodes, num_samples, ...].
+        """
+        inputs_dict = inputs.to_dict()
+
+        if "c" not in inputs_dict:
+            return inputs
+
+        inputs_dict["c"]["x"] = self._embedding_net(inputs_dict["c"]["x"])
+
+        return HeteroData(inputs_dict)
+
     def log_prob(self, inputs):
         """Calculate log probability under the distribution.
 
@@ -25,6 +43,7 @@ class GraphFlow(Flow):
         Returns:
             A Tensor of shape [input_size], the log probability of the inputs given the context.
         """
+        inputs = self.embed_inputs(inputs)
         return self._log_prob(inputs)
 
     def _log_prob(self, inputs):
@@ -47,6 +66,8 @@ class GraphFlow(Flow):
             A Tensor containing the samples, with shape [num_samples, ...] if context is None, or
             [context_size, num_samples, ...] if context is given.
         """
+        context = self.embed_inputs(context)
+
         if not check.is_positive_int(num_samples):
             raise TypeError("Number of samples must be a positive integer.")
 
@@ -81,6 +102,8 @@ class GraphFlow(Flow):
 
         For flows, this is more efficient that calling `sample` and `log_prob` separately.
         """
+        context = self.embed_inputs(context)
+
         num_nodes = context["x"]["x"].shape[0] if context is not None else 1
 
         noise, log_prob = self._distribution.sample_and_log_prob(
@@ -105,6 +128,7 @@ class GraphFlow(Flow):
         Returns:
             A `Tensor` of shape [batch_size, ...], the noise.
         """
+        inputs = self.embed_inputs(inputs)
         noise, _ = self._transform(inputs)
         return noise
 

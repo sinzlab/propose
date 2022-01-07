@@ -21,6 +21,21 @@ class PointDataset(Dataset):
         return self.data[0].metadata()
 
 
+class SinglePointPriorDataset(PointDataset):
+    def __init__(self, samples=100, prior=None):
+        super().__init__(prior=prior)
+
+        data_list = []
+
+        for i in range(samples):
+            data = HeteroData()
+            data["x"].x = self.prior.sample((1,))
+
+            data_list.append(data)
+
+        self.data = data_list
+
+
 class SinglePointDataset(PointDataset):
     def __init__(self, samples=100, prior=None):
         super().__init__(prior=prior)
