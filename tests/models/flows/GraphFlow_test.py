@@ -9,6 +9,7 @@ from propose.datasets.toy.Point import SinglePointDataset, SinglePointPriorDatas
 from torch_geometric.loader import DataLoader
 
 import torch
+import torch.testing as tt
 
 
 class TestGraphFlow(TestCase):
@@ -98,3 +99,39 @@ class TestGraphFlow(TestCase):
 
         # check x is the same
         assert torch.eq(x, x_embed).all()
+
+    def test_sampling(self):
+        """
+        Test that the sampling is done correctly.
+        """
+        distribution = StandardNormal((3,))
+        transform = GraphCompositeTransform([])
+        gf = GraphFlow(transform, distribution)
+
+        dataset = SinglePointDataset()
+        batch_size = 10
+        dataloader = DataLoader(dataset, batch_size=batch_size)
+        data = next(iter(dataloader))
+
+        n_samples = 2
+        samples = gf.sample(n_samples, data)
+
+        assert samples["x"]["x"].size() == torch.Size([batch_size, n_samples, 3])
+
+    def test_transform_to_noise(self):
+        """
+        Test that the transform_to_noise is done correctly.
+        """
+        distribution = StandardNormal((3,))
+        transform = GraphCompositeTransform([])
+        gf = GraphFlow(transform, distribution)
+
+        dataset = SinglePointPriorDataset()
+        batch_size = 10
+        dataloader = DataLoader(dataset, batch_size=batch_size)
+        data = next(iter(dataloader))
+
+        trans = gf.transform_to_noise(data)
+        hand_trans, _ = gf._transform(data)
+
+        tt.assert_equal(trans["x"]["x"], hand_trans["x"]["x"])

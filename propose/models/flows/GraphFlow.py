@@ -53,14 +53,12 @@ class GraphFlow(Flow):
 
         return log_prob + logabsdet
 
-    def sample(self, num_samples, context, batch_size=None):
+    def sample(self, num_samples, context):
         """Generates samples from the distribution. Samples can be generated in batches.
 
         Args:
             num_samples: int, number of samples to generate.
             context: Tensor or None, conditioning variables. If None, the context is ignored.
-            batch_size: int or None, number of samples per batch. If None, all samples are generated
-                in one batch.
 
         Returns:
             A Tensor containing the samples, with shape [num_samples, ...] if context is None, or
@@ -71,19 +69,7 @@ class GraphFlow(Flow):
         if not check.is_positive_int(num_samples):
             raise TypeError("Number of samples must be a positive integer.")
 
-        if batch_size is None:
-            return self._sample(num_samples, context)
-
-        else:
-            if not check.is_positive_int(batch_size):
-                raise TypeError("Batch size must be a positive integer.")
-
-            num_batches = num_samples // batch_size
-            num_leftover = num_samples % batch_size
-            samples = [self._sample(batch_size, context) for _ in range(num_batches)]
-            if num_leftover > 0:
-                samples.append(self._sample(num_leftover, context))
-            return torch.cat(samples, dim=0)
+        return self._sample(num_samples, context)
 
     def _sample(self, num_samples, context):
         num_nodes = context["x"]["x"].shape[0] if context is not None else 1
