@@ -1,7 +1,5 @@
 """Basic definitions for the flows module."""
 
-import torch.nn
-
 import nflows.utils.typechecks as check
 
 from nflows.flows.base import Flow
