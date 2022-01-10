@@ -19,6 +19,7 @@ class CondGraphFlow(GraphFlow):
         context_features=2,
         hidden_features=100,
         embedding_net=None,
+        gcn_type="fast",
     ):
         """
         Conditional Graph Flow model. The model is composed of a CondGNN and a GraphFlow.
@@ -27,6 +28,7 @@ class CondGraphFlow(GraphFlow):
         :param context_features: Number of features in the context after embedding.
         :param hidden_features: Number of features in the hidden layers.
         :param embedding_net: (optional) Network to embed the context. default: nn.Identity
+        :param gcn_type: (optional) Type of GCN to use. default: fast
         """
 
         def create_net(in_features, out_features):
@@ -35,6 +37,7 @@ class CondGraphFlow(GraphFlow):
                 context_features=context_features,
                 out_features=out_features,
                 hidden_features=hidden_features,
+                gcn_type=gcn_type,
             )
 
         coupling_constructor = GraphAffineCouplingTransform

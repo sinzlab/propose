@@ -9,3 +9,7 @@ torch-geometric~=2.0.2
 torch~=1.9.0
 neuralpredictors~=0.1.0
 ffmpeg-python~=0.2.0
+scikit-image~=0.19.1
+torch-scatter --install-option="-f https://data.pyg.org/whl/torch-1.9.1+cpu.html"
+torch-sparse --install-option="-f https://data.pyg.org/whl/torch-1.9.1+cpu.html"
+pytest
