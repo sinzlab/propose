@@ -19,6 +19,8 @@ FROM ${BASE_IMAGE}
 #COPY --from=base /src /src
 ADD . /src/propose
 
+RUN python -m pip install --upgrade pip
+
 RUN pip install -e /src/propose
 
 RUN pip install -r /src/propose/requirements.txt
