@@ -1,8 +1,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+from .utils import yaml_pose_loader
 
-class BasePose(object):
+from abc import ABC, abstractmethod
+
+
+class BasePose(ABC):
     """
     Base class for poses. Provides and structure for storing pose information and plotting poses.
     """
@@ -30,8 +34,12 @@ class BasePose(object):
         :param item: the marker name to be selected
         :return: new Pose constructed from self.pose_matrix[..., marker_idx, :]
         """
+        if item not in self.marker_names:
+            raise AttributeError(f"{item} is not a valid marker name")
+
         idx = self.marker_names.index(item)
-        return self.__class__(self.pose_matrix[..., idx, :])
+
+        return self.__class__(pose_matrix=self.pose_matrix[..., idx, :])
 
     def __getitem__(self, item):
         if isinstance(item, str):
@@ -59,8 +67,9 @@ class BasePose(object):
         return self.pose_matrix.shape
 
     def get_edge(self, marker_name_1: str, marker_name_2: str):
-        return self.marker_names.index(marker_name_1), self.marker_names.index(
-            marker_name_2
+        return (
+            self.marker_names.index(marker_name_1),
+            self.marker_names.index(marker_name_2),
         )
 
     def _edge(self, marker_name_1: str, marker_name_2: str):
@@ -149,8 +158,69 @@ class BasePose(object):
         return line_actors, animate
 
     @property
+    @abstractmethod
     def edge_groups(self):
         raise NotImplementedError("Edge groups have not been defined for this pose")
 
+    @abstractmethod
     def set_adjacency_matrix(self):
         raise NotImplementedError("Adjacency matrix has not been setup")
+
+
+class YamlPose(BasePose):
+    def __init__(self, pose_matrix, path):
+        marker_names, named_edges, named_group_edges = yaml_pose_loader(path)
+
+        self.marker_names = marker_names
+        self.__named_edges = named_edges
+        self.__named_group_edges = named_group_edges
+        self.__path = path
+
+        super().__init__(pose_matrix)
+
+    def set_adjacency_matrix(self):
+        self.adjacency_matrix = np.eye(len(self.marker_names))
+
+        edges = [self.get_edge(src, dst) for src, dst in self.__named_edges]
+
+        for edge in edges:
+            self.adjacency_matrix[edge] = 1
+            self.adjacency_matrix[edge[::-1]] = 1
+
+    @property
+    def edge_groups(self):
+        """
+        Edge groups for plotting.
+        :return: dict of edge groups
+        """
+        groups = {
+            group: np.array(
+                [self._edge(src, dst) for src, dst in self.__named_group_edges[group]]
+            )
+            for group in self.__named_group_edges.keys()
+        }
+        return groups
+
+    def __getattr__(self, item):
+        """
+        Interface for getting markers based on the name's index in the markers_names list.
+        e.g.
+        marker_names = ['head', 'spine', 'leg_l']
+        calling self.head returns a pose with self.pose_matrix[..., 0, :]
+
+        :param item: the marker name to be selected
+        :return: new Pose constructed from self.pose_matrix[..., marker_idx, :]
+        """
+        if item not in self.marker_names:
+            raise AttributeError(f"{item} is not a valid marker name")
+
+        idx = self.marker_names.index(item)
+        return self.__class__(
+            path=self.__path, pose_matrix=self.pose_matrix[..., idx, :]
+        )
+
+    def __getitem__(self, item):
+        if isinstance(item, str):
+            return self.__getattr__(item)
+
+        return self.__class__(path=self.__path, pose_matrix=self.pose_matrix[item])

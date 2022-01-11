@@ -25,3 +25,12 @@ To run the tests call from the root directory
 ```
 docker-compose run pytest tests
 ```
+
+## Data
+### Rat7m
+You can download the Rat 7M dataset from [here](https://figshare.com/collections/Rat_7M/5295370).
+
+### Human3.6M dataset
+Due to license restrictions, the dataset is not included in the repository.
+You can download it from the official [website](http://vision.imar.ro/human3.6m).
+
