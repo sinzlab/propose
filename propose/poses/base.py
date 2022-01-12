@@ -143,19 +143,19 @@ class BasePose(ABC):
         e.g.
         fig = plt.figure()
         ax = plt.gca()
-        _, animate = pose.animate(ax)
+        animate = pose.animate(ax)
         ani = animation.FuncAnimation(fig, animate, frames=100)
         This will animate the frames from pose[0:100]
         :param ax:
-        :return:
+        :return: animate function
         """
         line_actors = self[0].plot(ax)
 
-        def animate(i):
+        def animate_fn(i):
             pose = self[i]
             pose.update(line_actors)
 
-        return line_actors, animate
+        return animate_fn
 
     @property
     @abstractmethod
