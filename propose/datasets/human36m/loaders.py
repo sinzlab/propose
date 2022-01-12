@@ -23,11 +23,17 @@ def load_poses(path, every_n_frame: int = 4):
     metadata_path = os.path.join(dirname, "../../poses/metadata/human36m.yaml")
     joints = load_data_ids(metadata_path)
 
+    # Select only the joints we want
     poses_3d = poses_3d.reshape(-1, 32, 3)[:, joints]
-    poses_3d = poses_3d.swapaxes(1, 2).reshape(-1, 17, 3)
 
+    # Select every nth frame
     indices = np.arange(3, len(poses_3d), every_n_frame)
-
     poses_3d = poses_3d[indices, :]
+
+    # Reformat the data to be compatible with the propose pose format.
+    poses_3d = poses_3d - poses_3d[:, :1]  # center around root
+    # data is saved in x, z, y order in the .cdf file, so we need to swap the z, y axes
+    poses_3d[..., [1, 2]] = poses_3d[..., [2, 1]]
+    poses_3d[..., 2] = -poses_3d[..., 2]  # flip the z axis
 
     return poses_3d
