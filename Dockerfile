@@ -16,14 +16,18 @@ RUN git config --global credential.helper store &&\
     echo https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com >> ~/.git-credentials
 
 FROM ${BASE_IMAGE}
-#COPY --from=base /src /src
-ADD . /src/propose
 
-RUN python -m pip install --upgrade pip
+ADD . /src/propose
 
 RUN pip install -e /src/propose
 
-RUN pip install -r /src/propose/requirements.txt
+RUN python -m pip install --no-cache-dir nflows\
+    imageio\
+    tqdm\
+    torch-geometric\
+    ffmpeg-python\
+    scikit-image\
+    cdflib
 
 RUN pip install git+https://github.com/sinzlab/neuralpredictors.git
 RUN pip install torch-scatter -f https://data.pyg.org/whl/torch-1.9.0+cu111.html

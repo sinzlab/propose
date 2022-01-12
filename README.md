@@ -12,6 +12,12 @@ This project requires that you have the following installed:
 - `docker`
 - `docker-compose`
 
+Ensure that you have the base image pulled from the Docker Hub.
+You can get the base image by running the following command:
+```
+docker pull sinzlab/pytorch:v3.9-torch1.9.0-cuda11.1-dj0.12.7
+```
+
 ### Installation
 1. Clone the repository.
 2. Navigate to the project directory.
