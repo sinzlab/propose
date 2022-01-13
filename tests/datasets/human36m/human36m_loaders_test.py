@@ -32,6 +32,6 @@ class TestHuman36MPoseLoader(TestCase):
         cdflib_mock.CDF.return_value = np.random.random((1, 100, 96))
 
         path = "path/to/cdf/file"
-        poses = load_poses(path, every_n_frame=10)
+        poses = load_poses(path)
 
-        self.assertEqual(poses.shape, (10, 17, 3))
+        self.assertEqual(poses.shape, (100, 17, 3))

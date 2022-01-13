@@ -19,6 +19,34 @@ x-shared: &common
     - .env
 
 services:
+  base:
+    image: propose
+    <<: *common
+    volumes:
+      - .:/src/propose
+      - ./scripts:/scripts
+      - ./data:/data
+
+  python:
+    &python
+    image: propose
+    entrypoint: [ "python" ]
+
+  human36m_preprocess:
+    <<: *python
+    volumes:
+      - .:/src/propose
+      - ./scripts:/scripts
+      - ./data:/data
+    command: /scripts/human36m_preprocess.py
+
+  pytest:
+    <<: *common
+    volumes:
+      - .:/src/propose
+      - ./tests:/tests
+    entrypoint: [ "pytest" ]
+
   notebook_server:
     <<: *common
     volumes:
@@ -36,10 +64,3 @@ services:
       - "8888:8888"
     entrypoint: /usr/local/bin/python3
     command: /src/propose/run.py
-
-  pytest:
-    <<: *common
-    volumes:
-      - .:/src/propose
-      - ./tests:/tests
-    entrypoint: [ "pytest" ]
