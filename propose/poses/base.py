@@ -98,7 +98,7 @@ class BasePose(ABC):
         edge_groups = list(self.edge_groups.values())
         return np.array([edge for edge_group in edge_groups for edge in edge_group])
 
-    def plot(self, ax, cmap=plt.get_cmap("tab10")):
+    def plot(self, ax, cmap=plt.get_cmap("tab10").colors, **kwargs):
         """
         Plotting function for displaying the pose.
 
@@ -109,9 +109,9 @@ class BasePose(ABC):
         edge_groups = self.edge_groups
 
         line_actors = []
-        for edge_group_name, c in zip(edge_groups, cmap.colors):
+        for edge_group_name, c in zip(edge_groups, cmap):
             for edge in edge_groups[edge_group_name]:
-                line_actors.append(*ax.plot(*edge, c=c))
+                line_actors.append(*ax.plot(*edge, c=c, **kwargs))
 
         return line_actors
 
