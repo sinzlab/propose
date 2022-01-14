@@ -32,13 +32,13 @@ services:
     image: propose
     entrypoint: [ "python" ]
 
-  human36m_preprocess:
-    <<: *python
+  preprocess:
+    image: propose
     volumes:
       - .:/src/propose
       - ./scripts:/scripts
       - ./data:/data
-    command: /scripts/human36m_preprocess.py
+    entrypoint: [ "python", "/scripts/preprocess.py" ]
 
   pytest:
     <<: *common

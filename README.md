@@ -37,6 +37,10 @@ docker-compose run pytest tests
 ## Data
 ### Rat7m
 You can download the Rat 7M dataset from [here](https://figshare.com/collections/Rat_7M/5295370).
+To preprocess the dataset run the following command.
+```
+docker-compose run preprocess --rat7m
+```
 
 ### Human3.6M dataset
 Due to license restrictions, the dataset is not included in the repository.
@@ -45,6 +49,6 @@ You can download it from the official [website](http://vision.imar.ro/human3.6m)
 Download the *D3 Positions mono* by subject and place them into the `data/human36m/raw` directory.
 Then run the following command.
 ```
-docker-compose run human36m_preprocess
+docker-compose run preprocess --human36m
 ```
 
