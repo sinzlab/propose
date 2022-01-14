@@ -67,7 +67,7 @@ def pickle_poses(input_dir_path: Union[str, Path], output_dir_path: Union[str, P
                 dataset[camera] = {"poses": [poses], "actions": [action] * n_frames}
 
         for camera in dataset:
-            poses = np.concatenate(dataset[camera]["poses"])
+            dataset[camera]["poses"] = np.concatenate(dataset[camera]["poses"])
 
             output_dir_path.mkdir(exist_ok=True)
             (output_dir_path / subject).mkdir(exist_ok=True)
