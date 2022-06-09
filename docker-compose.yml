@@ -52,15 +52,6 @@ services:
     volumes:
       - .:/src/propose
       - ./notebooks:/notebooks
+      - ./data:/data
     ports:
       - "8888:8888"
-
-  production_server:
-    <<: *common
-    volumes:
-      - .:/src/propose
-      - ./notebooks:/notebooks
-    ports:
-      - "8888:8888"
-    entrypoint: /usr/local/bin/python3
-    command: /src/propose/run.py

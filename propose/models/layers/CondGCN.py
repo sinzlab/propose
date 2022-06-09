@@ -17,28 +17,27 @@ class CondGCN(nn.Module):
         context_features: int = 2,
         out_features: int = 3,
         hidden_features: int = 10,
+        root_features: int = 3,
         aggr: Literal["add", "mean", "max"] = "add",
+        relations: list[str] = None,
     ) -> None:
         super().__init__()
 
+        default_relations: list[str] = ["x", "c", "r",  # self loop
+                                        "x->x", "x<-x", # symmetric
+                                        "c->x", "r->x"] # context
+
+        self.relations = relations if relations else default_relations
+
         self.features = {
-            "in": in_features,
-            "context": context_features,
+            "x": in_features,
+            "c": context_features,
+            "r": root_features,
             "hidden": hidden_features,
             "out": out_features,
         }
 
-        self.layers = nn.ModuleDict(
-            {
-                # Self loop edges
-                "x": nn.Linear(in_features, hidden_features),
-                "c": nn.Linear(context_features, hidden_features),
-                # Between node edges
-                "x->x": nn.Linear(in_features, hidden_features),
-                "x<-x": nn.Linear(in_features, hidden_features),
-                "c->x": nn.Linear(context_features, hidden_features),
-            }
-        )
+        self.layers = self._build_layers()
 
         self.pool = nn.Linear(hidden_features, out_features)
         self.act = nn.ReLU()
@@ -46,21 +45,27 @@ class CondGCN(nn.Module):
         self.aggr = aggr
 
     def forward(self, x_dict: dict, edge_index_dict: dict) -> tuple[dict, dict]:
-        x, c = x_dict["x"], x_dict["c"]
+        x, c, r = x_dict["x"], x_dict["c"], x_dict["r"]
 
-        self_x = self.act(self.layers["x"](x))
+        self_x = self.act(self.layers["x"](x))  # self loop values
 
-        message = self.aggregate(self.message(x_dict, edge_index_dict), self_x)
-
-        x_dict["x"] = self.pool(message)
+        message = self.aggregate(
+            self.message(x_dict, edge_index_dict),
+            self_x
+        )
 
         if c is not None:
             x_dict["c"] = self.act(self.layers["c"](c))
 
+        if r is not None:
+            x_dict["r"] = self.act(self.layers["r"](r))
+
+        x_dict["x"] = self.pool(message)
+
         return x_dict, edge_index_dict
 
     def message(
-        self, x_dict: dict, edge_index_dict: dict
+        self, x_dict: dict, edge_index_dict: dict, target: Literal["x", "c", "r"] = "x"
     ) -> tuple[torch.Tensor, torch.Tensor]:
         """
         Computes the message for each edge.
@@ -69,19 +74,19 @@ class CondGCN(nn.Module):
         :return: message and destination index
         """
         for key in edge_index_dict.keys():
-            src_name, direction, dst_name = key
-            layer_name = "".join(key)
+            src_name, direction, dst_name = key  # e.g. "c", "->", "x"
+            layer_name = "".join(key)  # e.g. "c->x"
             src, dst = edge_index_dict[key]
 
             # If the edge is an inverse edge, swap the source and destination
             if direction == "<-":
                 src_name, dst_name = dst_name, src_name
                 src, dst = dst, src
+                layer_name = "x->x"#.join(key[::-1])
 
-            shape = list(x_dict[dst_name].shape)
-            shape[-1] = self.features["hidden"]
+            if dst_name != target:
+                continue
 
-            # Message computation from source to destination according to the edge type with activation
             message = self.act(self.layers[layer_name](x_dict[src_name][src]))
 
             yield message, dst
@@ -105,7 +110,9 @@ class CondGCN(nn.Module):
             [
                 *indexes,  # concatenate all message indices
                 torch.arange(
-                    self_x.shape[0], dtype=torch.long, device=self.device
+                    self_x.shape[0],
+                    dtype=torch.long,
+                    device=self.device,  # if torch.cuda.is_available() else 'cpu'
                 ),  # add self loop indices
             ]
         )
@@ -114,6 +121,32 @@ class CondGCN(nn.Module):
         )
 
         # Concatenate all messages with self loop features
+
+        # when sampling the messages from context need to be repeated to match the number of samples
+
+        if len(values) == 4 and values[0].dim() == 3:
+            values = list(values)
+            samples = values[0].shape[1]
+            if values[2].shape[1] == 1:
+                values[2] = values[2].repeat(1, samples, 1)
+            if values[3].shape[1] == 1:
+                values[3] = values[3].repeat(1, samples, 1)
+
+        if len(values) == 3 and values[0].dim() == 3:
+            values = list(values)
+            samples = self_x.shape[1]
+            if values[0].shape[1] == 1:
+                values[0] = values[0].repeat(1, samples, 1)
+            if values[2].shape[1] == 1:
+                values[2] = values[2].repeat(1, samples, 1)
+
+        if len(values) == 1 and values[0].dim() == 3:
+            values = list(values)
+            # samples = values[0].shape[1]
+            # self_x = self_x.repeat(1, samples, 1)
+            samples = self_x.shape[1]
+            values[0] = values[0].repeat(1, samples, 1)
+
         value = torch.cat([*values, self_x])  # concatenate all the message values
 
         # Aggregates the messages according to the aggregation method where the same index is used
@@ -127,84 +160,10 @@ class CondGCN(nn.Module):
     def device(self):
         return next(self.parameters()).device
 
+    def _build_layers(self):
+        layers_dict = {}
+        for relation in self.relations:
+            n_features: int = self.features[relation[0]]
+            layers_dict[relation] = nn.Linear(n_features, self.features["hidden"])
 
-class FastCondGCN(CondGCN):
-    """
-    Faster Implementation of the Conditional GCN layer.
-    """
-
-    def __init__(
-        self,
-        in_features: int = 3,
-        context_features: int = 2,
-        out_features: int = 3,
-        hidden_features: int = 10,
-        aggr: Literal["add", "mean", "max"] = "add",
-    ) -> None:
-        super().__init__()
-
-        self.features = {
-            "in": in_features,
-            "context": context_features,
-            "hidden": hidden_features,
-            "out": out_features,
-        }
-
-        self.layers = nn.ModuleDict(
-            {
-                "x": nn.Linear(in_features, hidden_features * 3),
-                "c": nn.Linear(context_features, hidden_features * 2),
-            }
-        )
-
-        self.pool = nn.Linear(hidden_features, out_features)
-        self.act = nn.ReLU()
-
-        self.aggr = aggr
-
-    def forward(self, x_dict: dict, edge_index_dict: dict) -> tuple[dict, dict]:
-        x, c = x_dict["x"], x_dict["c"]
-
-        embeds = {"x": self.act(self.layers["x"](x))}
-        if c is not None:
-            embeds["c"] = self.act(self.layers["c"](c))
-            x_dict["c"] = embeds["c"][:, ..., : self.features["hidden"]]
-
-        self_x = embeds["x"][:, ..., : self.features["hidden"]]
-
-        m = self.message(embeds, edge_index_dict)
-
-        message = self.aggregate(m, self_x)
-
-        x_dict["x"] = self.pool(message)
-
-        return x_dict, edge_index_dict
-
-    def message(
-        self, embeds: dict, edge_index_dict: dict
-    ) -> tuple[torch.Tensor, torch.Tensor]:
-        keys = {"x": ["x", "x->x", "x<-x"], "c": ["c", "c->x"]}
-
-        for key in edge_index_dict.keys():
-            src_name, direction, dst_name = key
-            layer_name = "".join(key)
-            src, dst = edge_index_dict[key]
-
-            # If the edge is an inverse edge, swap the source and destination
-            if direction == "<-":
-                src_name, dst_name = dst_name, src_name
-                src, dst = dst, src
-
-            idx = keys[src_name].index(layer_name)
-            # Message computation from source to destination according to the edge type with activation
-            output_select = (
-                idx * self.features["hidden"],
-                (idx + 1) * self.features["hidden"],
-            )
-
-            message = embeds[src_name][src, ..., output_select[0] : output_select[1]]
-
-            if embeds[src_name].dim() == 3 and src_name == "c":
-                message = message.repeat_interleave(embeds["x"].shape[1], dim=1)
-
-            yield message, dst
+        return nn.ModuleDict(layers_dict)

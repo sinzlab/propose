@@ -3,31 +3,43 @@ import torch.nn as nn
 
 from torch_geometric.data import HeteroData
 
-from propose.models.layers.CondGCN import CondGCN, FastCondGCN
+from propose.models.layers.CondGCN import CondGCN
 
 from typing import Union
 
 
 class CondGNN(nn.Module):
+    """
+    Conditional Graph neural network.
+    """
+
     def __init__(
         self,
         in_features: int = 3,
         context_features: int = 2,
         out_features: int = 3,
         hidden_features: int = 10,
-        gcn_type: str = "slow",
+        root_features: int = 3,
     ):
         super().__init__()
 
-        self.gcn = CondGCN if gcn_type == "slow" else FastCondGCN
+        self.gcn = CondGCN
 
         self.layers = nn.ModuleList(
             [
                 self.gcn(
-                    in_features, context_features, hidden_features, hidden_features
+                    in_features=in_features,
+                    hidden_features=hidden_features,
+                    out_features=hidden_features,
+                    context_features=context_features,
+                    root_features=root_features
                 ),
                 self.gcn(
-                    hidden_features, hidden_features, out_features, hidden_features
+                    in_features=hidden_features,
+                    hidden_features=hidden_features,
+                    out_features=out_features,
+                    context_features=hidden_features,
+                    root_features=hidden_features
                 ),
             ]
         )
@@ -54,6 +66,9 @@ class CondGNN(nn.Module):
         x_dict = data.x_dict
         if "c" not in x_dict:
             x_dict["c"] = None
+
+        if "r" not in x_dict:
+            x_dict["r"] = None
 
         return x_dict
 

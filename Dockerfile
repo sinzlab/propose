@@ -19,6 +19,9 @@ FROM ${BASE_IMAGE}
 
 ADD . /src/propose
 
+RUN apt -y --force-yes update
+RUN apt install -y --force-yes ffmpeg
+
 RUN pip install -e /src/propose
 
 RUN python -m pip install --no-cache-dir nflows\
@@ -28,7 +31,9 @@ RUN python -m pip install --no-cache-dir nflows\
     ffmpeg-python\
     scikit-image\
     cdflib\
-    imageio-ffmpeg
+    imageio-ffmpeg\
+    brax\
+    wandb
 
 RUN pip install git+https://github.com/sinzlab/neuralpredictors.git
 RUN pip install torch-scatter -f https://data.pyg.org/whl/torch-1.9.0+cu111.html

@@ -1,0 +1,16 @@
+seed: 0
+
+dataset:
+  dirname: '/data/human36m/processed'
+  num_samples: 100000
+
+train:
+  lr: 0.001
+  weight_decay: 0
+  batch_size: 100
+  epochs: 300
+
+model:
+  num_layers: 10
+  context_features: 2
+  hidden_features: 50

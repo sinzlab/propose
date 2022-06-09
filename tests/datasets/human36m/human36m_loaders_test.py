@@ -56,11 +56,9 @@ class TestHuman36mPickle(TestCase):
 
         assert str(load_poses_mock.mock_calls[0][1][0]) == "path/to/cdf/action.camera"
 
-        assert output_dir_path.mock_calls[-3:][0][1][0] == "S1"
-        assert (
-            output_dir_path.mock_calls[-3:][1][1][0]
-            == f"poses_cam-camera_frames-100.pkl"
-        )
+        assert output_dir_path.mock_calls[-4:][0][1][0] == "S1"
+        assert output_dir_path.mock_calls[-4:][1][1][0] == "camera"
+        assert output_dir_path.mock_calls[-4:][2][1][0] == f"100.pkl"
 
         dataset = pickle_mock.mock_calls[0][1][0]
         assert set(dataset.keys()) == {"poses", "actions"}

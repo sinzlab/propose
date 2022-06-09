@@ -19,7 +19,8 @@ class CondGraphFlow(GraphFlow):
         context_features=2,
         hidden_features=100,
         embedding_net=None,
-        gcn_type="fast",
+        gcn_type="slow",
+        # mask_idx=[0, 2, 5, 8, 10, 12, 15]
     ):
         """
         Conditional Graph Flow model. The model is composed of a CondGNN and a GraphFlow.
@@ -28,7 +29,7 @@ class CondGraphFlow(GraphFlow):
         :param context_features: Number of features in the context after embedding.
         :param hidden_features: Number of features in the hidden layers.
         :param embedding_net: (optional) Network to embed the context. default: nn.Identity
-        :param gcn_type: (optional) Type of GCN to use. default: fast
+        :param gcn_type: (optional) Type of GCN to use. default: slow
         """
 
         def create_net(in_features, out_features):
@@ -42,19 +43,21 @@ class CondGraphFlow(GraphFlow):
 
         coupling_constructor = GraphAffineCouplingTransform
 
-        mask = torch.ones(features)
-        mask[::2] = -1
-
         layers = []
-        for _ in range(num_layers):
+        for i in range(num_layers):
+            mask = -torch.ones(features)
+            mask[i % features] = 1  # iterate over feature pairs in a leave-one-out fashion
+
             layers.append(GraphActNorm(features=features))
             layers.append(
                 coupling_constructor(mask=mask, transform_net_create_fn=create_net)
             )
-            mask *= -1
 
         super().__init__(
             transform=GraphCompositeTransform(layers),
             distribution=StandardNormal([features]),
             embedding_net=embedding_net,
         )
+
+    def forward(self, inputs):
+        return self.log_prob(inputs)

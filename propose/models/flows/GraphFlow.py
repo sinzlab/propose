@@ -5,6 +5,7 @@ import nflows.utils.typechecks as check
 from nflows.flows.base import Flow
 
 from torch_geometric.data import HeteroData
+import torch
 
 
 class GraphFlow(Flow):
@@ -23,10 +24,18 @@ class GraphFlow(Flow):
         """
         inputs_dict = inputs.to_dict()
 
-        if "c" not in inputs_dict:
+        if "c" not in inputs_dict or "x" not in inputs_dict["c"]:
             return inputs
 
-        inputs_dict["c"]["x"] = self._embedding_net(inputs_dict["c"]["x"])
+        #inputs_dict["c"]["x"] = self._embedding_net(inputs_dict["c"]["x"].reshape(-1, 16, 2)).reshape(-1, 10)
+
+        inputs_dict["c"]["x"] = self._embedding_net(inputs)
+
+        # print(inputs_dict["c"]["x"])
+
+        if isinstance(inputs_dict["c"]["x"], HeteroData):
+            inputs_dict["c"]["x"] = inputs_dict["c"]["x"]["c"]["x"]
+
 
         return HeteroData(inputs_dict)
 
@@ -42,12 +51,17 @@ class GraphFlow(Flow):
             A Tensor of shape [input_size], the log probability of the inputs given the context.
         """
         inputs = self.embed_inputs(inputs)
+
         return self._log_prob(inputs)
 
     def _log_prob(self, inputs):
         noise, logabsdet = self._transform(inputs)
 
-        log_prob = self._distribution.log_prob(noise["x"]["x"])
+        # print("noise", noise["x"]["x"].shape)
+        log_prob = self._distribution.log_prob(noise["x"]["x"])#.reshape(-1, 1)
+
+        # logabsdet = logabsdet.reshape(-1, 16).sum(-1)
+        # log_prob = log_prob.reshape(-1, 16).sum(-1)
 
         return log_prob + logabsdet
 
@@ -71,9 +85,23 @@ class GraphFlow(Flow):
 
     def _sample(self, num_samples, context):
         num_nodes = context["x"]["x"].shape[0] if context is not None else 1
+        num_features = context["x"]["x"].shape[-1] if context is not None else 3
         noise = self._distribution.sample((num_samples * num_nodes)).reshape(
-            (num_nodes, num_samples, 3)
+            (num_nodes, num_samples, num_features)
         )
+
+        noise = self._noise_to_hetero(noise, context)
+
+        samples, _ = self._transform.inverse(noise)
+
+        return samples
+
+    def mode_sample(self, context):
+        context = self.embed_inputs(context)
+
+        num_nodes = context["x"]["x"].shape[0] if context is not None else 1
+        num_features = context["x"]["x"].shape[-1] if context is not None else 3
+        noise = torch.zeros((num_nodes, 1, num_features)).to(self.device) #+ .01 * torch.randn(num_nodes, 100, 3).to(self.device)
 
         noise = self._noise_to_hetero(noise, context)
 
@@ -89,12 +117,13 @@ class GraphFlow(Flow):
         context = self.embed_inputs(context)
 
         num_nodes = context["x"]["x"].shape[0] if context is not None else 1
+        num_features = context["x"]["x"].shape[-1] if context is not None else 3
 
         noise, log_prob = self._distribution.sample_and_log_prob(
             (num_samples * num_nodes)
         )
 
-        noise = noise.reshape((num_nodes, num_samples, 3))
+        noise = noise.reshape((num_nodes, num_samples, num_features))
         log_prob = log_prob.reshape((num_nodes, num_samples)).mean(-1)
 
         noise = self._noise_to_hetero(noise, context)
@@ -120,8 +149,11 @@ class GraphFlow(Flow):
     def _noise_to_hetero(noise, context):
         context_dict = context.to_dict()
         noise = {**context_dict, "x": {**context_dict["x"], "x": noise}}
-        if "c" in noise:
+        if "c" in noise and "x" in noise["c"]:
             noise["c"]["x"] = noise["c"]["x"].unsqueeze(1)
+
+        if "r" in noise and "x" in noise["r"]:
+            noise["r"]["x"] = noise["r"]["x"].unsqueeze(1)
 
         noise = HeteroData(noise)
 

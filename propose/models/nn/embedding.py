@@ -4,6 +4,7 @@ from torch import Tensor
 
 from typing import Optional, Union
 
+from torch_geometric.nn.dense import DenseSAGEConv
 
 class Embedding(nn.Module):
     """
@@ -35,6 +36,95 @@ class LinearEmbedding(Embedding):
         """
         super().__init__()
         self.embedding = nn.Linear(input_size, output_size)
+
+
+class MLPEmbedding(Embedding):
+    """
+    MLP embedding layer.
+    """
+
+    def __init__(self, input_size: int, hidden_size: int, output_size: int):
+        """
+        :param input_size
+        :param output_size
+        """
+        super().__init__()
+        self.embedding = nn.Sequential(nn.Linear(input_size, hidden_size), nn.ReLU(), nn.Linear(hidden_size, output_size))
+
+
+class FlatMLPEmbedding(nn.Module):
+    """
+    MLP embedding layer.
+    """
+
+    def __init__(self, input_size: int, hidden_size: int, output_size: int):
+        """
+        :param input_size
+        :param output_size
+        """
+        super().__init__()
+        self.embedding = nn.Sequential(nn.Linear(input_size, hidden_size), nn.ReLU(), nn.Linear(hidden_size, output_size))
+
+    def forward(self, data):
+        x = data['c'].x
+        # batch_size = data['c'].x.max() + 1
+
+        # print(data['c', '->', 'x'].edge_index[0])
+        # x = x[data['c', '->', 'x'].edge_index[0]]
+        x = x.reshape(-1, 16, 2)
+        batch_size = x.shape[0]
+        # x = x.reshape(batch_size, 16, 2)
+        # x = x[:, data['c', '->', 'x'].edge_index[0]]
+        x = x.flatten(1)
+        x = self.embedding(x)
+
+        x = x.reshape(batch_size * 16, -1)
+
+        return x
+
+
+class SageEmbedding(nn.Module):
+    """
+    Sage Convolutional Embedding Layer
+    """
+
+    def __init__(self, input_dim, hidden_dim, output_dim):
+        super(SageEmbedding, self).__init__()
+        self.layers = nn.ModuleList([
+            DenseSAGEConv(input_dim, hidden_dim),
+            DenseSAGEConv(hidden_dim, output_dim)
+        ])
+
+        self.relu = nn.ReLU()
+
+        self.adj = nn.Parameter(torch.ones((16, 16)))
+
+    def forward(self, data):
+        x = data['c'].x
+
+        # batch_size = data['c'].x.max() + 1
+
+        x = x.reshape(-1, 16, 2)
+        batch_size = x.shape[0]
+
+        index = x.new_ones(batch_size, 16).bool().flatten()
+        index[data['c', '->', 'x'].edge_index[0]] = False
+        index = index.reshape(batch_size, 16)
+
+        adj = self.adj.repeat(batch_size, 1, 1)
+
+        adj[index.unsqueeze(-1).repeat(1, 1, 16)] = 0
+        adj[index.unsqueeze(1).repeat(1, 16, 1)] = 0
+
+        for layer in self.layers[:-1]:
+            x = layer(x, adj)
+            x = self.relu(x)
+
+        x = self.layers[-1](x, adj)
+
+        x = x.reshape(batch_size * 16, -1)
+
+        return x
 
 
 class SplitEmbedding(nn.Module):

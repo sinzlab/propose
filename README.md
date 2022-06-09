@@ -51,4 +51,3 @@ Then run the following command.
 ```
 docker-compose run preprocess --human36m
 ```
-

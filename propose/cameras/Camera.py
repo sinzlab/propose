@@ -1,6 +1,8 @@
 import numpy as np
 import numpy.typing as npt
 
+from typing import Optional
+
 Point2D = npt.NDArray[float]
 Point3D = npt.NDArray[float]
 
@@ -17,7 +19,7 @@ class Camera(object):
         translation_vector: npt.NDArray[float],
         tangential_distortion: npt.NDArray[float],
         radial_distortion: npt.NDArray[float],
-        frames: npt.NDArray[float],
+        frames: Optional[npt.NDArray[float]] = None,
     ):
         """
         :param intrinsic_matrix: 3x3 matrix, transforms the 3D camera coordinates to 2D homogeneous image coordinates.
@@ -25,15 +27,30 @@ class Camera(object):
         :param translation_vector: 1x3 vector, describes the cameras location in space.
         :param tangential_distortion: 1x2 vector, describes the distortion between the lens and the image plane.
         :param radial_distortion: 1x2 or 1x3 vector, describes how light bends near the edges of the lens.
-        :param frames: the mapping of corresponding frames in the video.
+        :param frames: (optional) the mapping of corresponding frames in the video.
         """
+        # check args shapes
+        assert intrinsic_matrix.shape == (3, 3), "intrinsic_matrix must be a 3x3 matrix"
+        assert rotation_matrix.shape == (3, 3), "rotation_matrix must be a 3x3 matrix"
+        assert translation_vector.shape == (
+            1,
+            3,
+        ), "translation_vector must be a 1x3 vector"
+        assert tangential_distortion.shape == (
+            1,
+            2,
+        ), "tangential_distortion must be a 1x2 vector"
+        assert radial_distortion.shape in (
+            (1, 2),
+            (1, 3),
+        ), "radial_distortion must be a 1x2 or 1x3 vector"
 
         self.intrinsic_matrix = intrinsic_matrix
         self.rotation_matrix = rotation_matrix
         self.translation_vector = translation_vector
         self.tangential_distortion = tangential_distortion
         self.radial_distortion = radial_distortion
-        self.frames = frames
+        self.frames = frames if frames else np.array([])
 
     def to_dict(self):
         return dict(
@@ -205,3 +222,97 @@ class Camera(object):
         )
 
         return rho
+
+    def world_to_camera_view(self, points: Point3D, translate: bool = False) -> Point3D:
+        """
+        Transform the coordinates from world space to camera space.
+        :param points: 3D points in world space
+        :return: 3D points in camera space
+        """
+        transformed_points = self.rotation_matrix @ points[..., np.newaxis]
+
+        if translate:
+            transformed_points += self.translation_vector
+
+        return transformed_points.squeeze()
+
+    @staticmethod
+    def construct_rotation_matrix(
+        alpha: float, beta: float, gamma: float
+    ) -> npt.NDArray[float]:
+        """
+        Converts a rotation vector to a rotation matrix.
+        :param rotation_vector: 3D rotation vector with euler angles: [alpha, beta, gamma] or [yaw, pitch, roll]
+        :return: 3D rotation matrix
+
+        Defines the rotation matrix as:
+        R = Rz(gamma) * Ry(beta) * Rx(alpha)
+
+        Rz = [cos(gamma), -sin(gamma), 0],
+            [sin(gamma), cos(gamma), 0],
+            [0, 0, 1]
+
+        Ry = [cos(beta), 0, sin(beta)],
+            [0, 1, 0],
+            [-sin(beta), 0, cos(beta)]
+
+        Rx = [1, 0, 0],
+            [0, cos(alpha), -sin(alpha)],
+            [0, sin(alpha), cos(alpha)]
+
+        Reference: https://en.wikipedia.org/wiki/Rotation_matrix#General_rotations
+        """
+        Rz = np.array(
+            [
+                [np.cos(gamma), -np.sin(gamma), 0],
+                [np.sin(gamma), np.cos(gamma), 0],
+                [0, 0, 1],
+            ]
+        )  # yaw
+
+        Ry = np.array(
+            [
+                [np.cos(beta), 0, np.sin(beta)],
+                [0, 1, 0],
+                [-np.sin(beta), 0, np.cos(beta)],
+            ]
+        )  # pitch
+
+        Rx = np.array(
+            [
+                [1, 0, 0],
+                [0, np.cos(alpha), -np.sin(alpha)],
+                [0, np.sin(alpha), np.cos(alpha)],
+            ]
+        )  # roll
+
+        return Rz @ Ry @ Rx
+
+    @staticmethod
+    def construct_intrinsic_matrix(
+        cx: float, cy: float, fx: float, fy: float, skew: float = 0
+    ) -> npt.NDArray[float]:
+        """
+        Constructs the intrinsic matrix.
+        :param cx: x coordinate of the optical center
+        :param cy: y coordinate of the optical center
+        :param fx: focal length in x direction
+        :param fy: focal length in y direction
+        :param skew: skew
+        :return: 3x3 intrinsic matrix
+        """
+        return np.array(
+            [
+                [fx, skew, cx],
+                [0, fy, cy],
+                [0, 0, 1],
+            ]
+        ).T
+
+    def __str__(self):
+        fx, fy, cx, cy, skew = self._unpack_intrinsic_matrix()
+        cam_matrix = self.camera_matrix()
+        return f"<{self.__class__.__name__} fx={fx:.2f} fy={fy:.2f} cx={cx:.2f} cy={cy:.2f} skew={skew:.2f}>"
+
+    def __repr__(self):
+        return self.__str__()

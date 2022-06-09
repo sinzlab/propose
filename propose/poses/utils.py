@@ -1,4 +1,5 @@
 import yaml
+import functools
 
 
 def load_data_ids(path: str) -> list:
@@ -22,6 +23,7 @@ def load_data_ids(path: str) -> list:
     return data_ids
 
 
+@functools.lru_cache()
 def yaml_pose_loader(path: str) -> tuple[list, list, dict]:
     """
     Loads a yaml file containing the metadata of a pose.
