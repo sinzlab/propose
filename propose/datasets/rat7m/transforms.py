@@ -100,6 +100,7 @@ class ScalePixelRange(object):
 
         return x.__class__(**key_vals)
 
+
 class Project2D(object):
     def __init__(self, idx):
         self.idx = idx
@@ -110,6 +111,7 @@ class Project2D(object):
         key_vals["poses2d"] = poses[..., self.idx]
 
         return namedtuple("With2DPose", key_vals.keys())(**key_vals)
+
 
 class ToHeteroData(object):
     def __init__(self, encode_joints: bool = False):
@@ -132,16 +134,21 @@ class ToHeteroData(object):
         #     c = torch.cat([c, one_hot_encoding], dim=1)
 
         data = HeteroData()
-        data['x'].x = torch.Tensor(pose3d.pose_matrix)
-        data['x', '->', 'x'].edge_index = torch.LongTensor(pose3d.edges).T
-        data['x', '<-', 'x'].edge_index = torch.LongTensor(pose3d.edges).T
+        data["x"].x = torch.Tensor(pose3d.pose_matrix)
+        data["x", "->", "x"].edge_index = torch.LongTensor(pose3d.edges).T
+        data["x", "<-", "x"].edge_index = torch.LongTensor(pose3d.edges).T
 
         if "poses2d" in key_vals:
             pose2d = x.poses2d
 
-            data['c'].x = torch.Tensor(pose2d.pose_matrix)
-            context_edges = torch.arange(0, pose3d.pose_matrix.shape[0]).repeat(2).reshape(2, pose3d.pose_matrix.shape[0]).long()
-            data['c', '->', 'x'].edge_index = context_edges
+            data["c"].x = torch.Tensor(pose2d.pose_matrix)
+            context_edges = (
+                torch.arange(0, pose3d.pose_matrix.shape[0])
+                .repeat(2)
+                .reshape(2, pose3d.pose_matrix.shape[0])
+                .long()
+            )
+            data["c", "->", "x"].edge_index = context_edges
 
             del key_vals["poses2d"]
 

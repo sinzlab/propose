@@ -23,9 +23,15 @@ class CondGCN(nn.Module):
     ) -> None:
         super().__init__()
 
-        default_relations: list[str] = ["x", "c", "r",  # self loop
-                                        "x->x", "x<-x", # symmetric
-                                        "c->x", "r->x"] # context
+        default_relations: list[str] = [
+            "x",
+            "c",
+            "r",  # self loop
+            "x->x",
+            "x<-x",  # symmetric
+            "c->x",
+            "r->x",
+        ]  # context
 
         self.relations = relations if relations else default_relations
 
@@ -49,10 +55,7 @@ class CondGCN(nn.Module):
 
         self_x = self.act(self.layers["x"](x))  # self loop values
 
-        message = self.aggregate(
-            self.message(x_dict, edge_index_dict),
-            self_x
-        )
+        message = self.aggregate(self.message(x_dict, edge_index_dict), self_x)
 
         if c is not None:
             x_dict["c"] = self.act(self.layers["c"](c))
@@ -82,7 +85,7 @@ class CondGCN(nn.Module):
             if direction == "<-":
                 src_name, dst_name = dst_name, src_name
                 src, dst = dst, src
-                layer_name = "x->x"#.join(key[::-1])
+                layer_name = "x->x"  # .join(key[::-1])
 
             if dst_name != target:
                 continue

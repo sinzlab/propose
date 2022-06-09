@@ -9,7 +9,14 @@ from propose.utils.mpjpe import mpjpe
 
 
 def supervised_trainer(
-        dataloader, flow, optimizer=None, lr_scheduler=None, epochs=100, device="cpu", use_wandb=False, use_mode=True,
+    dataloader,
+    flow,
+    optimizer=None,
+    lr_scheduler=None,
+    epochs=100,
+    device="cpu",
+    use_wandb=False,
+    use_mode=True,
 ):
     """
     Train a flow in a supervised way
@@ -30,8 +37,9 @@ def supervised_trainer(
         optimizer = torch.optim.Adam(flow.parameters(), lr=0.001, weight_decay=1e-5)
 
     if lr_scheduler is None:
-        lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=10,
-                                                                  verbose=True, threshold=5e-2)
+        lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+            optimizer, mode="min", factor=0.1, patience=10, verbose=True, threshold=5e-2
+        )
 
     collater = Collater(follow_batch=None, exclude_keys=None)
     for epoch in range(epochs):
@@ -58,8 +66,10 @@ def supervised_trainer(
             if use_mode:
                 scaling = 0.0036  # the std with which the data was normalized
 
-                gt_pose = data['x']['x'].reshape(1, -1, 2) / scaling
-                mode_pose = flow.mode_sample(gt_pose)['x']['x'].reshape(1, -1, 2) / scaling
+                gt_pose = data["x"]["x"].reshape(1, -1, 2) / scaling
+                mode_pose = (
+                    flow.mode_sample(gt_pose)["x"]["x"].reshape(1, -1, 2) / scaling
+                )
 
                 mse_mode_pose = mpjpe(mode_pose, gt_pose)
 
@@ -72,8 +82,13 @@ def supervised_trainer(
 
             if use_wandb:
                 wandb.log(
-                    {"Prior Loss": prior_loss.item(), "Posterior Loss": posterior_loss.item(), "Loss": loss.item(),
-                     "Mode Error": mse_mode_pose.item()})
+                    {
+                        "Prior Loss": prior_loss.item(),
+                        "Posterior Loss": posterior_loss.item(),
+                        "Loss": loss.item(),
+                        "Mode Error": mse_mode_pose.item(),
+                    }
+                )
 
             optimizer.step()
             pbar.set_description(

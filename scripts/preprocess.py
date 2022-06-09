@@ -36,7 +36,11 @@ parser.add_argument(
 
 def human36m(test=False, universal=False):
     input_dir = Path("/data/human36m/test/") if test else Path("/data/human36m/raw/")
-    output_dir = Path("/data/human36m/processed/test/") if test else Path("/data/human36m/processed/")
+    output_dir = (
+        Path("/data/human36m/processed/test/")
+        if test
+        else Path("/data/human36m/processed/")
+    )
 
     print(" 🥒 Pickling Human3.6M cameras")
     pickle_cameras(input_dir, output_dir)

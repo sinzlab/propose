@@ -28,7 +28,9 @@ class NF(Flow):
             return MLP(
                 in_shape=(in_features + context_features,),
                 out_shape=(out_features,),
-                hidden_sizes=(hidden_features,) if isinstance(hidden_features, int) else hidden_features,
+                hidden_sizes=(hidden_features,)
+                if isinstance(hidden_features, int)
+                else hidden_features,
             )
 
         coupling_constructor = AffineCouplingTransform
@@ -62,7 +64,7 @@ class MLP(nn.Module):
         out_shape,
         hidden_sizes,
         activation=F.relu,
-        activate_output=False
+        activate_output=False,
     ):
         """
         Args:

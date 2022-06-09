@@ -32,14 +32,14 @@ class CondGNN(nn.Module):
                     hidden_features=hidden_features,
                     out_features=hidden_features,
                     context_features=context_features,
-                    root_features=root_features
+                    root_features=root_features,
                 ),
                 self.gcn(
                     in_features=hidden_features,
                     hidden_features=hidden_features,
                     out_features=out_features,
                     context_features=hidden_features,
-                    root_features=hidden_features
+                    root_features=hidden_features,
                 ),
             ]
         )

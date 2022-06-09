@@ -46,7 +46,9 @@ class CondGraphFlow(GraphFlow):
         layers = []
         for i in range(num_layers):
             mask = -torch.ones(features)
-            mask[i % features] = 1  # iterate over feature pairs in a leave-one-out fashion
+            mask[
+                i % features
+            ] = 1  # iterate over feature pairs in a leave-one-out fashion
 
             layers.append(GraphActNorm(features=features))
             layers.append(

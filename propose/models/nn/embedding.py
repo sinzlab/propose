@@ -6,6 +6,7 @@ from typing import Optional, Union
 
 from torch_geometric.nn.dense import DenseSAGEConv
 
+
 class Embedding(nn.Module):
     """
     Base class for the embedding layer.
@@ -49,7 +50,11 @@ class MLPEmbedding(Embedding):
         :param output_size
         """
         super().__init__()
-        self.embedding = nn.Sequential(nn.Linear(input_size, hidden_size), nn.ReLU(), nn.Linear(hidden_size, output_size))
+        self.embedding = nn.Sequential(
+            nn.Linear(input_size, hidden_size),
+            nn.ReLU(),
+            nn.Linear(hidden_size, output_size),
+        )
 
 
 class FlatMLPEmbedding(nn.Module):
@@ -63,10 +68,14 @@ class FlatMLPEmbedding(nn.Module):
         :param output_size
         """
         super().__init__()
-        self.embedding = nn.Sequential(nn.Linear(input_size, hidden_size), nn.ReLU(), nn.Linear(hidden_size, output_size))
+        self.embedding = nn.Sequential(
+            nn.Linear(input_size, hidden_size),
+            nn.ReLU(),
+            nn.Linear(hidden_size, output_size),
+        )
 
     def forward(self, data):
-        x = data['c'].x
+        x = data["c"].x
         # batch_size = data['c'].x.max() + 1
 
         # print(data['c', '->', 'x'].edge_index[0])
@@ -90,17 +99,19 @@ class SageEmbedding(nn.Module):
 
     def __init__(self, input_dim, hidden_dim, output_dim):
         super(SageEmbedding, self).__init__()
-        self.layers = nn.ModuleList([
-            DenseSAGEConv(input_dim, hidden_dim),
-            DenseSAGEConv(hidden_dim, output_dim)
-        ])
+        self.layers = nn.ModuleList(
+            [
+                DenseSAGEConv(input_dim, hidden_dim),
+                DenseSAGEConv(hidden_dim, output_dim),
+            ]
+        )
 
         self.relu = nn.ReLU()
 
         self.adj = nn.Parameter(torch.ones((16, 16)))
 
     def forward(self, data):
-        x = data['c'].x
+        x = data["c"].x
 
         # batch_size = data['c'].x.max() + 1
 
@@ -108,7 +119,7 @@ class SageEmbedding(nn.Module):
         batch_size = x.shape[0]
 
         index = x.new_ones(batch_size, 16).bool().flatten()
-        index[data['c', '->', 'x'].edge_index[0]] = False
+        index[data["c", "->", "x"].edge_index[0]] = False
         index = index.reshape(batch_size, 16)
 
         adj = self.adj.repeat(batch_size, 1, 1)

@@ -186,8 +186,8 @@ class Camera(object):
         :return: (1 + k1*r^2 + k2*r^4 + k3*r^6)
         """
         r2 = image_points.__pow__(2).sum(axis=-1)
-        r4 = r2 ** 2
-        r6 = r2 ** 3
+        r4 = r2**2
+        r6 = r2**3
 
         k = np.zeros(3)
         k[: self.radial_distortion.shape[1]] = self.radial_distortion.squeeze()

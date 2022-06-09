@@ -21,22 +21,33 @@ def human36m(use_wandb: bool = False, config: dict = None):
 
     if use_wandb:
         import wandb
+
         wandb.init(project="propose_human36m", entity=os.environ["WANDB_USER"])
 
         wandb.config = config
 
-    dataset = Human36mDataset(**config['dataset'])
+    dataset = Human36mDataset(**config["dataset"])
 
-    dataloader = DataLoader(dataset, batch_size=config['train']['batch_size'], shuffle=True)
+    dataloader = DataLoader(
+        dataset, batch_size=config["train"]["batch_size"], shuffle=True
+    )
 
-    lr = config['train']['lr']
-    weight_decay = config['train']['weight_decay']
+    lr = config["train"]["lr"]
+    weight_decay = config["train"]["weight_decay"]
 
-    flow = CondGraphFlow(**config['model'])
-    if torch.cuda.is_available(): flow.to('cuda:0')
+    flow = CondGraphFlow(**config["model"])
+    if torch.cuda.is_available():
+        flow.to("cuda:0")
 
     optimizer = torch.optim.Adam(flow.parameters(), lr=lr, weight_decay=weight_decay)
 
-    supervised_trainer(dataloader, flow, optimizer, epochs=config['train']['epochs'], device=flow.device, use_wandb=use_wandb)
+    supervised_trainer(
+        dataloader,
+        flow,
+        optimizer,
+        epochs=config["train"]["epochs"],
+        device=flow.device,
+        use_wandb=use_wandb,
+    )
 
-    torch.save(flow.state_dict(), '/results/model.pt')
+    torch.save(flow.state_dict(), "/results/model.pt")

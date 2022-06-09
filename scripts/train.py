@@ -26,7 +26,7 @@ parser.add_argument(
 
 parser.add_argument(
     "--config",
-    default='/configs/human36m/human36m_config.yaml',
+    default="/configs/human36m/human36m_config.yaml",
     action="store_const",
     help="Experiment config file",
 )
@@ -36,14 +36,20 @@ if __name__ == "__main__":
 
     if args.wandb:
         if not os.environ["WANDB_API_KEY"]:
-            raise ValueError("Wandb API key not set. Please set the WANDB_API_KEY environment variable.")
+            raise ValueError(
+                "Wandb API key not set. Please set the WANDB_API_KEY environment variable."
+            )
         if not os.environ["WANDB_USER"]:
-            raise ValueError("Wandb user not set. Please set the WANDB_USER environment variable.")
+            raise ValueError(
+                "Wandb user not set. Please set the WANDB_USER environment variable."
+            )
 
-    with open(args.config, 'r') as f:
+    with open(args.config, "r") as f:
         config = yaml.load(f)
 
     if args.human36m:
         human36m(use_wandb=args.wandb, config=config)
     else:
-        print("Not running any scripts as no arguments were passed. Run with --help for more information.")
+        print(
+            "Not running any scripts as no arguments were passed. Run with --help for more information."
+        )

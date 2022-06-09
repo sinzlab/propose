@@ -18,7 +18,13 @@ import torch.nn as nn
 
 
 def prior_trainer(
-    dataloader, flow, optimizer=None, epochs=100, device="cpu", viz_batch=None, use_wandb=False
+    dataloader,
+    flow,
+    optimizer=None,
+    epochs=100,
+    device="cpu",
+    viz_batch=None,
+    use_wandb=False,
 ):
     """
     Train a flow in a supervised way
@@ -76,7 +82,6 @@ def prior_trainer(
                 f"Batch "
             )
 
-
         mean_loss = torch.mean(torch.Tensor(epoch_loss))
         pbar.set_description(
             f"Epoch: {epoch + 1}/{epochs} | Loss {torch.mean(mean_loss):.4f} | Prior Loss {prior_loss.item():.4f} | "
@@ -86,17 +91,27 @@ def prior_trainer(
 
         if viz_batch is not None:
             post_eval_value = flow(viz_batch[0][0].cuda()).mean().detach().cpu().numpy()
-            prior_eval_value = flow(viz_batch[0][1].cuda()).mean().detach().cpu().numpy()
-            print(f'Posterior Evaluation: {post_eval_value.item():2f}')
-            print(f'Prior Evaluation: {prior_eval_value.item():2f}')
+            prior_eval_value = (
+                flow(viz_batch[0][1].cuda()).mean().detach().cpu().numpy()
+            )
+            print(f"Posterior Evaluation: {post_eval_value.item():2f}")
+            print(f"Prior Evaluation: {prior_eval_value.item():2f}")
 
             if use_wandb:
-                df = pd.DataFrame(flow(viz_batch[0][0].cuda()).detach().cpu().numpy().reshape(100, -1))
+                df = pd.DataFrame(
+                    flow(viz_batch[0][0].cuda()).detach().cpu().numpy().reshape(100, -1)
+                )
 
-                with sns.axes_style('whitegrid'):
+                with sns.axes_style("whitegrid"):
                     fig = plt.figure(figsize=(5, 5))
                     sns.violinplot(data=df, palette="Set2", ax=plt.gca())
 
-                wandb.log({"Posterior Evaluation": post_eval_value.item(), "Prior Evaluation": prior_eval_value.item(), "Plot": wandb.Image(plt)})
+                wandb.log(
+                    {
+                        "Posterior Evaluation": post_eval_value.item(),
+                        "Prior Evaluation": prior_eval_value.item(),
+                        "Plot": wandb.Image(plt),
+                    }
+                )
 
                 plt.close(fig)

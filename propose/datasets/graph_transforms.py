@@ -36,10 +36,7 @@ class AppendOneHot(object):
         if "c" not in pose_graph or "x" not in pose_graph["c"]:
             pose_graph["c"]["x"] = one_hot_vector
             pose_graph["edge_index"][("c", "->", "x")] = (
-                torch.arange(0, num_joints)
-                .repeat(2)
-                .reshape(2, num_joints)
-                .T.long()
+                torch.arange(0, num_joints).repeat(2).reshape(2, num_joints).T.long()
             )
 
         key_vals["poses"] = pose_graph
@@ -64,22 +61,24 @@ class BinomialMask(object):
         for _ in range(self.n):
             mask = D.Bernoulli(probs=self.p).sample(sample_shape=(num_joints,)).bool()
 
-            if ('c', '->', 'x') in pose_graph_dict.keys():
+            if ("c", "->", "x") in pose_graph_dict.keys():
                 new_pose_graph = {
                     **pose_graph_dict,
-                    ('c', '->', 'x'): {
-                        "edge_index": pose_graph_dict[('c', '->', 'x')]['edge_index'][:, mask],
-                    }
+                    ("c", "->", "x"): {
+                        "edge_index": pose_graph_dict[("c", "->", "x")]["edge_index"][
+                            :, mask
+                        ],
+                    },
                 }
             # new_pose_graph[('c', '->', 'x')]['edge_index'] = new_pose_graph[('c', '->', 'x')]['edge_index'][:, mask]
 
             pose_graphs.append(HeteroData(new_pose_graph))
 
+        pose_graphs = Collater(follow_batch=None, exclude_keys=None).__call__(
+            pose_graphs
+        )
 
-        pose_graphs = Collater(follow_batch=None, exclude_keys=None).__call__(pose_graphs)
-
-
-        key_vals['poses'] = pose_graphs
+        key_vals["poses"] = pose_graphs
 
         return x.__class__(**key_vals)
 
@@ -99,7 +98,7 @@ class BinaryMask(object):
         pose_graphs = [pose_graph]
         for p in self.p:
             mask = np.ones(num_joints)
-            mask[:int(p * num_joints)] = 0
+            mask[: int(p * num_joints)] = 0
             # shuffle mask
             np.random.shuffle(mask)
             mask = mask.astype(bool)
@@ -107,22 +106,23 @@ class BinaryMask(object):
             new_pose_graph = {
                 **pose_graph_dict,
             }
-            if ('c', '->', 'x') in pose_graph_dict.keys():
+            if ("c", "->", "x") in pose_graph_dict.keys():
                 new_pose_graph = {
                     **pose_graph_dict,
-                    ('c', '->', 'x'): {
-                        "edge_index": pose_graph_dict[('c', '->', 'x')]['edge_index'][:, mask],
-                    }
+                    ("c", "->", "x"): {
+                        "edge_index": pose_graph_dict[("c", "->", "x")]["edge_index"][
+                            :, mask
+                        ],
+                    },
                 }
             # new_pose_graph[('c', '->', 'x')]['edge_index'] = new_pose_graph[('c', '->', 'x')]['edge_index'][:, mask]
 
             pose_graphs.append(HeteroData(new_pose_graph))
 
+        pose_graphs = Collater(follow_batch=None, exclude_keys=None).__call__(
+            pose_graphs
+        )
 
-        pose_graphs = Collater(follow_batch=None, exclude_keys=None).__call__(pose_graphs)
-
-
-        key_vals['poses'] = pose_graphs
+        key_vals["poses"] = pose_graphs
 
         return x.__class__(**key_vals)
-

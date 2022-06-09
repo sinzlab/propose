@@ -41,7 +41,7 @@ def rotate_to_camera(pose: BasePose, camera: Camera):
     rot = camera.rotation_matrix.copy()
 
     tan = rot[1, 0] / rot[0, 0]
-    cos = 1 / np.sqrt(1 + tan ** 2)  # Cos expressed in terms of tan
+    cos = 1 / np.sqrt(1 + tan**2)  # Cos expressed in terms of tan
     sin = cos * tan
 
     yaw = np.array([[cos, -sin, 0], [sin, cos, 0], [0, 0, 1]])

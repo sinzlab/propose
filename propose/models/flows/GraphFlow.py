@@ -27,7 +27,7 @@ class GraphFlow(Flow):
         if "c" not in inputs_dict or "x" not in inputs_dict["c"]:
             return inputs
 
-        #inputs_dict["c"]["x"] = self._embedding_net(inputs_dict["c"]["x"].reshape(-1, 16, 2)).reshape(-1, 10)
+        # inputs_dict["c"]["x"] = self._embedding_net(inputs_dict["c"]["x"].reshape(-1, 16, 2)).reshape(-1, 10)
 
         inputs_dict["c"]["x"] = self._embedding_net(inputs)
 
@@ -35,7 +35,6 @@ class GraphFlow(Flow):
 
         if isinstance(inputs_dict["c"]["x"], HeteroData):
             inputs_dict["c"]["x"] = inputs_dict["c"]["x"]["c"]["x"]
-
 
         return HeteroData(inputs_dict)
 
@@ -58,7 +57,7 @@ class GraphFlow(Flow):
         noise, logabsdet = self._transform(inputs)
 
         # print("noise", noise["x"]["x"].shape)
-        log_prob = self._distribution.log_prob(noise["x"]["x"])#.reshape(-1, 1)
+        log_prob = self._distribution.log_prob(noise["x"]["x"])  # .reshape(-1, 1)
 
         # logabsdet = logabsdet.reshape(-1, 16).sum(-1)
         # log_prob = log_prob.reshape(-1, 16).sum(-1)
@@ -101,7 +100,9 @@ class GraphFlow(Flow):
 
         num_nodes = context["x"]["x"].shape[0] if context is not None else 1
         num_features = context["x"]["x"].shape[-1] if context is not None else 3
-        noise = torch.zeros((num_nodes, 1, num_features)).to(self.device) #+ .01 * torch.randn(num_nodes, 100, 3).to(self.device)
+        noise = torch.zeros((num_nodes, 1, num_features)).to(
+            self.device
+        )  # + .01 * torch.randn(num_nodes, 100, 3).to(self.device)
 
         noise = self._noise_to_hetero(noise, context)
 

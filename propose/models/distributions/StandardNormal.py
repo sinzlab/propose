@@ -27,7 +27,7 @@ class StandardNormal(Distribution):
         if inputs.dim() == 3:
             inputs = inputs.mean(1)
 
-        neg_energy = -0.5 * torchutils.sum_except_batch(inputs ** 2, num_batch_dims=1)
+        neg_energy = -0.5 * torchutils.sum_except_batch(inputs**2, num_batch_dims=1)
         return neg_energy - self._log_z
 
     def _sample(self, num_samples, context):

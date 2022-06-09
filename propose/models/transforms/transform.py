@@ -92,7 +92,7 @@ class GraphAffineCouplingTransform(CouplingTransform):
         if log_scale.dim() == 3:
             log_scale = log_scale.mean(dim=1)
         #
-        logabsdet =  torchutils.sum_except_batch(log_scale, num_batch_dims=1)
+        logabsdet = torchutils.sum_except_batch(log_scale, num_batch_dims=1)
         # logabsdet = torch.zeros(log_scale.shape[0], 3).to(log_scale.device)
         # if log_scale.shape[1] == 1:
         #     logabsdet[:, -1:] = log_scale
@@ -129,7 +129,7 @@ class GraphActNorm(Transform):
             raise TypeError("Number of features must be a positive integer.")
         super().__init__()
 
-        self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
 
         self.register_buffer(
             "initialized",

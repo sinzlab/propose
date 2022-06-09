@@ -10,7 +10,25 @@ from propose.datasets.human36m.loaders import load_poses, load_cameras
 
 PathType = Union[str, Path]
 
-MPII_2_H36M = [6, 2, 1, 0, 3, 4, 5, 7, 8, 9, 13, 14, 15, 12, 11, 10] # Tranform MPII to H36M
+MPII_2_H36M = [
+    6,
+    2,
+    1,
+    0,
+    3,
+    4,
+    5,
+    7,
+    8,
+    9,
+    13,
+    14,
+    15,
+    12,
+    11,
+    10,
+]  # Tranform MPII to H36M
+
 
 def process_pose(pose):
     """
@@ -34,8 +52,12 @@ def process_pose(pose):
     return pose, center
 
 
-def pickle_poses(input_dir_path: PathType, output_dir_path: Union[str, Path], test: bool = False,
-                 universal: bool = False):
+def pickle_poses(
+    input_dir_path: PathType,
+    output_dir_path: Union[str, Path],
+    test: bool = False,
+    universal: bool = False,
+):
     """
     Loads the poses from the .cdf file and saves them as a pickle file.
     :param input_dir_path: Path to the directory containing the .cdf files.
@@ -54,13 +76,13 @@ def pickle_poses(input_dir_path: PathType, output_dir_path: Union[str, Path], te
         with open(input_dir_path / "used_frames.pkl", "rb") as f:
             used_frames = pickle.load(f)
 
-    with open('/data/human36m/processed/cameras.pkl', 'rb') as f:
+    with open("/data/human36m/processed/cameras.pkl", "rb") as f:
         cameras = pickle.load(f)
 
     subjects = [subject.name for subject in input_dir_path_3d.glob("S*")]
 
     if len(subjects) == 0:
-        print('No subjects found in the input directory.')
+        print("No subjects found in the input directory.")
         return
 
     print(f"Found {len(subjects)} subjects. Subjects: {subjects}")
@@ -77,14 +99,16 @@ def pickle_poses(input_dir_path: PathType, output_dir_path: Union[str, Path], te
         "image_paths": [],
     }
 
-    with open(input_dir_path_2d / 'h36m_without_3d.pickle', "rb") as f:
+    with open(input_dir_path_2d / "h36m_without_3d.pickle", "rb") as f:
         d2poses = pickle.load(f)
 
     for subject in subjects:
         print(f" 🔧 Processing subject {subject}")
         pose3d_dir = (
-                input_dir_path_3d / subject / "MyPoseFeatures" / (
-                    "D3_Positions_mono" + ("_universal" if universal else ""))
+            input_dir_path_3d
+            / subject
+            / "MyPoseFeatures"
+            / ("D3_Positions_mono" + ("_universal" if universal else ""))
         )
         pose2d_dir = input_dir_path_2d / subject / "MyPoseFeatures" / "D2_Positions"
 
@@ -94,19 +118,28 @@ def pickle_poses(input_dir_path: PathType, output_dir_path: Union[str, Path], te
 
             act, subact = extract_action_info(action, subject)
 
-            if subject == 'S5' and subact == '1' and act == 'Waiting' and camera == '55011271':
+            if (
+                subject == "S5"
+                and subact == "1"
+                and act == "Waiting"
+                and camera == "55011271"
+            ):
                 continue
-            if subject == 'S11' and act == 'Directions' and camera == '54138969':
+            if subject == "S11" and act == "Directions" and camera == "54138969":
                 continue  # Apparently this does not exist.
 
-            gaussfits = d2poses[subject][act][subact][camera]['gaussfit'].reshape(-1, 16, 7)
-            occluded_joints = np.logical_or(gaussfits[:, :, 3] > 2.5 * 2.0, gaussfits[:, :, 5] > 2.5 * 2.0)
+            gaussfits = d2poses[subject][act][subact][camera]["gaussfit"].reshape(
+                -1, 16, 7
+            )
+            occluded_joints = np.logical_or(
+                gaussfits[:, :, 3] > 2.5 * 2.0, gaussfits[:, :, 5] > 2.5 * 2.0
+            )
 
             poses3d = load_poses(path)
             # use every 4th frame to avoid missing frames
             indices = np.arange(3, len(poses3d), 4)
             poses3d = poses3d[indices, :]
-            max_frames = len(d2poses[subject][act][subact][camera]['imgpath'])
+            max_frames = len(d2poses[subject][act][subact][camera]["imgpath"])
 
             # poses3d = poses3d[:max_frames, :]
 
@@ -114,8 +147,8 @@ def pickle_poses(input_dir_path: PathType, output_dir_path: Union[str, Path], te
             # poses2d = poses2d[indices, :]
 
             poses3d = poses3d[:max_frames, :]
-            poses2d = d2poses[subject][act][subact][camera]['2d_hrnet']
-            image_paths = d2poses[subject][act][subact][camera]['imgpath']
+            poses2d = d2poses[subject][act][subact][camera]["2d_hrnet"]
+            image_paths = d2poses[subject][act][subact][camera]["imgpath"]
             poses2d = poses2d.reshape(-1, 2, 16)
             poses2d = poses2d[..., MPII_2_H36M]  # Transform MPII to H36M
             poses2d = np.insert(poses2d, 9, 0, axis=-1)
@@ -127,10 +160,10 @@ def pickle_poses(input_dir_path: PathType, output_dir_path: Union[str, Path], te
             poses2d, center2d = process_pose(poses2d)
 
             # if test:
-                # uframes = used_frames[subject][act][subact][camera]
-                #
-                # poses3d = poses3d[:uframes]
-                # poses2d = poses2d[:uframes]
+            # uframes = used_frames[subject][act][subact][camera]
+            #
+            # poses3d = poses3d[:uframes]
+            # poses2d = poses2d[:uframes]
 
             dataset["poses3d"].append(poses3d)
             dataset["poses2d"].append(poses2d)
@@ -148,7 +181,7 @@ def pickle_poses(input_dir_path: PathType, output_dir_path: Union[str, Path], te
     dataset["poses2d"] = np.concatenate(dataset["poses2d"])
     dataset["occlusions"] = np.concatenate(dataset["occlusions"])
 
-    assert dataset['poses3d'].shape[0] == dataset['poses2d'].shape[0]
+    assert dataset["poses3d"].shape[0] == dataset["poses2d"].shape[0]
 
     print(f" 💾 Saving {dataset['poses3d'].shape[0]:,} poses.")
 
@@ -173,91 +206,91 @@ def extract_action_info(action, subject):
     if len(act_split) == 2:
         act, subact = act_split
     else:
-        act, subact = act_split[0], '0'
+        act, subact = act_split[0], "0"
 
-    if act == 'TakingPhoto':
-        act = 'Photo'
+    if act == "TakingPhoto":
+        act = "Photo"
 
-    if act == 'WalkingDog':
-        act = 'WalkDog'
+    if act == "WalkingDog":
+        act = "WalkDog"
 
-    if subject == 'S1':
-        if act == 'Eating' and subact == '2':
-            subact = '1'
-        if act == 'Sitting' and subact == '2':
-            subact = '0'
-        if act == 'SittingDown' and subact == '2':
-            subact = '1'
+    if subject == "S1":
+        if act == "Eating" and subact == "2":
+            subact = "1"
+        if act == "Sitting" and subact == "2":
+            subact = "0"
+        if act == "SittingDown" and subact == "2":
+            subact = "1"
 
-    if subject == 'S5':
-        if act == 'Directions' and subact == '2':
-            subact = '0'
-        if act == 'Discussion' and subact == '2':
-            subact = '1'
-        if act == 'Discussion' and subact == '3':
-            subact = '0'
-        if act == 'Greeting' and subact == '2':
-            subact = '0'
-        if act == 'Photo' and subact == '2':
-            subact = '1'
-        if act == 'Waiting' and subact == '2':
-            subact = '0'
+    if subject == "S5":
+        if act == "Directions" and subact == "2":
+            subact = "0"
+        if act == "Discussion" and subact == "2":
+            subact = "1"
+        if act == "Discussion" and subact == "3":
+            subact = "0"
+        if act == "Greeting" and subact == "2":
+            subact = "0"
+        if act == "Photo" and subact == "2":
+            subact = "1"
+        if act == "Waiting" and subact == "2":
+            subact = "0"
 
-    if subject == 'S6':
-        if act == 'Eating' and subact == '2':
-            subact = '0'
-        if act == 'Posing' and subact == '2':
-            subact = '1'
-        if act == 'Sitting' and subact == '2':
-            subact = '0'
-        if act == 'Waiting' and subact == '3':
-            subact = '1'
+    if subject == "S6":
+        if act == "Eating" and subact == "2":
+            subact = "0"
+        if act == "Posing" and subact == "2":
+            subact = "1"
+        if act == "Sitting" and subact == "2":
+            subact = "0"
+        if act == "Waiting" and subact == "3":
+            subact = "1"
 
-    if subject == 'S7':
-        if act == 'Phoning' and subact == '2':
-            subact = '1'
-        if act == 'Waiting' and subact == '2':
-            subact = '0'
-        if act == 'Walking' and subact == '2':
-            subact = '0'
+    if subject == "S7":
+        if act == "Phoning" and subact == "2":
+            subact = "1"
+        if act == "Waiting" and subact == "2":
+            subact = "0"
+        if act == "Walking" and subact == "2":
+            subact = "0"
 
-    if subject == 'S8':
-        if act == 'WalkTogether' and subact == '2':
-            subact = '0'
+    if subject == "S8":
+        if act == "WalkTogether" and subact == "2":
+            subact = "0"
 
-    if subject == 'S9':
-        if act == 'Discussion' and subact == '2':
-            subact = '0'
+    if subject == "S9":
+        if act == "Discussion" and subact == "2":
+            subact = "0"
 
-    if subject == 'S11':
-        if act == 'Discussion' and subact == '2':
-            subact = '0'
-        if act == 'Greeting' and subact == '2':
-            subact = '1'
-        if act == 'Phoning' and subact == '2':
-            subact = '1'
-        if act == 'Phoning' and subact == '3':
-            subact = '0'
-        if act == 'Smoking' and subact == '2':
-            subact = '1'
+    if subject == "S11":
+        if act == "Discussion" and subact == "2":
+            subact = "0"
+        if act == "Greeting" and subact == "2":
+            subact = "1"
+        if act == "Phoning" and subact == "2":
+            subact = "1"
+        if act == "Phoning" and subact == "3":
+            subact = "0"
+        if act == "Smoking" and subact == "2":
+            subact = "1"
 
     return act, subact
 
 
 # save
-np.save('quantile_freqs.npy', quantile_freqs)
-np.save('quantiles.npy', quantiles)
-np.save('q_val.npy', q_val)
+np.save("quantile_freqs.npy", quantile_freqs)
+np.save("quantiles.npy", quantiles)
+np.save("q_val.npy", q_val)
 
-np.save('quantile_freqs_occluded.npy', quantile_freqs_occluded)
-np.save('quantiles.npy', quantiles)
-np.save('q_val_occluded.npy', q_val_occluded)
+np.save("quantile_freqs_occluded.npy", quantile_freqs_occluded)
+np.save("quantiles.npy", quantiles)
+np.save("q_val_occluded.npy", q_val_occluded)
 
 # load
-quantile_freqs = np.load('quantile_freqs.npy')
-quantiles = np.load('quantiles.npy')
-q_val = np.load('q_val.npy')
+quantile_freqs = np.load("quantile_freqs.npy")
+quantiles = np.load("quantiles.npy")
+q_val = np.load("q_val.npy")
 
-quantile_freqs_occluded = np.load('quantile_freqs_occluded.npy')
-quantiles_occluded = np.load('quantiles_occluded.npy')
-q_val_occluded = np.load('q_val_occluded.npy')
+quantile_freqs_occluded = np.load("quantile_freqs_occluded.npy")
+quantiles_occluded = np.load("quantiles_occluded.npy")
+q_val_occluded = np.load("q_val_occluded.npy")

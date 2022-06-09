@@ -13,11 +13,13 @@ class PointDataset(Dataset):
         if prior is None:
             self.prior = D.MultivariateNormal(torch.zeros(3), torch.eye(3))
 
-        if prior == 'bimodal':
+        if prior == "bimodal":
             self.prior = D.mixture_same_family.MixtureSameFamily(
                 D.Categorical(torch.ones(2)),
-                D.MultivariateNormal(torch.Tensor([[0, 0, 10], [0, 0, -10]]),
-                                     covariance_matrix=torch.stack((torch.eye(3), torch.eye(3))))
+                D.MultivariateNormal(
+                    torch.Tensor([[0, 0, 10], [0, 0, -10]]),
+                    covariance_matrix=torch.stack((torch.eye(3), torch.eye(3))),
+                ),
             )
 
     def __len__(self):
@@ -62,6 +64,7 @@ class SinglePointDataset(PointDataset):
 
         self.data = data_list
 
+
 class TwoPointDataset(PointDataset):
     def __init__(self, samples=100, prior=None):
         super().__init__(prior=prior)
@@ -94,9 +97,7 @@ class TwoPointDataset(PointDataset):
             data["x"].x = torch.stack([M1, M2]).squeeze()
             data["c"].x = data["x"].x[..., :2]
 
-            data["c", "->", "x"].edge_index = torch.LongTensor(
-                [[0, 0], [1, 1]]
-            ).T
+            data["c", "->", "x"].edge_index = torch.LongTensor([[0, 0], [1, 1]]).T
             data["x", "->", "x"].edge_index = torch.LongTensor([[0, 1]]).T
             data["x", "<-", "x"].edge_index = torch.LongTensor([[0, 1]]).T
             data_list.append(data)
@@ -122,7 +123,8 @@ class TwoPointDataset(PointDataset):
         # self.semi_data = collater(semi_data_list)
 
     def __getitem__(self, idx):
-        return (self.data[idx], self.prior_data[idx]), 'None'#, self.semi_data[idx]
+        return (self.data[idx], self.prior_data[idx]), "None"  # , self.semi_data[idx]
+
 
 class ThreePointDataset(PointDataset):
     def __init__(self, samples=100, prior=None):
