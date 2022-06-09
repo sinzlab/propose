@@ -32,6 +32,17 @@ services:
     image: propose
     entrypoint: [ "python" ]
 
+  train:
+    image: propose
+    volumes:
+      - .:/src/propose
+      - ./scripts:/scripts
+      - ./data:/data
+      - ./configs:/configs
+    env_file:
+      - .env
+    entrypoint: [ "python", "/scripts/train.py" ]
+
   preprocess:
     image: propose
     volumes:

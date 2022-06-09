@@ -176,3 +176,12 @@ class SplitLinearEmbedding(Embedding):
             LinearEmbedding(input_size, output_size),
             JoinEmbedding(),
         )
+
+
+embeddings = {
+    "linear": LinearEmbedding,
+    "mlp": MLPEmbedding,
+    "flat_mlp": FlatMLPEmbedding,
+    "sage": SageEmbedding,
+    "split_linear": SplitLinearEmbedding,
+}

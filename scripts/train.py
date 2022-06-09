@@ -3,7 +3,7 @@ from propose.datasets.human36m.preprocess import pickle_poses, pickle_cameras
 
 import argparse
 
-from .train.human36m import human36m
+from train.human36m import human36m
 
 import os
 import yaml
@@ -27,7 +27,7 @@ parser.add_argument(
 parser.add_argument(
     "--config",
     default="/configs/human36m/human36m_config.yaml",
-    action="store_const",
+    type=str,
     help="Experiment config file",
 )
 
@@ -45,7 +45,7 @@ if __name__ == "__main__":
             )
 
     with open(args.config, "r") as f:
-        config = yaml.load(f)
+        config = yaml.load(f, Loader=yaml.FullLoader)
 
     if args.human36m:
         human36m(use_wandb=args.wandb, config=config)

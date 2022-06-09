@@ -43,8 +43,6 @@ class Human36mDataset(Dataset):
         self.return_matrix = return_matrix
 
         self.desc = ""
-        print("Loading dataset...")
-        print("full pose 2D", "full pose 3D")
 
         if occlusion_fractions is None:
             occlusion_fractions = [0.2, 0.4, 0.6, 0.8]

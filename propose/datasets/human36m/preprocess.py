@@ -275,22 +275,3 @@ def extract_action_info(action, subject):
             subact = "1"
 
     return act, subact
-
-
-# save
-np.save("quantile_freqs.npy", quantile_freqs)
-np.save("quantiles.npy", quantiles)
-np.save("q_val.npy", q_val)
-
-np.save("quantile_freqs_occluded.npy", quantile_freqs_occluded)
-np.save("quantiles.npy", quantiles)
-np.save("q_val_occluded.npy", q_val_occluded)
-
-# load
-quantile_freqs = np.load("quantile_freqs.npy")
-quantiles = np.load("quantiles.npy")
-q_val = np.load("q_val.npy")
-
-quantile_freqs_occluded = np.load("quantile_freqs_occluded.npy")
-quantiles_occluded = np.load("quantiles_occluded.npy")
-q_val_occluded = np.load("q_val_occluded.npy")

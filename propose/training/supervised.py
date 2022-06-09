@@ -28,17 +28,22 @@ def supervised_trainer(
     :param device: device to be used
     :param use_wandb: whether to use wandb
     :param use_mode: whether to use the mode loss
+    :param checkpoint_every: number of epochs between checkpoints, 0 to disable
+    :param experiment_name: name of the experiment
     :return: None
     """
+    config = {}
     if use_wandb:
         import wandb
+
+        config = wandb.config
 
     if optimizer is None:
         optimizer = torch.optim.Adam(flow.parameters(), lr=0.001, weight_decay=1e-5)
 
     if lr_scheduler is None:
         lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-            optimizer, mode="min", factor=0.1, patience=10, verbose=True, threshold=5e-2
+            optimizer, mode="min", factor=0.1, patience=10, threshold=5e-2, verbose=True
         )
 
     collater = Collater(follow_batch=None, exclude_keys=None)
@@ -66,10 +71,8 @@ def supervised_trainer(
             if use_mode:
                 scaling = 0.0036  # the std with which the data was normalized
 
+                mode_pose = flow.mode_sample(data)["x"]["x"].reshape(1, -1, 2) / scaling
                 gt_pose = data["x"]["x"].reshape(1, -1, 2) / scaling
-                mode_pose = (
-                    flow.mode_sample(gt_pose)["x"]["x"].reshape(1, -1, 2) / scaling
-                )
 
                 mse_mode_pose = mpjpe(mode_pose, gt_pose)
 
@@ -98,3 +101,28 @@ def supervised_trainer(
 
         mean_loss = torch.mean(torch.Tensor(epoch_loss))
         lr_scheduler.step(mean_loss)
+
+        if "lr_scheduler" in wandb.config["train"]:
+            if (
+                optimizer.param_groups[0]["lr"]
+                < wandb.config["train"]["lr_scheduler"]["min_lr"]
+                / wandb.config["train"]["lr_scheduler"]["factor"]
+            ):
+                break
+
+        if use_wandb and "checkpoint_every" in config:
+            if epoch % config["checkpoint_every"] == 0:
+                tmp_save_path = "/temp_training_output_model.pt"
+                torch.save(flow.state_dict(), tmp_save_path)
+
+                artifact = wandb.Artifact(name=config["experiment_name"], type="model")
+                artifact.add_file(tmp_save_path, name="model.pt")
+                wandb.run.log_artifact(artifact)
+
+    if use_wandb:
+        tmp_save_path = "/temp_training_output_model.pt"
+        torch.save(flow.state_dict(), tmp_save_path)
+
+        artifact = wandb.Artifact(name=config["experiment_name"], type="model")
+        artifact.add_file(tmp_save_path, name="model.pt")
+        wandb.run.log_artifact(artifact, aliases=["latest", "best"])

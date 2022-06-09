@@ -19,8 +19,9 @@ FROM ${BASE_IMAGE}
 
 ADD . /src/propose
 
-RUN apt -y --force-yes update
-RUN apt install -y --force-yes ffmpeg
+RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A4B469963BF863CC
+RUN apt-get -yy update
+RUN apt-get install -y ffmpeg
 
 RUN pip install -e /src/propose
 
@@ -37,6 +38,6 @@ RUN python -m pip install --no-cache-dir nflows\
 
 RUN pip install git+https://github.com/sinzlab/neuralpredictors.git
 RUN pip install torch-scatter -f https://data.pyg.org/whl/torch-1.9.0+cu111.html
-RUN pip install torch-sparse -f https://data.pyg.org/whl/torch-1.9.0+cu111.html
+RUN pip install torch-sparse==0.6.12 -f https://data.pyg.org/whl/torch-1.9.0+cu111.html
 
 WORKDIR /
