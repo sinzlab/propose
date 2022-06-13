@@ -46,12 +46,12 @@ if __name__ == "__main__":
                 "Wandb user not set. Please set the WANDB_USER environment variable."
             )
 
-    dataset = Path('')
+    dataset = Path("")
     if args.human36m:
-        dataset = Path('human36m')
+        dataset = Path("human36m")
 
-    config_file = Path(args.experiment + '.yaml')
-    config_file = Path('/configs') / dataset / config_file
+    config_file = Path(args.experiment + ".yaml")
+    config_file = Path("/configs") / dataset / config_file
 
     with open(config_file, "r") as f:
         config = yaml.load(f, Loader=yaml.FullLoader)

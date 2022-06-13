@@ -104,8 +104,7 @@ def supervised_trainer(
 
         if (
             optimizer.param_groups[0]["lr"]
-            < lr_scheduler.min_lrs[0]
-            / lr_scheduler.factor
+            < lr_scheduler.min_lrs[0] / lr_scheduler.factor
         ):
             break
 
