@@ -11,6 +11,7 @@ from torch_geometric.data import HeteroData
 from torch_geometric.loader.dataloader import Collater
 
 import torch
+import torch.distributions as D
 
 from tqdm import tqdm
 
@@ -28,6 +29,7 @@ class Human36mDataset(Dataset):
         fully_connected: bool = False,
         mpii: bool = False,
         return_matrix: bool = False,
+        num_context_samples: int = None
     ) -> None:
         """
         :param dirname: directory containing the data
@@ -43,6 +45,12 @@ class Human36mDataset(Dataset):
         self.return_matrix = return_matrix
 
         self.desc = ""
+
+        if num_context_samples is None:
+            num_context_samples = 1
+            sample_context = False
+        else:
+            sample_context = True
 
         if occlusion_fractions is None:
             occlusion_fractions = [0.2, 0.4, 0.6, 0.8]
@@ -78,6 +86,7 @@ class Human36mDataset(Dataset):
         self.subjects = np.array(dataset["subjects"])[self._idx]
         self.occlusions = np.array(dataset["occlusions"])[self._idx]
         self.center3d = torch.Tensor(np.concatenate(dataset["center3d"])[self._idx])
+        self.gaussfits = torch.Tensor(np.concatenate(dataset["gaussfits"])[self._idx])
 
         pose = Human36mPose(np.zeros((1, 17, 3)))
 
@@ -92,11 +101,15 @@ class Human36mDataset(Dataset):
             adj = np.triu(np.ones((n_joints, n_joints)), 0)
             edges = torch.LongTensor(np.where(adj == 1))
 
-        context_edges = torch.arange(0, n_joints).repeat(2).reshape(2, n_joints).long()
+        context_node_idx = torch.arange(0, n_joints * num_context_samples)
+        target_node_idx = torch.arange(0, n_joints).repeat_interleave(num_context_samples)
+
+        context_edges = torch.stack([context_node_idx, target_node_idx], dim=1).long().T
+
         if mpii:
             self.occlusions = self.occlusions[:, 1:]
 
-        edges, root_edges, context_edges = self.remove_root_edges(edges, context_edges)
+        edges, root_edges, context_edges = self.remove_root_edges(edges, context_edges, num_context_samples)
         n_joints -= 1
 
         self.data = []
@@ -112,6 +125,9 @@ class Human36mDataset(Dataset):
                 mask = ~self.occlusions[i]
                 mask = np.insert(mask, 9, False)
 
+            if sample_context:
+                mask = np.repeat(mask, num_context_samples)
+
             datas = []
             data = HeteroData()
 
@@ -121,6 +137,11 @@ class Human36mDataset(Dataset):
             data["x", "<-", "x"].edge_index = edges
             # context nodes
             data["c"].x = poses2d[i, 1:]  # + torch.randn(poses2d[i, 1:].shape) * 0.01
+
+            if sample_context:
+                gaussfit = self.gaussfits[i]
+                data["c"].x = self._sample_context(gaussfit, num_context_samples)
+
             data["c", "->", "x"].edge_index = context_edges[:, mask]
             # root nodes
             data["r"].x = poses3d[i, :1]
@@ -148,6 +169,9 @@ class Human36mDataset(Dataset):
                     mask[rand_idx] = False
                     # mask[9] = False
 
+                if sample_context:
+                    mask = np.repeat(mask, num_context_samples)
+
                 data = HeteroData()
 
                 data["x"].x = poses3d[i, 1:]  # + torch.randn(n_joints, 3) * 0.01
@@ -155,6 +179,10 @@ class Human36mDataset(Dataset):
                 data["x", "<-", "x"].edge_index = edges
 
                 data["c"].x = poses2d[i, 1:]  # + torch.randn(poses2d[i].shape) * 0.01
+                if sample_context:
+                    gaussfit = self.gaussfits[i]
+                    data["c"].x = self._sample_context(gaussfit, num_context_samples)
+
                 data["c", "->", "x"].edge_index = context_edges[:, mask]
 
                 data["r"].x = poses3d[i, :1]
@@ -206,16 +234,25 @@ class Human36mDataset(Dataset):
             },
         )  # returns: full data, base data
 
-    def remove_root_edges(self, edges, context_edges):
+    def remove_root_edges(self, edges, context_edges, num_context_samples):
         full_edges = edges[:, torch.where(edges[0] != 0)[0]]
-        context_edges = context_edges[:, 1:]
+        context_edges = context_edges[:, torch.where(context_edges[1] != 0)[0]]
         root_edges = edges[:, torch.where(edges[0] == 0)[0]]
 
         full_edges -= 1
-        context_edges -= 1
+        context_edges[0] -= num_context_samples
+        context_edges[1] -= 1
         root_edges[1] -= 1
 
         return full_edges, root_edges, context_edges
+
+    def _sample_context(self, gaussfit, num_context_samples):
+        mean = torch.stack([gaussfit[:, 1], gaussfit[:, 2]], dim=1)
+        cov = torch.stack([gaussfit[:, 3], gaussfit[:, 4]], dim=1).unsqueeze(2) ** 2 * torch.eye(2).repeat(16, 1, 1)
+
+        c_dist = D.MultivariateNormal(mean, covariance_matrix=cov)
+        samples = c_dist.sample((num_context_samples,))
+        return samples.view(samples.shape[0] * samples.shape[1], samples.shape[2])
 
 
 class NewestHumanDataset(Dataset):

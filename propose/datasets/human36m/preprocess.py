@@ -97,6 +97,7 @@ def pickle_poses(
         "subjects": [],
         "occlusions": [],
         "image_paths": [],
+        "gaussfits": [],
     }
 
     with open(input_dir_path_2d / "h36m_without_3d.pickle", "rb") as f:
@@ -128,11 +129,11 @@ def pickle_poses(
             if subject == "S11" and act == "Directions" and camera == "54138969":
                 continue  # Apparently this does not exist.
 
-            gaussfits = d2poses[subject][act][subact][camera]["gaussfit"].reshape(
+            gaussfit = d2poses[subject][act][subact][camera]["gaussfit"].reshape(
                 -1, 16, 7
             )
             occluded_joints = np.logical_or(
-                gaussfits[:, :, 3] > 2.5 * 2.0, gaussfits[:, :, 5] > 2.5 * 2.0
+                gaussfit[:, :, 3] > 2.5 * 2.0, gaussfit[:, :, 5] > 2.5 * 2.0
             )
 
             poses3d = load_poses(path)
@@ -171,6 +172,7 @@ def pickle_poses(
             dataset["center2d"].append(center2d)
             dataset["occlusions"].append(occluded_joints)
             dataset["image_paths"] += image_paths
+            dataset["gaussfits"].append(gaussfit)
 
             n_frames = len(poses3d)
             dataset["actions"] += [action] * n_frames

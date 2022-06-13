@@ -4,6 +4,7 @@ checkpoint_every: 10
 dataset:
   dirname: "/data/human36m/processed"
   mpii: true
+  num_context_samples: 5
 
 train:
   optimizer:
