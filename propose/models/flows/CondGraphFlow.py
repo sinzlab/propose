@@ -19,6 +19,7 @@ class CondGraphFlow(GraphFlow):
         context_features=2,
         hidden_features=100,
         embedding_net=None,
+        relations=None,
         # mask_idx=[0, 2, 5, 8, 10, 12, 15]
     ):
         """
@@ -37,6 +38,7 @@ class CondGraphFlow(GraphFlow):
                 context_features=context_features,
                 out_features=out_features,
                 hidden_features=hidden_features,
+                relations=relations,
             )
 
         coupling_constructor = GraphAffineCouplingTransform

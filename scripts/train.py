@@ -8,6 +8,8 @@ from train.human36m import human36m
 import os
 import yaml
 
+from pathlib import Path
+
 parser = argparse.ArgumentParser(description="Arguments for running the scripts")
 
 parser.add_argument(
@@ -25,8 +27,8 @@ parser.add_argument(
 )
 
 parser.add_argument(
-    "--config",
-    default="/configs/human36m/human36m_config.yaml",
+    "--experiment",
+    default="mpii-prod.yaml",
     type=str,
     help="Experiment config file",
 )
@@ -44,8 +46,18 @@ if __name__ == "__main__":
                 "Wandb user not set. Please set the WANDB_USER environment variable."
             )
 
-    with open(args.config, "r") as f:
+    dataset = Path('')
+    if args.human36m:
+        dataset = Path('human36m')
+
+    config_file = Path(args.experiment + '.yaml')
+    config_file = Path('/configs') / dataset / config_file
+
+    with open(config_file, "r") as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
+
+        if "experiment_name" not in config:
+            config["experiment_name"] = args.experiment
 
     if args.human36m:
         human36m(use_wandb=args.wandb, config=config)

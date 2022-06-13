@@ -102,13 +102,12 @@ def supervised_trainer(
         mean_loss = torch.mean(torch.Tensor(epoch_loss))
         lr_scheduler.step(mean_loss)
 
-        if "lr_scheduler" in wandb.config["train"]:
-            if (
-                optimizer.param_groups[0]["lr"]
-                < wandb.config["train"]["lr_scheduler"]["min_lr"]
-                / wandb.config["train"]["lr_scheduler"]["factor"]
-            ):
-                break
+        if (
+            optimizer.param_groups[0]["lr"]
+            < lr_scheduler.min_lrs[0]
+            / lr_scheduler.factor
+        ):
+            break
 
         if use_wandb and "checkpoint_every" in config:
             if epoch % config["checkpoint_every"] == 0:

@@ -1,9 +1,7 @@
 seed: 0
-checkpoint_every: 50
-experiment_name: 'mpii-default'
 
 dataset:
-  dirname: '/data/human36m/processed'
+  dirname: "/data/human36m/processed"
   mpii: true
   num_samples: 10
 
@@ -18,16 +16,23 @@ train:
     threshold: 5.0e-2
     min_lr: 1.0e-6
   batch_size: 100
-  epochs: 300
-
+  epochs: 1
 
 model:
   num_layers: 10
   context_features: 10
   hidden_features: 50
+  relations:
+      - x
+      - c
+      - r
+      - x->x
+      - x<-x
+      - c->x
+      - r->x
 
 embedding:
-    name: 'sage'
+    name: "sage"
     config:
       input_dim: 2
       hidden_dim: 128

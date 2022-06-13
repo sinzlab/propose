@@ -20,6 +20,7 @@ class CondGNN(nn.Module):
         out_features: int = 3,
         hidden_features: int = 10,
         root_features: int = 3,
+        relations: list[str] = None,
     ):
         super().__init__()
 
@@ -33,6 +34,7 @@ class CondGNN(nn.Module):
                     out_features=hidden_features,
                     context_features=context_features,
                     root_features=root_features,
+                    relations=relations,
                 ),
                 self.gcn(
                     in_features=hidden_features,
@@ -40,6 +42,7 @@ class CondGNN(nn.Module):
                     out_features=out_features,
                     context_features=hidden_features,
                     root_features=hidden_features,
+                    relations=relations,
                 ),
             ]
         )
