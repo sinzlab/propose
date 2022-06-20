@@ -30,7 +30,9 @@ def evaluate(flow, test_dataloader):
         true_pose = np.insert(true_pose, 0, 0, axis=1)
         sample_poses = np.insert(sample_poses, 0, 0, axis=1)
 
-        m = (((true_pose / 0.0036 - sample_poses / 0.0036) ** 2).sum(-1) ** .5).mean(1)  # .min(-1) ** 0.5
+        m = (((true_pose / 0.0036 - sample_poses / 0.0036) ** 2).sum(-1) ** 0.5).mean(
+            1
+        )  # .min(-1) ** 0.5
         m = np.min(m, axis=-1)
 
         m = m.tolist()
@@ -56,11 +58,13 @@ def human36m(use_wandb: bool = False, config: dict = None):
         config=config,
         job_type="evaluation",
         name=f"{config['experiment_name']}_{time.strftime('%d/%m/%Y::%H:%M:%S')}",
-        tags=config['tags'] if 'tags' in config else None,
-        group=config['group'] if 'group' in config else None,
+        tags=config["tags"] if "tags" in config else None,
+        group=config["group"] if "group" in config else None,
     )
 
-    artifact = wandb.run.use_artifact(f'ppierzc/propose_human36m/{config["experiment_name"]}:best', type='model')
+    artifact = wandb.run.use_artifact(
+        f'ppierzc/propose_human36m/{config["experiment_name"]}:best', type="model"
+    )
     artifact_dir = artifact.download()
 
     embedding_net = None
@@ -71,40 +75,38 @@ def human36m(use_wandb: bool = False, config: dict = None):
 
     flow = CondGraphFlow(**config["model"], embedding_net=embedding_net)
 
-    flow.load_state_dict(torch.load(artifact_dir + '/model.pt'))
+    flow.load_state_dict(torch.load(artifact_dir + "/model.pt"))
 
-    config['cuda_accelerated'] = False
+    config["cuda_accelerated"] = False
     if torch.cuda.is_available():
         flow.to("cuda:0")
-        config['cuda_accelerated'] = True
+        config["cuda_accelerated"] = True
 
     flow.eval()
 
-    config['dataset']['dirname'] = config['dataset']['dirname'] + "/test"
+    config["dataset"]["dirname"] = config["dataset"]["dirname"] + "/test"
 
     # Test
     test_dataset = Human36mDataset(
-        **config['dataset'],
+        **config["dataset"],
         occlusion_fractions=[],
         test=True,
     )
-    test_dataloader = DataLoader(test_dataset, batch_size=1, shuffle=True, pin_memory=False, num_workers=0)
+    test_dataloader = DataLoader(
+        test_dataset, batch_size=1, shuffle=True, pin_memory=False, num_workers=0
+    )
     test_res = evaluate(flow, test_dataloader)
 
-    wandb.log({
-        'test/best_mpjpe': np.concatenate(test_res).mean()
-    })
+    wandb.log({"test/best_mpjpe": np.concatenate(test_res).mean()})
 
     # Hard
     hard_dataset = Human36mDataset(
-        **config['dataset'],
-        occlusion_fractions=[],
-        hardsubset=True
+        **config["dataset"], occlusion_fractions=[], hardsubset=True
     )
 
-    hard_dataloader = DataLoader(hard_dataset, batch_size=1, shuffle=True, pin_memory=False, num_workers=0)
+    hard_dataloader = DataLoader(
+        hard_dataset, batch_size=1, shuffle=True, pin_memory=False, num_workers=0
+    )
     hard_res = evaluate(flow, hard_dataloader)
 
-    wandb.log({
-        'hard/best_mpjpe': np.concatenate(hard_res).mean()
-    })
+    wandb.log({"hard/best_mpjpe": np.concatenate(hard_res).mean()})

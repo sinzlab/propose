@@ -29,7 +29,7 @@ class Human36mDataset(Dataset):
         fully_connected: bool = False,
         mpii: bool = False,
         return_matrix: bool = False,
-        num_context_samples: int = None
+        num_context_samples: int = None,
     ) -> None:
         """
         :param dirname: directory containing the data
@@ -102,14 +102,18 @@ class Human36mDataset(Dataset):
             edges = torch.LongTensor(np.where(adj == 1))
 
         context_node_idx = torch.arange(0, n_joints * num_context_samples)
-        target_node_idx = torch.arange(0, n_joints).repeat_interleave(num_context_samples)
+        target_node_idx = torch.arange(0, n_joints).repeat_interleave(
+            num_context_samples
+        )
 
         context_edges = torch.stack([context_node_idx, target_node_idx], dim=1).long().T
 
         if mpii:
             self.occlusions = self.occlusions[:, 1:]
 
-        edges, root_edges, context_edges = self.remove_root_edges(edges, context_edges, num_context_samples)
+        edges, root_edges, context_edges = self.remove_root_edges(
+            edges, context_edges, num_context_samples
+        )
         n_joints -= 1
 
         self.data = []
@@ -248,7 +252,9 @@ class Human36mDataset(Dataset):
 
     def _sample_context(self, gaussfit, num_context_samples):
         mean = torch.stack([gaussfit[:, 1], gaussfit[:, 2]], dim=1)
-        cov = torch.stack([gaussfit[:, 3], gaussfit[:, 5]], dim=1).unsqueeze(2) ** 2 * torch.eye(2).repeat(16, 1, 1)
+        cov = torch.stack([gaussfit[:, 3], gaussfit[:, 5]], dim=1).unsqueeze(
+            2
+        ) ** 2 * torch.eye(2).repeat(16, 1, 1)
 
         c_dist = D.MultivariateNormal(mean, covariance_matrix=cov)
         samples = c_dist.sample((num_context_samples,))
