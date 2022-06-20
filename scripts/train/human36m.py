@@ -22,17 +22,6 @@ def human36m(use_wandb: bool = False, config: dict = None):
     """
     set_random_seed(config["seed"])
 
-    if use_wandb:
-        import wandb
-
-        wandb.init(
-            project="propose_human36m",
-            entity=os.environ["WANDB_USER"],
-            config=config,
-            job_type="training",
-            name=f"{config['experiment_name']}_{time.strftime('%d/%m/%Y::%H:%M:%S')}",
-        )
-
     dataset = Human36mDataset(**config["dataset"])
 
     dataloader = DataLoader(
@@ -46,8 +35,11 @@ def human36m(use_wandb: bool = False, config: dict = None):
         )
 
     flow = CondGraphFlow(**config["model"], embedding_net=embedding_net)
+
+    config['cuda_accelerated'] = False
     if torch.cuda.is_available():
         flow.to("cuda:0")
+        config['cuda_accelerated'] = True
 
     optimizer = torch.optim.Adam(flow.parameters(), **config["train"]["optimizer"])
 
@@ -57,6 +49,23 @@ def human36m(use_wandb: bool = False, config: dict = None):
             optimizer, **config["train"]["lr_scheduler"], verbose=True
         )
 
+    if use_wandb:
+        import wandb
+
+        wandb.init(
+            project="propose_human36m",
+            entity=os.environ["WANDB_USER"],
+            config=config,
+            job_type="training",
+            name=f"{config['experiment_name']}_{time.strftime('%d/%m/%Y::%H:%M:%S')}",
+            tags=config['tags'] if 'tags' in config else None,
+            group=config['group'] if 'group' in config else None,
+        )
+
+        # graph = wandb.watch(flow, log="all", log_freq=1, log_graph=True)
+
+
+
     supervised_trainer(
         dataloader,
         flow,
@@ -64,5 +73,5 @@ def human36m(use_wandb: bool = False, config: dict = None):
         lr_scheduler=lr_scheduler,
         epochs=config["train"]["epochs"],
         device=flow.device,
-        use_wandb=use_wandb,
+        use_wandb=use_wandb
     )

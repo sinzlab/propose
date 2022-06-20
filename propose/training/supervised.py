@@ -16,7 +16,7 @@ def supervised_trainer(
     epochs=100,
     device="cpu",
     use_wandb=False,
-    use_mode=True,
+    use_mode=True
 ):
     """
     Train a flow in a supervised way

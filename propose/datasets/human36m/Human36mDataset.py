@@ -248,7 +248,7 @@ class Human36mDataset(Dataset):
 
     def _sample_context(self, gaussfit, num_context_samples):
         mean = torch.stack([gaussfit[:, 1], gaussfit[:, 2]], dim=1)
-        cov = torch.stack([gaussfit[:, 3], gaussfit[:, 4]], dim=1).unsqueeze(2) ** 2 * torch.eye(2).repeat(16, 1, 1)
+        cov = torch.stack([gaussfit[:, 3], gaussfit[:, 5]], dim=1).unsqueeze(2) ** 2 * torch.eye(2).repeat(16, 1, 1)
 
         c_dist = D.MultivariateNormal(mean, covariance_matrix=cov)
         samples = c_dist.sample((num_context_samples,))

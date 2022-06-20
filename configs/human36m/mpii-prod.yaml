@@ -1,6 +1,11 @@
 seed: 0
 checkpoint_every: 10
 
+tags:
+  - mpii
+  - human36m
+group: prod
+
 dataset:
   dirname: "/data/human36m/processed"
   mpii: true
@@ -16,13 +21,13 @@ train:
     factor: 0.1
     threshold: 5.0e-2
     min_lr: 1.0e-6
-  batch_size: 100
+  batch_size: 1000
   epochs: 100
 
 model:
   num_layers: 10
   context_features: 10
-  hidden_features: 50
+  hidden_features: 100
   relations:
       - x
       - c
