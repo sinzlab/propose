@@ -51,17 +51,17 @@ class CondGCN(nn.Module):
         self.aggr = aggr
 
     def forward(self, x_dict: dict, edge_index_dict: dict) -> tuple[dict, dict]:
-        x, c, r = x_dict["x"], x_dict["c"], x_dict["r"]
+        x = x_dict["x"]
 
         self_x = self.act(self.layers["x"](x))  # self loop values
 
         message = self.aggregate(self.message(x_dict, edge_index_dict), self_x)
 
-        if c is not None:
-            x_dict["c"] = self.act(self.layers["c"](c))
+        if "c" in x_dict:
+            x_dict["c"] = self.act(self.layers["c"](x_dict["c"]))
 
-        if r is not None:
-            x_dict["r"] = self.act(self.layers["r"](r))
+        if "r" is x_dict:
+            x_dict["r"] = self.act(self.layers["r"](x_dict["r"]))
 
         x_dict["x"] = self.pool(message)
 

@@ -28,8 +28,6 @@ def supervised_trainer(
     :param device: device to be used
     :param use_wandb: whether to use wandb
     :param use_mode: whether to use the mode loss
-    :param checkpoint_every: number of epochs between checkpoints, 0 to disable
-    :param experiment_name: name of the experiment
     :return: None
     """
     config = {}
@@ -113,10 +111,13 @@ def supervised_trainer(
                 tmp_save_path = "/temp_training_output_model.pt"
                 torch.save(flow.state_dict(), tmp_save_path)
 
-                config["epoch"] = epoch
+                metadata = {
+                    **config,
+                    "epoch": epoch,
+                }
 
                 artifact = wandb.Artifact(
-                    name=config["experiment_name"], type="model", metadata=config
+                    name=config["experiment_name"], type="model", metadata=metadata
                 )
                 artifact.add_file(tmp_save_path, name="model.pt")
                 wandb.run.log_artifact(artifact)
@@ -125,8 +126,13 @@ def supervised_trainer(
         tmp_save_path = "/temp_training_output_model.pt"
         torch.save(flow.state_dict(), tmp_save_path)
 
+        metadata = {
+            **config,
+            "epoch": epoch,
+        }
+
         artifact = wandb.Artifact(
-            name=config["experiment_name"], type="model", metadata=config
+            name=config["experiment_name"], type="model", metadata=metadata
         )
         artifact.add_file(tmp_save_path, name="model.pt")
         wandb.run.log_artifact(artifact, aliases=["latest", "best"])

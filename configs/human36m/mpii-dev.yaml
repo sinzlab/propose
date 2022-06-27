@@ -1,5 +1,6 @@
 seed: 0
 checkpoint_every: 10
+
 tags:
   - mpii
   - human36m
@@ -9,8 +10,8 @@ group: dev
 dataset:
   dirname: "/data/human36m/processed"
   mpii: true
-  num_samples: 10000
-  num_context_samples: 5
+  num_samples: 1000
+  use_variance: true
 
 train:
   optimizer:

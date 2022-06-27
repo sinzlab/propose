@@ -1,8 +1,12 @@
 from unittest import TestCase
 
+from unittest.mock import MagicMock
+
 from propose.models.flows.GraphFlow import GraphFlow
 from propose.models.distributions import StandardNormal
 from propose.models.transforms.transform import GraphCompositeTransform
+from propose.models.nn.embedding import embeddings
+
 
 from propose.datasets.toy.Point import SinglePointDataset, SinglePointPriorDataset
 
@@ -49,7 +53,7 @@ class TestGraphFlow(TestCase):
 
         dataset = SinglePointDataset()
         dataloader = DataLoader(dataset, batch_size=10)
-        data = next(iter(dataloader))
+        data = next(iter(dataloader))[1]
 
         log_prob = gf.log_prob(data)
 
@@ -61,12 +65,13 @@ class TestGraphFlow(TestCase):
         """
         distribution = StandardNormal((1,))
         transform = GraphCompositeTransform([])
-        embedding_net = torch.nn.Linear(2, 2)
+
+        embedding_net = embeddings["flat_mlp"](input_dim=2, hidden_dim=2, output_dim=2)
         gf = GraphFlow(transform, distribution, embedding_net=embedding_net)
 
         dataset = SinglePointDataset()
         dataloader = DataLoader(dataset, batch_size=10)
-        data = next(iter(dataloader))
+        data = next(iter(dataloader))[1]
 
         c = data["c"]["x"]
         x = data["x"]["x"]
@@ -91,7 +96,7 @@ class TestGraphFlow(TestCase):
 
         dataset = SinglePointPriorDataset()
         dataloader = DataLoader(dataset, batch_size=10)
-        data = next(iter(dataloader))
+        data = next(iter(dataloader))[1]
 
         x = data["x"]["x"]
         data_embed = gf.embed_inputs(data)
@@ -111,7 +116,7 @@ class TestGraphFlow(TestCase):
         dataset = SinglePointDataset()
         batch_size = 10
         dataloader = DataLoader(dataset, batch_size=batch_size)
-        data = next(iter(dataloader))
+        data = next(iter(dataloader))[1]
 
         n_samples = 2
         samples = gf.sample(n_samples, data)
@@ -129,7 +134,7 @@ class TestGraphFlow(TestCase):
         dataset = SinglePointPriorDataset()
         batch_size = 10
         dataloader = DataLoader(dataset, batch_size=batch_size)
-        data = next(iter(dataloader))
+        data = next(iter(dataloader))[1]
 
         trans = gf.transform_to_noise(data)
         hand_trans, _ = gf._transform(data)

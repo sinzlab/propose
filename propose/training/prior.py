@@ -55,7 +55,7 @@ def prior_trainer(
             optimizer.zero_grad()
             x_data.to(device)
 
-            x_data = x_data.reshape(-1, 16, 3).cuda()
+            # x_data = x_data.reshape(-1, 16, 3).cuda()
             # x_data = x_data[:, 0].cuda()
 
             # x_data = x_data.reshape(-1, 16 * 3).cuda()

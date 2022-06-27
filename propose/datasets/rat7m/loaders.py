@@ -124,7 +124,7 @@ def static_loader(path: str, batch_size: int, cuda: bool = False) -> dict:
         tr.RotatePoseToCamera(),
         tr.CenterPose(),
         tr.ScalePose(scale=0.03),
-        ScaleInputs(scale=0.1, multichannel=True, anti_aliasing=True),
+        ScaleInputs(scale=0.1, anti_aliasing=True),
         tr.ToGraph(),
         ToTensor(cuda),
     ]

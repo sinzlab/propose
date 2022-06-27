@@ -50,7 +50,7 @@ class Camera(object):
         self.translation_vector = translation_vector
         self.tangential_distortion = tangential_distortion
         self.radial_distortion = radial_distortion
-        self.frames = frames if frames else np.array([])
+        self.frames = frames if frames is not None else np.array([])
 
     def to_dict(self):
         return dict(

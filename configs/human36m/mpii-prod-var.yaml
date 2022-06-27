@@ -17,7 +17,6 @@ train:
     weight_decay: 0
   lr_scheduler:
     patience: 10
-    cooldown: 5
     mode: "min"
     factor: 0.1
     threshold: 1.0e-2

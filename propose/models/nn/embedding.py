@@ -62,32 +62,39 @@ class FlatMLPEmbedding(nn.Module):
     MLP embedding layer.
     """
 
-    def __init__(self, input_size: int, hidden_size: int, output_size: int):
+    def __init__(self, input_dim: int, hidden_dim: int, output_dim: int):
         """
-        :param input_size
-        :param output_size
+        :param input_dim
+        :param output_dim
         """
         super().__init__()
+        self.features = [
+            input_dim,
+            hidden_dim,
+            output_dim,
+        ]
+
         self.embedding = nn.Sequential(
-            nn.Linear(input_size, hidden_size),
+            nn.Linear(input_dim, hidden_dim),
             nn.ReLU(),
-            nn.Linear(hidden_size, output_size),
+            nn.Linear(hidden_dim, output_dim),
         )
 
     def forward(self, data):
         x = data["c"].x
+        batch_size = x.shape[0]
         # batch_size = data['c'].x.max() + 1
 
         # print(data['c', '->', 'x'].edge_index[0])
         # x = x[data['c', '->', 'x'].edge_index[0]]
-        x = x.reshape(-1, 16, 2)
+        x = x.reshape(batch_size, -1, self.features[0])
         batch_size = x.shape[0]
         # x = x.reshape(batch_size, 16, 2)
         # x = x[:, data['c', '->', 'x'].edge_index[0]]
         x = x.flatten(1)
         x = self.embedding(x)
 
-        x = x.reshape(batch_size * 16, -1)
+        x = x.reshape(-1, self.features[0])
 
         return x
 
@@ -99,6 +106,8 @@ class SageEmbedding(nn.Module):
 
     def __init__(self, input_dim, hidden_dim, output_dim):
         super(SageEmbedding, self).__init__()
+
+        self.features = [input_dim, hidden_dim, output_dim]
         self.layers = nn.ModuleList(
             [
                 DenseSAGEConv(input_dim, hidden_dim),
@@ -115,7 +124,7 @@ class SageEmbedding(nn.Module):
 
         # batch_size = data['c'].x.max() + 1
 
-        x = x.reshape(-1, 16, 2)
+        x = x.reshape(-1, 16, self.features[0])
         batch_size = x.shape[0]
 
         index = x.new_ones(batch_size, 16).bool().flatten()

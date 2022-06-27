@@ -3,6 +3,7 @@ from propose.training.supervised import supervised_trainer
 from propose.datasets.toy import SinglePointDataset, ThreePointDataset
 
 from torch_geometric.loader import DataLoader
+import torch
 from unittest.mock import MagicMock, call
 
 
@@ -12,7 +13,7 @@ def test_smoke_single():
     dataset = SinglePointDataset(samples=2)
     dataloader = DataLoader(dataset, batch_size=1)
 
-    supervised_trainer(dataloader, flow, epochs=1)
+    supervised_trainer(dataloader, flow, epochs=1, use_mode=False)
 
 
 def test_smoke_three():
@@ -21,7 +22,7 @@ def test_smoke_three():
     dataset = ThreePointDataset(samples=2)
     dataloader = DataLoader(dataset, batch_size=1)
 
-    supervised_trainer(dataloader, flow, epochs=1)
+    supervised_trainer(dataloader, flow, epochs=1, use_mode=False)
 
 
 def test_updates_weights():
@@ -33,11 +34,13 @@ def test_updates_weights():
 
     assert all([param.grad is None for param in flow.parameters()])
 
-    supervised_trainer(dataloader, flow, epochs=1)
+    supervised_trainer(dataloader, flow, epochs=1, use_mode=False)
 
     assert any([param.grad is not None for param in flow.parameters()])
 
-    optimizer = MagicMock()
-    supervised_trainer(dataloader, flow, epochs=1, optimizer=optimizer)
+    optimizer = MagicMock(spec=torch.optim.Optimizer)
+    optimizer.param_groups = [{"lr": 0.1}]
+
+    supervised_trainer(dataloader, flow, epochs=1, optimizer=optimizer, use_mode=False)
 
     assert optimizer.mock_calls == [call.zero_grad(), call.step()] * num_samples

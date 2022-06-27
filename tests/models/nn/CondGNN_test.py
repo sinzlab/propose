@@ -1,5 +1,5 @@
 from propose.models.nn.CondGNN import CondGNN
-from propose.models.layers.CondGCN import CondGCN, FastCondGCN
+from propose.models.layers.CondGCN import CondGCN
 
 from torch_geometric.data import HeteroData
 
@@ -12,14 +12,6 @@ from unittest.mock import MagicMock, patch, call
 
 def test_smoke():
     CondGNN()
-
-
-def test_use_fast_or_slow():
-    model = CondGNN()
-    assert model.gcn is CondGCN
-
-    model = CondGNN(gcn_type="fast")
-    assert model.gcn is FastCondGCN
 
 
 def test_architecture_should_have_2_layers():
@@ -140,8 +132,18 @@ def test_forward(cond_gcn_mock, module_list_mock):
     assert len(cond_gcn_mock.mock_calls) == 4
 
     assert cond_gcn_mock.mock_calls[0] == call(
-        in_features, context_features, hidden_features, hidden_features
+        in_features=in_features,
+        context_features=context_features,
+        out_features=hidden_features,
+        root_features=in_features,
+        hidden_features=hidden_features,
+        relations=None,
     )
     assert cond_gcn_mock.mock_calls[1] == call(
-        hidden_features, hidden_features, out_features, hidden_features
+        in_features=hidden_features,
+        context_features=hidden_features,
+        out_features=out_features,
+        root_features=hidden_features,
+        hidden_features=hidden_features,
+        relations=None,
     )

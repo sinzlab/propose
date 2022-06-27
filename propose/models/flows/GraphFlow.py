@@ -32,6 +32,7 @@ class GraphFlow(Flow):
         inputs_dict["c"]["x"] = self._embedding_net(inputs)
 
         # print(inputs_dict["c"]["x"])
+        # print(inputs_dict["c"]["x"].shape)
 
         if isinstance(inputs_dict["c"]["x"], HeteroData):
             inputs_dict["c"]["x"] = inputs_dict["c"]["x"]["c"]["x"]

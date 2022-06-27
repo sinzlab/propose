@@ -16,6 +16,46 @@ import torch.distributions as D
 from tqdm import tqdm
 
 
+def tensor_to_graph(inputs, context, root, edges, context_edges, root_edges):
+    """
+    Convert a tensor to a graph.
+    :param inputs: tensor of shape (batch_size, num_nodes, num_features)
+    :param context: tensor of shape (batch_size, num_nodes, num_context_features)
+    :param root: tensor of shape (batch_size, num_nodes)
+    :param edges: tensor of shape (batch_size, num_edges, 2)
+    :param context_edges: tensor of shape (batch_size, num_context_edges, 2)
+    :param root_edges: tensor of shape (batch_size, num_root_edges, 2)
+    :return: HeteroData
+    """
+    data = HeteroData()
+
+    data["x"].x = inputs
+    data["x", "->", "x"].edge_index = edges
+    data["x", "<-", "x"].edge_index = edges
+
+    data["c"].x = context
+    data["c", "->", "x"].edge_index = context_edges
+
+    data["r"].x = root
+    data["r", "->", "x"].edge_index = root_edges
+    data["r", "<-", "x"].edge_index = root_edges
+
+    return data
+
+
+def tensor_to_human36m_graph(inputs, context, context_edges):
+    pose = Human36mPose(np.zeros((1, 17, 3)))
+    edges = torch.LongTensor(pose.edges).T
+
+    edges, root_edges, context_edges = Human36mDataset.remove_root_edges(
+        edges, context_edges, 1
+    )
+
+    return tensor_to_graph(
+        inputs[1:], context, inputs[:1], edges, context_edges, root_edges
+    )
+
+
 class Human36mDataset(Dataset):
     """
     Dataset class for the Human36M dataset
@@ -57,6 +97,14 @@ class Human36mDataset(Dataset):
             sample_context = False
         else:
             sample_context = True
+
+        if sample_context and self.use_variance:
+            raise ValueError(
+                "You are trying to sample context and use variance at the same time. This is not possible.\n"
+                "Please use either context or variance, but not both.\n"
+                "If you want to use the variance, please set num_context_samples to None.\n"
+                "If you want to use the context, please set use_variance to False."
+            )
 
         if occlusion_fractions is None:
             occlusion_fractions = [0.2, 0.4, 0.6, 0.8]
@@ -146,10 +194,10 @@ class Human36mDataset(Dataset):
             data["x", "->", "x"].edge_index = edges
             data["x", "<-", "x"].edge_index = edges
             # context nodes
-            data["c"].x = poses2d[i, 1:]  # + torch.randn(poses2d[i, 1:].shape) * 0.01
-
             gaussfit = self.gaussfits[i]
-            self._use_variance(data, gaussfit)
+            data["c"].x = self._add_variance(
+                poses2d[i, 1:], gaussfit
+            )  # poses2d[i, 1:]  # + torch.randn(poses2d[i, 1:].shape) * 0.01
 
             if sample_context:
                 data["c"].x = self._sample_context(gaussfit, num_context_samples)
@@ -190,10 +238,10 @@ class Human36mDataset(Dataset):
                 data["x", "->", "x"].edge_index = edges
                 data["x", "<-", "x"].edge_index = edges
 
-                data["c"].x = poses2d[i, 1:]  # + torch.randn(poses2d[i].shape) * 0.01
-
                 gaussfit = self.gaussfits[i]
-                self._use_variance(data, gaussfit)
+                data["c"].x = self._add_variance(
+                    poses2d[i, 1:], gaussfit
+                )  # + torch.randn(poses2d[i].shape) * 0.01
 
                 if sample_context:
                     data["c"].x = self._sample_context(gaussfit, num_context_samples)
@@ -249,7 +297,8 @@ class Human36mDataset(Dataset):
             },
         )  # returns: full data, base data
 
-    def remove_root_edges(self, edges, context_edges, num_context_samples):
+    @classmethod
+    def remove_root_edges(cls, edges, context_edges, num_context_samples):
         full_edges = edges[:, torch.where(edges[0] != 0)[0]]
         context_edges = context_edges[:, torch.where(context_edges[1] != 0)[0]]
         root_edges = edges[:, torch.where(edges[0] == 0)[0]]
@@ -271,14 +320,18 @@ class Human36mDataset(Dataset):
         samples = c_dist.sample((num_context_samples,))
         return samples.view(samples.shape[0] * samples.shape[1], samples.shape[2])
 
-    def _use_variance(self, data, gaussfit):
+    def _add_variance(self, pose2d, gaussfit):
         if self.use_variance:
-            data["c"].x = torch.cat(
+            res = torch.cat(
                 [
-                    data["c"].x,
+                    pose2d,
                     torch.stack([gaussfit[:, 3] ** 2, gaussfit[:, 5] ** 2], dim=1),
-                ]
+                ],
+                dim=1,
             )
+            return res
+
+        return pose2d
 
 
 class NewestHumanDatasetNoRoot(Dataset):

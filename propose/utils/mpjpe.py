@@ -7,6 +7,10 @@ def mpjpe(pred, gt, dim=None):
 
     # if pjpe is torch.Tensor use dim if numpy.array use axis
     if isinstance(pjpe, torch.Tensor):
+        if dim is None:
+            return pjpe.mean()
         return pjpe.mean(dim=dim)
 
+    if dim is None:
+        return np.mean(pjpe)
     return np.mean(pjpe, axis=dim)
