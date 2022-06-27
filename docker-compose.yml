@@ -67,7 +67,6 @@ services:
     volumes:
       - .:/src/propose
       - ./tests:/tests
-    working_dir: /tests
     entrypoint: [ "pytest" ]
 
   notebook_server:

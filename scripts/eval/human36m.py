@@ -147,4 +147,3 @@ def human36m(use_wandb: bool = False, config: dict = None):
     print(f"H36MA: {hard_res}")
     print(f"Occl.: {occl_res}")
     print("---")
-

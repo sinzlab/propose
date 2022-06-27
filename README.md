@@ -37,7 +37,7 @@ flow = CondGraphFlow.from_pretrained('ppierzc/cgnf/cgnf_human36m:best')
 #### Available Models
 | Model Name | description                                                        | Artifact path                   |
 | --- |--------------------------------------------------------------------|---------------------------------|
-| cGNF Human 3.6m | Model trained on the Human 3.6M dataset with MPII input keypoints. | ppierzc/cgnf/cgnf_human36m:best |
+| cGNF Human 3.6m | Model trained on the Human 3.6M dataset with MPII input keypoints. | ```ppierzc/cgnf/cgnf_human36m:best``` |
 
 ### Run Tests
 To run the tests, from the root directory call:
