@@ -34,7 +34,8 @@ RUN python -m pip install --no-cache-dir nflows\
     cdflib\
     imageio-ffmpeg\
     brax\
-    wandb
+    wandb\
+    neuralpredictors
 
 RUN pip install git+https://github.com/sinzlab/neuralpredictors.git
 RUN pip install torch-scatter -f https://data.pyg.org/whl/torch-1.9.0+cu111.html

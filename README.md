@@ -39,6 +39,12 @@ flow = CondGraphFlow.from_pretrained('ppierzc/cgnf/cgnf_human36m:best')
 | --- |--------------------------------------------------------------------|---------------------------------|
 | cGNF Human 3.6m | Model trained on the Human 3.6M dataset with MPII input keypoints. | ```ppierzc/cgnf/cgnf_human36m:best``` |
 
+### Run Evaluation
+You can run the evaluation script with the following command:
+```
+docker-compose run eval --human36m --experiment=cgnf_human36m 
+```
+
 ### Run Tests
 To run the tests, from the root directory call:
 ```
