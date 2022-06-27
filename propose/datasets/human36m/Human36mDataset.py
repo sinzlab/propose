@@ -15,10 +15,12 @@ import torch.distributions as D
 
 from tqdm import tqdm
 
-CHUNK_SIZE = 3500
-
 
 class Human36mDataset(Dataset):
+    """
+    Dataset class for the Human36M dataset
+    """
+
     def __init__(
         self,
         dirname: str,
@@ -30,6 +32,7 @@ class Human36mDataset(Dataset):
         mpii: bool = False,
         return_matrix: bool = False,
         num_context_samples: int = None,
+        use_variance: bool = False,
     ) -> None:
         """
         :param dirname: directory containing the data
@@ -39,10 +42,13 @@ class Human36mDataset(Dataset):
         :param hardsubset: whether to use the hard subset
         :param fully_connected: whether to use the fully connected dataset
         :param mpii: whether to use the mpii dataset
-        :param return_matrix: whether to return as an matrix
+        :param return_matrix: whether to return the matrix instead of the graph
+        :param num_context_samples: number of context samples to be used
+        :param use_variance: whether to use the variance of the gaussian fit
         """
 
         self.return_matrix = return_matrix
+        self.use_variance = use_variance
 
         self.desc = ""
 
@@ -142,8 +148,10 @@ class Human36mDataset(Dataset):
             # context nodes
             data["c"].x = poses2d[i, 1:]  # + torch.randn(poses2d[i, 1:].shape) * 0.01
 
+            gaussfit = self.gaussfits[i]
+            self._use_variance(data, gaussfit)
+
             if sample_context:
-                gaussfit = self.gaussfits[i]
                 data["c"].x = self._sample_context(gaussfit, num_context_samples)
 
             data["c", "->", "x"].edge_index = context_edges[:, mask]
@@ -183,8 +191,11 @@ class Human36mDataset(Dataset):
                 data["x", "<-", "x"].edge_index = edges
 
                 data["c"].x = poses2d[i, 1:]  # + torch.randn(poses2d[i].shape) * 0.01
+
+                gaussfit = self.gaussfits[i]
+                self._use_variance(data, gaussfit)
+
                 if sample_context:
-                    gaussfit = self.gaussfits[i]
                     data["c"].x = self._sample_context(gaussfit, num_context_samples)
 
                 data["c", "->", "x"].edge_index = context_edges[:, mask]
@@ -260,113 +271,21 @@ class Human36mDataset(Dataset):
         samples = c_dist.sample((num_context_samples,))
         return samples.view(samples.shape[0] * samples.shape[1], samples.shape[2])
 
-
-class NewestHumanDataset(Dataset):
-    def __init__(
-        self,
-        dirname: str,
-        num_samples: int = None,
-        occlusion_fractions: list[float] = None,
-        stride: int = None,
-        hardsubset: bool = False,
-    ):
-        if occlusion_fractions is None:
-            occlusion_fractions = [0.2, 0.4, 0.6, 0.8]
-
-        file = Path(dirname) / "poses.pkl"
-
-        with open(file, "rb") as f:
-            dataset = pickle.load(f)
-
-        n_poses = len(dataset["poses3d"])
-        # index that selects random num_samples from the dataset
-
-        self.hardsubset = hardsubset
-
-        if num_samples is not None:
-            self._idx = np.random.choice(n_poses, num_samples, replace=False)
-        elif stride is not None:
-            self._idx = np.arange(0, n_poses, stride)
-        elif hardsubset:
-            hard_frames = np.load(Path(dirname) / "hard_subset_indices.npy")
-            self._idx = hard_frames.any(1)
-            self.hard_frames = hard_frames[self._idx]
-        else:
-            self._idx = np.arange(n_poses)
-
-        self.actions = np.array(dataset["actions"])[self._idx]
-
-        pose = Human36mPose(np.zeros((1, 17, 3)))
-
-        poses3d = torch.Tensor(dataset["poses3d"][self._idx]) * 0.0036
-        poses2d = torch.Tensor(dataset["poses2d"][self._idx]) * 0.0139
-        # poses2d = poses3d[..., [0, 2]]
-
-        n_joints = poses3d.shape[1]
-        edges = torch.LongTensor(pose.edges).T
-        context_edges = torch.arange(0, n_joints).repeat(2).reshape(2, n_joints).long()
-
-        collater = Collater(follow_batch=None, exclude_keys=None)
-
-        self.data = []
-        self.base_data = []
-        for i in tqdm(range(len(poses3d))):
-            mask = np.ones(17).astype(bool)
-            if self.hardsubset:
-                mask[1:] = self.hard_frames[i] == False
-
-            datas = []
-            data = HeteroData()
-            # base nodes
-            data["x"].x = poses3d[i]
-            data["x", "->", "x"].edge_index = edges
-            data["x", "<-", "x"].edge_index = edges
-            # context nodes
-            data["c"].x = poses2d[i]
-            data["c", "->", "x"].edge_index = context_edges[:, mask]
-
-            datas.append(data)
-
-            for p in occlusion_fractions:
-                mask = np.ones(17)
-                mask[: int(p * 17)] = 0
-                # shuffle mask
-                np.random.shuffle(mask)
-                mask = mask.astype(bool)
-
-                data = HeteroData()
-
-                data["x"].x = poses3d[i]
-                data["x", "->", "x"].edge_index = edges
-                data["x", "<-", "x"].edge_index = edges
-
-                data["c"].x = poses2d[i]
-                data["c", "->", "x"].edge_index = context_edges[:, mask]
-
-                datas.append(data)
-
-            data = collater(datas)
-
-            base_data = HeteroData()
-            # base nodes
-            base_data["x"].x = poses3d[i]
-            base_data["x", "->", "x"].edge_index = edges
-            base_data["x", "<-", "x"].edge_index = edges
-
-            self.data.append((data, base_data))
-
-    def __len__(self):
-        return len(self.data)
-
-    def __getitem__(self, item):
-        return (
-            self.data[item][0],
-            self.data[item][1],
-            self.actions[item],
-        )  # returns: full data, base data
+    def _use_variance(self, data, gaussfit):
+        if self.use_variance:
+            data["c"].x = torch.cat(
+                [
+                    data["c"].x,
+                    torch.stack([gaussfit[:, 3] ** 2, gaussfit[:, 5] ** 2], dim=1),
+                ]
+            )
 
 
 class NewestHumanDatasetNoRoot(Dataset):
+    """
+    Legacy dataset for the Human3.6M dataset.
+    """
+
     def __init__(
         self,
         dirname: str,

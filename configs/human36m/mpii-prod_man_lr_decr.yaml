@@ -1,5 +1,6 @@
 seed: 0
 checkpoint_every: 10
+use_pretrained: mpii-prod:latest
 
 tags:
   - mpii
@@ -12,7 +13,7 @@ dataset:
 
 train:
   optimizer:
-    lr: 1.0e-3
+    lr: 1.0e-4
     weight_decay: 0
   lr_scheduler:
     patience: 10

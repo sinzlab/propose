@@ -26,6 +26,14 @@ docker pull sinzlab/pytorch:v3.9-torch1.9.0-cuda11.1-dj0.12.7
 4. Run```docker-compose run -d -p 10101:8888 notebook_server```
 5. You can now open JupyterLab in your browser at [`http://localhost:10101`](http://localhost:10101).
 
+### Using the cGNF in your project
+We provide the pretrained model which you can load with the following code snippet.
+```python
+from propose.models.flows import CondGraphFlow
+
+flow = CondGraphFlow.from_pretrained('sinzlab/cgnf/cgnf_human36m:best')
+```
+
 ### Run Tests
 To run the tests, from the root directory call:
 ```

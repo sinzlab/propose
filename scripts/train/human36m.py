@@ -22,32 +22,8 @@ def human36m(use_wandb: bool = False, config: dict = None):
     """
     set_random_seed(config["seed"])
 
-    dataset = Human36mDataset(**config["dataset"])
-
-    dataloader = DataLoader(
-        dataset, batch_size=config["train"]["batch_size"], shuffle=True
-    )
-
-    embedding_net = None
-    if config["embedding"]:
-        embedding_net = embeddings[config["embedding"]["name"]](
-            **config["embedding"]["config"]
-        )
-
-    flow = CondGraphFlow(**config["model"], embedding_net=embedding_net)
-
-    config["cuda_accelerated"] = False
-    if torch.cuda.is_available():
-        flow.to("cuda:0")
-        config["cuda_accelerated"] = True
-
-    optimizer = torch.optim.Adam(flow.parameters(), **config["train"]["optimizer"])
-
-    lr_scheduler = None
-    if config["train"]["lr_scheduler"]:
-        lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-            optimizer, **config["train"]["lr_scheduler"], verbose=True
-        )
+    if "cuda_accelerated" not in config:
+        config["cuda_accelerated"] = torch.cuda.is_available()
 
     if use_wandb:
         import wandb
@@ -62,7 +38,37 @@ def human36m(use_wandb: bool = False, config: dict = None):
             group=config["group"] if "group" in config else None,
         )
 
-        # graph = wandb.watch(flow, log="all", log_freq=1, log_graph=True)
+    dataset = Human36mDataset(**config["dataset"])
+
+    dataloader = DataLoader(
+        dataset, batch_size=config["train"]["batch_size"], shuffle=True
+    )
+
+    embedding_net = None
+    if config["embedding"]:
+        embedding_net = embeddings[config["embedding"]["name"]](
+            **config["embedding"]["config"]
+        )
+
+    flow = CondGraphFlow(**config["model"], embedding_net=embedding_net)
+
+    if "use_pretrained" in config:
+        artifact = wandb.run.use_artifact(
+            f'ppierzc/propose_human36m/{config["use_pretrained"]}', type="model"
+        )
+        artifact_dir = artifact.download()
+        flow.load_state_dict(torch.load(artifact_dir + "/model.pt"))
+
+    if config["cuda_accelerated"]:
+        flow.to("cuda:0")
+
+    optimizer = torch.optim.Adam(flow.parameters(), **config["train"]["optimizer"])
+
+    lr_scheduler = None
+    if config["train"]["lr_scheduler"]:
+        lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+            optimizer, **config["train"]["lr_scheduler"], verbose=True
+        )
 
     supervised_trainer(
         dataloader,

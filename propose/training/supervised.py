@@ -113,7 +113,11 @@ def supervised_trainer(
                 tmp_save_path = "/temp_training_output_model.pt"
                 torch.save(flow.state_dict(), tmp_save_path)
 
-                artifact = wandb.Artifact(name=config["experiment_name"], type="model")
+                config["epoch"] = epoch
+
+                artifact = wandb.Artifact(
+                    name=config["experiment_name"], type="model", metadata=config
+                )
                 artifact.add_file(tmp_save_path, name="model.pt")
                 wandb.run.log_artifact(artifact)
 
@@ -121,6 +125,8 @@ def supervised_trainer(
         tmp_save_path = "/temp_training_output_model.pt"
         torch.save(flow.state_dict(), tmp_save_path)
 
-        artifact = wandb.Artifact(name=config["experiment_name"], type="model")
+        artifact = wandb.Artifact(
+            name=config["experiment_name"], type="model", metadata=config
+        )
         artifact.add_file(tmp_save_path, name="model.pt")
         wandb.run.log_artifact(artifact, aliases=["latest", "best"])

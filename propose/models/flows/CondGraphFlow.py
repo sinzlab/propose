@@ -1,7 +1,9 @@
 import torch
+import wandb
 
 from propose.models.flows.GraphFlow import GraphFlow
 from propose.models.nn.CondGNN import CondGNN
+from propose.models.nn.embedding import embeddings
 
 from propose.models.transforms.transform import (
     GraphAffineCouplingTransform,
@@ -63,3 +65,38 @@ class CondGraphFlow(GraphFlow):
 
     def forward(self, inputs):
         return self.log_prob(inputs)
+
+    @classmethod
+    def build_model(cls, config):
+        """
+        Builds a CondGraphFlow model from config
+        :param config: Config dictionary
+        :return: CondGraphFlow model
+        """
+        embedding_net = None
+        if config["embedding"]:
+            embedding_net = embeddings[config["embedding"]["name"]](
+                **config["embedding"]["config"]
+            )
+
+        return cls(**config["model"], embedding_net=embedding_net)
+
+    @classmethod
+    def from_pretrained(cls, artifact_name):
+        """
+        Constructs a pretrained model from the wandb model registry.
+        :param artifact_name: Name of the artifact to load.
+        :return: A pretrained model.
+        """
+        api = wandb.Api()
+        artifact = api.artifact(artifact_name, type="model")
+
+        if wandb.run:
+            wandb.run.use_artifact(artifact, type="model")
+
+        flow = cls.build_model(artifact.metadata)
+
+        artifact_dir = artifact.download()
+        flow.load_state_dict(torch.load(artifact_dir + "/model.pt"))
+
+        return flow

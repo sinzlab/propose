@@ -64,12 +64,13 @@ class GraphFlow(Flow):
 
         return log_prob + logabsdet
 
-    def sample(self, num_samples, context):
+    def sample(self, num_samples, context, temperature=1.0):
         """Generates samples from the distribution. Samples can be generated in batches.
 
         Args:
             num_samples: int, number of samples to generate.
             context: Tensor or None, conditioning variables. If None, the context is ignored.
+            temperature: float, temperature to use for sampling.
 
         Returns:
             A Tensor containing the samples, with shape [num_samples, ...] if context is None, or
@@ -80,14 +81,14 @@ class GraphFlow(Flow):
         if not check.is_positive_int(num_samples):
             raise TypeError("Number of samples must be a positive integer.")
 
-        return self._sample(num_samples, context)
+        return self._sample(num_samples, context, temperature)
 
-    def _sample(self, num_samples, context):
+    def _sample(self, num_samples, context, temperature=1.0):
         num_nodes = context["x"]["x"].shape[0] if context is not None else 1
         num_features = context["x"]["x"].shape[-1] if context is not None else 3
-        noise = self._distribution.sample((num_samples * num_nodes)).reshape(
-            (num_nodes, num_samples, num_features)
-        )
+        noise = self._distribution.sample(
+            (num_samples * num_nodes), temperature=temperature
+        ).reshape((num_nodes, num_samples, num_features))
 
         noise = self._noise_to_hetero(noise, context)
 
