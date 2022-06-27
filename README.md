@@ -7,7 +7,20 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![codecov](https://codecov.io/gh/PPierzc/propose/branch/main/graph/badge.svg?token=PYI1Z06426)](https://codecov.io/gh/PPierzc/propose)
 
-## Getting Started
+## Getting started
+Install the package from source:
+```shell
+pip install git+https://github.com/sinzlab/propose.git
+```
+### Loading a pretrained cGNF
+We provide the pretrained model which you can load with the following code snippet.
+```python
+from propose.models.flows import CondGraphFlow
+
+flow = CondGraphFlow.from_pretrained('ppierzc/cgnf/cgnf_human36m:best')
+```
+
+## Reproducing results
 ### Requirements
 This project requires that you have the following installed:
 - `docker`
@@ -19,20 +32,12 @@ You can get the base image by running the following command:
 docker pull sinzlab/pytorch:v3.9-torch1.9.0-cuda11.1-dj0.12.7
 ```
 
-### Running
+### Running notebooks
 1. Clone the repository.
 2. Navigate to the project directory. 
 3. Run```docker-compose build base```
 4. Run```docker-compose run -d -p 10101:8888 notebook_server```
 5. You can now open JupyterLab in your browser at [`http://localhost:10101`](http://localhost:10101).
-
-### Using the cGNF in your project
-We provide the pretrained model which you can load with the following code snippet.
-```python
-from propose.models.flows import CondGraphFlow
-
-flow = CondGraphFlow.from_pretrained('ppierzc/cgnf/cgnf_human36m:best')
-```
 
 #### Available Models
 | Model Name | description                                                        | Artifact path                   |
