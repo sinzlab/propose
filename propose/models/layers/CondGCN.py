@@ -57,10 +57,10 @@ class CondGCN(nn.Module):
 
         message = self.aggregate(self.message(x_dict, edge_index_dict), self_x)
 
-        if "c" in x_dict:
+        if "c" in x_dict and x_dict["c"] is not None:
             x_dict["c"] = self.act(self.layers["c"](x_dict["c"]))
 
-        if "r" is x_dict:
+        if "r" in x_dict and x_dict["r"] is not None:
             x_dict["r"] = self.act(self.layers["r"](x_dict["r"]))
 
         x_dict["x"] = self.pool(message)

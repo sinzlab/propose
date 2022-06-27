@@ -65,15 +65,16 @@ def human36m(use_wandb: bool = False, config: dict = None):
 
     config["dataset"]["dirname"] = config["dataset"]["dirname"] + "/test"
 
-    wandb.init(
-        project="propose_human36m",
-        entity=os.environ["WANDB_USER"],
-        config=config,
-        job_type="evaluation",
-        name=f"{config['experiment_name']}_{time.strftime('%d/%m/%Y::%H:%M:%S')}",
-        tags=config["tags"] if "tags" in config else None,
-        group=config["group"] if "group" in config else None,
-    )
+    if use_wandb:
+        wandb.init(
+            project="propose_human36m",
+            entity=os.environ["WANDB_USER"],
+            config=config,
+            job_type="evaluation",
+            name=f"{config['experiment_name']}_{time.strftime('%d/%m/%Y::%H:%M:%S')}",
+            tags=config["tags"] if "tags" in config else None,
+            group=config["group"] if "group" in config else None,
+        )
 
     flow = CondGraphFlow.from_pretrained(
         f'ppierzc/propose_human36m/{config["experiment_name"]}:latest'
@@ -94,7 +95,8 @@ def human36m(use_wandb: bool = False, config: dict = None):
         test=True,
     )
 
-    wandb.log({"test/best_mpjpe": test_res})
+    if use_wandb:
+        wandb.log({"test/best_mpjpe": test_res})
 
     # Hard
     hard_res, hard_dataset, hard_dataloader = mpjpe_experiment(
@@ -104,7 +106,8 @@ def human36m(use_wandb: bool = False, config: dict = None):
         hardsubset=True,
     )
 
-    wandb.log({"hard/best_mpjpe": hard_res})
+    if use_wandb:
+        wandb.log({"hard/best_mpjpe": hard_res})
 
     # Occlusion Only
     mpjpes = []
@@ -134,16 +137,14 @@ def human36m(use_wandb: bool = False, config: dict = None):
 
         mpjpes += [m]
 
-    wandb.log({"occl/best_mpjpe": np.nanmean(mpjpes)})
+    occl_res = np.nanmean(mpjpes)
+    if use_wandb:
+        wandb.log({"occl/best_mpjpe": occl_res})
 
-    # Temperature Evaluation
-    temperatures = [1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1]
-    for temperature in temperatures:
-        test_res = evaluate(flow, test_dataloader, temperature=temperature)
+    print("MPJPE for best")
+    print("---")
+    print(f"H36M: {test_res}")
+    print(f"H36MA: {hard_res}")
+    print(f"Occl.: {occl_res}")
+    print("---")
 
-        wandb.log(
-            {
-                "temperature/best_mpjpe": np.concatenate(test_res).mean(),
-                "temperature/temperature": temperature,
-            }
-        )
