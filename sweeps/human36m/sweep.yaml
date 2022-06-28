@@ -2,7 +2,7 @@ name: "architecture sweep"
 method: bayes
 metric:
   goal: minimize
-  name: loss
+  name: mean_Loss
 parameters:
   num_layers:
     min: 5

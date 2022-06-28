@@ -100,6 +100,9 @@ def supervised_trainer(
         mean_loss = torch.mean(torch.Tensor(epoch_loss))
         lr_scheduler.step(mean_loss)
 
+        if use_wandb:
+            wandb.log({"mean_Loss": mean_loss.item()})
+
         if (
             optimizer.param_groups[0]["lr"]
             < lr_scheduler.min_lrs[0] / lr_scheduler.factor
