@@ -12,13 +12,33 @@ import torch
 import wandb
 
 
-def human36m(use_wandb: bool = False, config: dict = None):
+def build_config(config, sweep_config):
+    # model config
+    config["model"]["num_layers"] = sweep_config["num_layers"]
+    config["model"]["context_features"] = sweep_config["embedding_out_features"]
+    config["model"]["hidden_features"] = sweep_config["hidden_features"]
+
+    config["embedding"]["config"]["hidden_dim"] = sweep_config[
+        "embedding_hidden_features"
+    ]
+    config["embedding"]["config"]["out_dim"] = sweep_config["embedding_out_features"]
+
+    return config
+
+
+def human36m(
+    use_wandb: bool = False,
+    config: dict = None,
+):
     """
     Train a CondGraphFlow on the Human36m dataset.
     :param use_wandb: Whether to use wandb for logging.
     :param config: A dictionary of configuration parameters.
+    :param train_config_file: A dictionary of training configuration parameters.
     """
-    config = wandb.config if use_wandb else config
+    sweep_config = wandb.config
+    config = build_config(config, sweep_config)
+    wandb.config.update(config)
 
     set_random_seed(config["seed"])
 

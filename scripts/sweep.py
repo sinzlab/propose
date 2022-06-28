@@ -3,7 +3,7 @@ from propose.datasets.human36m.preprocess import pickle_poses, pickle_cameras
 
 import argparse
 
-from train.human36m import human36m
+from sweep.human36m import human36m
 
 import os
 import yaml
@@ -13,6 +13,8 @@ from pathlib import Path
 import wandb
 import torch
 import time
+
+from functools import partial
 
 parser = argparse.ArgumentParser(description="Arguments for running the scripts")
 
@@ -25,16 +27,16 @@ parser.add_argument(
 
 parser.add_argument(
     "--wandb",
-    default=False,
+    default=True,
     action="store_true",
-    help="Whether to use wandb for logging",
+    help="Whether to use wandb for logging (required for sweeping)",
 )
 
 parser.add_argument(
-    "--experiment",
+    "--sweep",
     default="mpii-prod.yaml",
     type=str,
-    help="Experiment config file",
+    help="Sweep config file",
 )
 
 if __name__ == "__main__":
@@ -50,18 +52,27 @@ if __name__ == "__main__":
                 "Wandb user not set. Please set the WANDB_USER environment variable."
             )
 
+    if not args.wandb:
+        raise ValueError("Wandb is required for sweeping.")
+
     dataset = Path("")
     if args.human36m:
         dataset = Path("human36m")
 
-    config_file = Path(args.experiment + ".yaml")
-    config_file = Path("/experiments") / dataset / config_file
+    config_file = Path(args.sweep + ".yaml")
+    config_file = Path("/sweeps") / dataset / config_file
+
+    train_config_file = (
+        Path("/sweeps") / dataset / Path(args.sweep + "_train_config.yaml")
+    )
 
     with open(config_file, "r") as f:
-        config = yaml.load(f, Loader=yaml.FullLoader)
+        sweep_config = yaml.load(f, Loader=yaml.FullLoader)
 
-        if "experiment_name" not in config:
-            config["experiment_name"] = args.experiment
+    with open(train_config_file, "r") as f:
+        config = yaml.load(f, Loader=yaml.FullLoader)
+        if "name" in sweep_config:
+            config["experiment_name"] = sweep_config["name"]
 
     if args.human36m:
         if "cuda_accelerated" not in config:
@@ -78,7 +89,11 @@ if __name__ == "__main__":
                 group=config["group"] if "group" in config else None,
             )
 
-        human36m(use_wandb=args.wandb, config=config)
+        sweep_id = wandb.sweep(sweep_config)
+
+        run_func = partial(human36m, use_wandb=args.wandb, config=config)
+
+        wandb.agent(sweep_id, function=run_func, count=config["sweep"]["count"])
     else:
         print(
             "Not running any scripts as no arguments were passed. Run with --help for more information."

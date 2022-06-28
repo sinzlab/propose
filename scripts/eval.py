@@ -51,7 +51,7 @@ if __name__ == "__main__":
         dataset = Path("human36m")
 
     config_file = Path(args.experiment + ".yaml")
-    config_file = Path("/configs") / dataset / config_file
+    config_file = Path("/experiments") / dataset / config_file
 
     with open(config_file, "r") as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
