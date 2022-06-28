@@ -54,6 +54,17 @@ services:
       - .env
     entrypoint: [ "python", "/scripts/eval.py" ]
 
+  sweep:
+    image: propose
+    volumes:
+      - .:/src/propose
+      - ./scripts:/scripts
+      - ./data:/data
+      - ./sweeps:/sweeps
+    env_file:
+      - .env
+    entrypoint: [ "python", "/scripts/sweep.py" ]
+
   preprocess:
     image: propose
     volumes:
