@@ -44,6 +44,7 @@ def supervised_trainer(
             optimizer, mode="min", factor=0.1, patience=10, threshold=5e-2, verbose=True
         )
 
+    exit = False
     collater = Collater(follow_batch=None, exclude_keys=None)
     for epoch in range(epochs):
         pbar = tqdm(
@@ -81,6 +82,11 @@ def supervised_trainer(
 
             nn.utils.clip_grad_norm_(flow.parameters(), max_norm=1.0)
 
+            # quit if loss is NaN
+            if torch.isnan(loss):
+                exit = True
+                break
+
             if use_wandb:
                 wandb.log(
                     {
@@ -88,6 +94,7 @@ def supervised_trainer(
                         "Posterior Loss": posterior_loss.item(),
                         "Loss": loss.item(),
                         "Mode Error": mse_mode_pose.item(),
+                        "Learning Rate": optimizer.param_groups[0]["lr"],
                     }
                 )
 
@@ -96,6 +103,9 @@ def supervised_trainer(
                 f"Epoch: {epoch + 1}/{epochs} | Loss {loss.item():.4f} | Prior Loss {prior_loss.item():.4f} | "
                 f"Posterior Loss {posterior_loss.item():.4f} | Mode Error {mse_mode_pose.item():.4f} | Batch "
             )
+
+        if exit:
+            break
 
         mean_loss = torch.mean(torch.Tensor(epoch_loss))
         lr_scheduler.step(mean_loss)
@@ -108,6 +118,18 @@ def supervised_trainer(
             < lr_scheduler.min_lrs[0] / lr_scheduler.factor
         ):
             break
+
+        if use_wandb:
+            checkpoint_path = "/tmp/checkpoint.pt"
+            torch.save(
+                {
+                    "model": flow.state_dict(),
+                    "optimizer": optimizer.state_dict(),
+                    "lr_scheduler": lr_scheduler.state_dict() if lr_scheduler else None,
+                },
+                checkpoint_path,
+            )
+            wandb.save(checkpoint_path)
 
         if use_wandb and "checkpoint_every" in config:
             if epoch % config["checkpoint_every"] == 0:
@@ -125,7 +147,7 @@ def supervised_trainer(
                 artifact.add_file(tmp_save_path, name="model.pt")
                 wandb.run.log_artifact(artifact)
 
-    if use_wandb:
+    if use_wandb and "save_best" in config and config["save_best"]:
         tmp_save_path = "/temp_training_output_model.pt"
         torch.save(flow.state_dict(), tmp_save_path)
 

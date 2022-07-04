@@ -1,9 +1,9 @@
-name: "architecture sweep"
+name: "Architecture sweep"
 method: bayes
 
 metric:
   goal: minimize
-  name: mean_Loss
+  name: Loss
 
 parameters:
   num_layers:

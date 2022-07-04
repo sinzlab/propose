@@ -1,5 +1,5 @@
 seed: 0
-save_best: false
+checkpoint_every: 10
 
 tags:
   - mpii
@@ -9,7 +9,6 @@ group: prod
 dataset:
   dirname: "/data/human36m/processed"
   mpii: true
-  use_variance: true
 
 train:
   optimizer:
@@ -23,12 +22,12 @@ train:
     threshold: 1.0e-2
     min_lr: 1.0e-6
   batch_size: 200
-  epochs: 5
+  epochs: 200
 
 model:
-  num_layers: 10
-  context_features: 10
-  hidden_features: 200
+  num_layers: 14
+  context_features: 68
+  hidden_features: 262
   relations:
       - x
       - c
@@ -42,8 +41,5 @@ embedding:
     name: "sage"
     config:
       input_dim: 2
-      hidden_dim: 128
-      output_dim: 10
-
-sweep:
-  count: 5
+      hidden_dim: 177
+      output_dim: 68

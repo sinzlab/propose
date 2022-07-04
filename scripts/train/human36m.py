@@ -61,6 +61,14 @@ def human36m(use_wandb: bool = False, config: dict = None):
             optimizer, **config["train"]["lr_scheduler"], verbose=True
         )
 
+    if use_wandb and wandb.run.resumed:
+        checkpoint = torch.load("/tmp/checkpoint.pt")
+
+        flow.load_state_dict(checkpoint["model"])
+        optimizer.load_state_dict(checkpoint["optimizer"])
+        if lr_scheduler:
+            lr_scheduler.load_state_dict(checkpoint["lr_scheduler"])
+
     supervised_trainer(
         dataloader,
         flow,

@@ -21,7 +21,7 @@ def build_config(config, sweep_config):
     config["embedding"]["config"]["hidden_dim"] = sweep_config[
         "embedding_hidden_features"
     ]
-    config["embedding"]["config"]["out_dim"] = sweep_config["embedding_out_features"]
+    config["embedding"]["config"]["output_dim"] = sweep_config["embedding_out_features"]
 
     return config
 
@@ -36,6 +36,8 @@ def human36m(
     :param config: A dictionary of configuration parameters.
     :param train_config_file: A dictionary of training configuration parameters.
     """
+    wandb.init()
+
     sweep_config = wandb.config
     config = build_config(config, sweep_config)
     wandb.config.update(config)

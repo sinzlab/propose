@@ -12,7 +12,6 @@ from pathlib import Path
 
 import wandb
 import torch
-import time
 
 from functools import partial
 
@@ -34,9 +33,15 @@ parser.add_argument(
 
 parser.add_argument(
     "--sweep",
-    default="mpii-prod.yaml",
+    default="sweep",
     type=str,
     help="Sweep config file",
+)
+
+parser.add_argument(
+    "--sweep_id",
+    type=str,
+    help="Sweep ID to use if sweep is already running",
 )
 
 if __name__ == "__main__":
@@ -78,22 +83,23 @@ if __name__ == "__main__":
         if "cuda_accelerated" not in config:
             config["cuda_accelerated"] = torch.cuda.is_available()
 
-        if args.wandb:
-            wandb.init(
+        sweep_id = args.sweep_id
+        if not sweep_id:
+            sweep_id = wandb.sweep(
+                sweep_config,
                 project="propose_human36m",
                 entity=os.environ["WANDB_USER"],
-                config=config,
-                job_type="training",
-                name=f"{config['experiment_name']}_{time.strftime('%d/%m/%Y::%H:%M:%S')}",
-                tags=config["tags"] if "tags" in config else None,
-                group=config["group"] if "group" in config else None,
             )
-
-        sweep_id = wandb.sweep(sweep_config)
 
         run_func = partial(human36m, use_wandb=args.wandb, config=config)
 
-        wandb.agent(sweep_id, function=run_func, count=config["sweep"]["count"])
+        wandb.agent(
+            sweep_id,
+            function=run_func,
+            count=config["sweep"]["count"],
+            project="propose_human36m",
+            entity=os.environ["WANDB_USER"],
+        )
     else:
         print(
             "Not running any scripts as no arguments were passed. Run with --help for more information."

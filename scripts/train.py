@@ -31,6 +31,13 @@ parser.add_argument(
 )
 
 parser.add_argument(
+    "--resume",
+    default="",
+    type=str,
+    help="Which run to resume",
+)
+
+parser.add_argument(
     "--experiment",
     default="mpii-prod.yaml",
     type=str,
@@ -73,9 +80,12 @@ if __name__ == "__main__":
                 entity=os.environ["WANDB_USER"],
                 config=config,
                 job_type="training",
-                name=f"{config['experiment_name']}_{time.strftime('%d/%m/%Y::%H:%M:%S')}",
+                name=args.resume
+                if args.resume
+                else f"{config['experiment_name']}_{time.strftime('%d/%m/%Y::%H:%M:%S')}",
                 tags=config["tags"] if "tags" in config else None,
                 group=config["group"] if "group" in config else None,
+                resume=bool(args.resume),
             )
 
         human36m(use_wandb=args.wandb, config=config)
