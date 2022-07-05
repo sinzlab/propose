@@ -44,4 +44,6 @@ def test_updates_weights():
 
     supervised_trainer(dataloader, flow, epochs=1, optimizer=optimizer, use_mode=False)
 
-    assert optimizer.mock_calls == [call.zero_grad(), call.step()] * (num_samples // batch_size)
+    assert optimizer.mock_calls == [call.zero_grad(), call.step()] * (
+        num_samples // batch_size
+    )

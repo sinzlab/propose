@@ -93,9 +93,7 @@ class GraphFlow(Flow):
 
         num_nodes = context["x"]["x"].shape[0] if context is not None else 1
         num_features = context["x"]["x"].shape[-1] if context is not None else 3
-        noise = torch.zeros((num_nodes, 1, num_features)).to(
-            self.device
-        )
+        noise = torch.zeros((num_nodes, 1, num_features)).to(self.device)
 
         noise = self._noise_to_hetero(noise, context)
 
