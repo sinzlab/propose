@@ -9,22 +9,40 @@ from typing import Union
 
 
 class CondGNN(nn.Module):
+    """
+    Conditional Graph neural network.
+    """
+
     def __init__(
         self,
         in_features: int = 3,
         context_features: int = 2,
         out_features: int = 3,
         hidden_features: int = 10,
+        root_features: int = 3,
+        relations: list[str] = None,
     ):
         super().__init__()
 
+        self.gcn = CondGCN
+
         self.layers = nn.ModuleList(
             [
-                CondGCN(
-                    in_features, context_features, hidden_features, hidden_features
+                self.gcn(
+                    in_features=in_features,
+                    hidden_features=hidden_features,
+                    out_features=hidden_features,
+                    context_features=context_features,
+                    root_features=root_features,
+                    relations=relations,
                 ),
-                CondGCN(
-                    hidden_features, hidden_features, out_features, hidden_features
+                self.gcn(
+                    in_features=hidden_features,
+                    hidden_features=hidden_features,
+                    out_features=out_features,
+                    context_features=hidden_features,
+                    root_features=hidden_features,
+                    relations=relations,
                 ),
             ]
         )
@@ -51,6 +69,9 @@ class CondGNN(nn.Module):
         x_dict = data.x_dict
         if "c" not in x_dict:
             x_dict["c"] = None
+
+        if "r" not in x_dict:
+            x_dict["r"] = None
 
         return x_dict
 

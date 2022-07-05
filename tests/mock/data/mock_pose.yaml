@@ -1,0 +1,31 @@
+leg_r:
+    RHip:
+      id: 0
+      data_id: 0
+      parent_id: -1
+
+    RKnee:
+      id: 2
+      data_id: 2
+      parent_id: 0
+
+    RFoot:
+      id: 1
+      data_id: 1
+      parent_id: 2
+
+leg_l:
+    LHip:
+      id: 3
+      data_id: 7
+      parent_id: -1
+
+    LKnee:
+      id: 4
+      data_id: 4
+      parent_id: 3
+
+    LFoot:
+      id: 5
+      data_id: 6
+      parent_id: 4

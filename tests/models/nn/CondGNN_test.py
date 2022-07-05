@@ -89,11 +89,7 @@ def test_get_edge_index_empty():
     model = CondGNN()
     x = torch.rand(10, 3)
 
-    data = HeteroData(
-        {
-            "x": dict(x=x),
-        }
-    )
+    data = HeteroData({"x": dict(x=x)})
 
     edge_index_dict = model._get_edge_index(data)
 
@@ -127,11 +123,7 @@ def test_forward(cond_gcn_mock, module_list_mock):
 
     x = torch.rand(10, 3)
 
-    data = HeteroData(
-        {
-            "x": dict(x=x),
-        }
-    )
+    data = HeteroData({"x": dict(x=x)})
 
     out = model.forward(data)
 
@@ -140,8 +132,18 @@ def test_forward(cond_gcn_mock, module_list_mock):
     assert len(cond_gcn_mock.mock_calls) == 4
 
     assert cond_gcn_mock.mock_calls[0] == call(
-        in_features, context_features, hidden_features, hidden_features
+        in_features=in_features,
+        context_features=context_features,
+        out_features=hidden_features,
+        root_features=in_features,
+        hidden_features=hidden_features,
+        relations=None,
     )
     assert cond_gcn_mock.mock_calls[1] == call(
-        hidden_features, hidden_features, out_features, hidden_features
+        in_features=hidden_features,
+        context_features=hidden_features,
+        out_features=out_features,
+        root_features=hidden_features,
+        hidden_features=hidden_features,
+        relations=None,
     )

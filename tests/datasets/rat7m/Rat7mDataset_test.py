@@ -1,7 +1,7 @@
 from propose.datasets.rat7m.Rat7mDataset import Rat7mDataset
 from propose.poses.rat7m import Rat7mPose
 
-from neuralpredictors.data.datasets import TransformDataset
+from neuralpredictors.data.datasets.base import TransformDataset
 
 from unittest.mock import MagicMock, patch, call
 
@@ -52,11 +52,7 @@ def test_pose_and_cameras_loaded(open_mock, pickle_mock, Rat7mPose_mock):
 @patch("builtins.open")
 def test_len(open_mock, pickle_mock, Rat7mPose_mock):
     poses = Rat7mPose(np.zeros((10, 20, 3)))
-    cameras = {
-        "Camera1": MagicMock(),
-        "Camera2": MagicMock(),
-        "Camera3": MagicMock(),
-    }
+    cameras = {"Camera1": MagicMock(), "Camera2": MagicMock(), "Camera3": MagicMock()}
 
     Rat7mPose_mock.load = MagicMock(return_value=poses)
     pickle_mock.load = MagicMock(return_value=cameras)
@@ -74,11 +70,7 @@ def test_len(open_mock, pickle_mock, Rat7mPose_mock):
 @patch("propose.datasets.rat7m.Rat7mDataset.imageio")
 def test_getitem(imageio_mock, open_mock, pickle_mock, Rat7mPose_mock):
     poses = Rat7mPose(np.zeros((7000, 20, 3)))
-    cameras = {
-        "Camera1": MagicMock(),
-        "Camera2": MagicMock(),
-        "Camera3": MagicMock(),
-    }
+    cameras = {"Camera1": MagicMock(), "Camera2": MagicMock(), "Camera3": MagicMock()}
 
     cameras["Camera1"].frames.__getitem__ = MagicMock(side_effect=lambda x: x)
     cameras["Camera2"].frames.__getitem__ = MagicMock(side_effect=lambda x: x)
@@ -149,11 +141,7 @@ def test_getitem_misaligned_image_pose(
     imageio_mock, open_mock, pickle_mock, Rat7mPose_mock
 ):
     poses = np.zeros((7000, 20, 3))
-    cameras = {
-        "Camera1": MagicMock(),
-        "Camera2": MagicMock(),
-        "Camera3": MagicMock(),
-    }
+    cameras = {"Camera1": MagicMock(), "Camera2": MagicMock(), "Camera3": MagicMock()}
 
     cameras["Camera1"].frames.__getitem__ = MagicMock(side_effect=lambda x: x + 1)
     cameras["Camera2"].frames.__getitem__ = MagicMock(side_effect=lambda x: x + 1)

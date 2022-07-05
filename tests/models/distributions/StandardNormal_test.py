@@ -20,7 +20,7 @@ def test_StandardNormal_sample_std_is_1():
 
 def test_log_prob():
     def log_prob(x):
-        return -0.5 * x ** 2 - 0.5 * np.log(2 * np.pi)
+        return -0.5 * x**2 - 0.5 * np.log(2 * np.pi)
 
     norm = StandardNormal((1,))
 

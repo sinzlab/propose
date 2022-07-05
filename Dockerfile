@@ -16,14 +16,29 @@ RUN git config --global credential.helper store &&\
     echo https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com >> ~/.git-credentials
 
 FROM ${BASE_IMAGE}
-#COPY --from=base /src /src
+
 ADD . /src/propose
+
+RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A4B469963BF863CC
+RUN apt-get -yy update
+RUN apt-get install -y ffmpeg
 
 RUN pip install -e /src/propose
 
-RUN pip install -r /src/propose/requirements.txt
+RUN python -m pip install --no-cache-dir nflows\
+    imageio\
+    tqdm\
+    torch-geometric\
+    ffmpeg-python\
+    scikit-image\
+    cdflib\
+    imageio-ffmpeg\
+    brax\
+    wandb\
+    neuralpredictors
 
+RUN pip install git+https://github.com/sinzlab/neuralpredictors.git
 RUN pip install torch-scatter -f https://data.pyg.org/whl/torch-1.9.0+cu111.html
-RUN pip install torch-sparse -f https://data.pyg.org/whl/torch-1.9.0+cu111.html
+RUN pip install torch-sparse==0.6.12 -f https://data.pyg.org/whl/torch-1.9.0+cu111.html
 
 WORKDIR /

@@ -1,8 +1,14 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+from .utils import yaml_pose_loader
 
-class BasePose(object):
+from abc import ABC, abstractmethod
+
+from propose.cameras import Camera
+
+
+class BasePose(ABC):
     """
     Base class for poses. Provides and structure for storing pose information and plotting poses.
     """
@@ -30,8 +36,13 @@ class BasePose(object):
         :param item: the marker name to be selected
         :return: new Pose constructed from self.pose_matrix[..., marker_idx, :]
         """
+
+        if item not in self.marker_names:
+            raise AttributeError(f"{item} is not a valid marker name")
+
         idx = self.marker_names.index(item)
-        return self.__class__(self.pose_matrix[..., idx, :])
+
+        return self.__class__(pose_matrix=self.pose_matrix[..., idx, :])
 
     def __getitem__(self, item):
         if isinstance(item, str):
@@ -59,8 +70,9 @@ class BasePose(object):
         return self.pose_matrix.shape
 
     def get_edge(self, marker_name_1: str, marker_name_2: str):
-        return self.marker_names.index(marker_name_1), self.marker_names.index(
-            marker_name_2
+        return (
+            self.marker_names.index(marker_name_1),
+            self.marker_names.index(marker_name_2),
         )
 
     def _edge(self, marker_name_1: str, marker_name_2: str):
@@ -89,7 +101,7 @@ class BasePose(object):
         edge_groups = list(self.edge_groups.values())
         return np.array([edge for edge_group in edge_groups for edge in edge_group])
 
-    def plot(self, ax, cmap=plt.get_cmap("tab10")):
+    def _plot_groups(self, ax, cmap=plt.get_cmap("tab10").colors, **kwargs):
         """
         Plotting function for displaying the pose.
 
@@ -100,11 +112,28 @@ class BasePose(object):
         edge_groups = self.edge_groups
 
         line_actors = []
-        for edge_group_name, c in zip(edge_groups, cmap.colors):
+        for edge_group_name, c in zip(edge_groups, cmap):
             for edge in edge_groups[edge_group_name]:
-                line_actors.append(*ax.plot(*edge, c=c))
+                line_actors.append(*ax.plot(*edge, c=c, **kwargs))
 
         return line_actors
+
+    def _plot(self, ax, **kwargs):
+        edge_vals = self.edge_vals
+        if len(edge_vals.shape) == 3:
+            [ax.plot(*edge_vals[i], **kwargs) for i in range(edge_vals.shape[0])]
+        else:
+            [
+                ax.plot(*edge_vals[i, ..., j], **kwargs)
+                for i in range(edge_vals.shape[0])
+                for j in range(edge_vals.shape[-1])
+            ]
+
+    def plot(self, ax, plot_type="groups", **kwargs):
+        if plot_type == "groups":
+            return self._plot_groups(ax, **kwargs)
+
+        return self._plot(ax, **kwargs)
 
     def copy(self):
         return self.__class__(self.pose_matrix)
@@ -134,23 +163,120 @@ class BasePose(object):
         e.g.
         fig = plt.figure()
         ax = plt.gca()
-        _, animate = pose.animate(ax)
+        animate = pose.animate(ax)
         ani = animation.FuncAnimation(fig, animate, frames=100)
         This will animate the frames from pose[0:100]
         :param ax:
-        :return:
+        :return: animate function
         """
         line_actors = self[0].plot(ax)
 
-        def animate(i):
+        def animate_fn(i):
             pose = self[i]
             pose.update(line_actors)
 
-        return line_actors, animate
+        return animate_fn
 
     @property
+    @abstractmethod
     def edge_groups(self):
         raise NotImplementedError("Edge groups have not been defined for this pose")
 
+    @abstractmethod
     def set_adjacency_matrix(self):
         raise NotImplementedError("Adjacency matrix has not been setup")
+
+    def project(self, camera: Camera, distort=True) -> np.ndarray:
+        """
+        Project the pose onto the camera.
+        :param camera: Camera object
+        :param distort: Whether to distort the image
+        :return: projected points
+        """
+        return self.__class__(camera.proj2D(self.pose_matrix), distort=True)
+
+    def transform_to_camera(
+        self, camera: Camera, translate: bool = False
+    ) -> np.ndarray:
+        """
+        Transform the pose to camera coordinates.
+        :param camera: Camera object
+        :param translate: Whether to translate the pose to camera coordinates
+        :return: Pose in camera coordinates
+        """
+        return self.__class__(
+            camera.world_to_camera_view(self.pose_matrix, translate=translate)
+        )
+
+
+class YamlPose(BasePose):
+    def __init__(self, pose_matrix, path):
+        marker_names, named_edges, named_group_edges = yaml_pose_loader(path)
+
+        self.marker_names = marker_names
+        self.__named_edges = named_edges
+        self.__named_group_edges = named_group_edges
+        self.__path = path
+
+        super().__init__(pose_matrix)
+
+    def set_adjacency_matrix(self):
+        self.adjacency_matrix = np.eye(len(self.marker_names))
+
+        edges = [self.get_edge(src, dst) for src, dst in self.__named_edges]
+
+        for edge in edges:
+            self.adjacency_matrix[edge] = 1
+            self.adjacency_matrix[edge[::-1]] = 1
+
+    @property
+    def edge_groups(self):
+        """
+        Edge groups for plotting.
+        :return: dict of edge groups
+        """
+        groups = {
+            group: np.array(
+                [self._edge(src, dst) for src, dst in self.__named_group_edges[group]]
+            )
+            for group in self.__named_group_edges.keys()
+        }
+        return groups
+
+    def __getattr__(self, item):
+        """
+        Interface for getting markers based on the name's index in the markers_names list.
+        e.g.
+        marker_names = ['head', 'spine', 'leg_l']
+        calling self.head returns a pose with self.pose_matrix[..., 0, :]
+
+        :param item: the marker name to be selected
+        :return: new Pose constructed from self.pose_matrix[..., marker_idx, :]
+        """
+        if item not in self.marker_names:
+            raise AttributeError(f"{item} is not a valid marker name")
+
+        idx = self.marker_names.index(item)
+        return self.__class__(
+            path=self.__path, pose_matrix=self.pose_matrix[..., idx, :]
+        )
+
+    def __getitem__(self, item):
+        if isinstance(item, str):
+            return self.__getattr__(item)
+
+        return self.__class__(path=self.__path, pose_matrix=self.pose_matrix[item])
+
+    @property
+    def bone_lengths(self):
+        diff = torch.diff(self.pose_matrix[..., self.edges, :], dim=-2).squeeze()
+        dist = torm.norm(diff, dim=-1)
+        return dist
+
+    @property
+    def edges(self) -> np.ndarray:
+        return np.array([self.get_edge(src, dst) for src, dst in self.__named_edges])
+
+    @property
+    def edge_vals(self) -> np.ndarray:
+        return np.array([self._edge(src, dst) for src, dst in self.__named_edges])

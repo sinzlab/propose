@@ -19,23 +19,59 @@ x-shared: &common
     - .env
 
 services:
-  notebook_server:
+  base:
+    image: propose
     <<: *common
     volumes:
       - .:/src/propose
-      - ./notebooks:/notebooks
-    ports:
-      - "8888:8888"
+      - ./scripts:/scripts
+      - ./data:/data
 
-  production_server:
-    <<: *common
+  python:
+    &python
+    image: propose
+    entrypoint: [ "python" ]
+
+  train:
+    image: propose
     volumes:
       - .:/src/propose
-      - ./notebooks:/notebooks
-    ports:
-      - "8888:8888"
-    entrypoint: /usr/local/bin/python3
-    command: /src/propose/run.py
+      - ./scripts:/scripts
+      - ./data:/data
+      - ./experiments:/experiments
+    env_file:
+      - .env
+    entrypoint: [ "python", "/scripts/train.py" ]
+
+  eval:
+    image: propose
+    volumes:
+      - .:/src/propose
+      - ./scripts:/scripts
+      - ./data:/data
+      - ./experiments:/experiments
+    env_file:
+      - .env
+    entrypoint: [ "python", "/scripts/eval.py" ]
+
+  sweep:
+    image: propose
+    volumes:
+      - .:/src/propose
+      - ./scripts:/scripts
+      - ./data:/data
+      - ./sweeps:/sweeps
+    env_file:
+      - .env
+    entrypoint: [ "python", "/scripts/sweep.py" ]
+
+  preprocess:
+    image: propose
+    volumes:
+      - .:/src/propose
+      - ./scripts:/scripts
+      - ./data:/data
+    entrypoint: [ "python", "/scripts/preprocess.py" ]
 
   pytest:
     <<: *common
@@ -43,3 +79,12 @@ services:
       - .:/src/propose
       - ./tests:/tests
     entrypoint: [ "pytest" ]
+
+  notebook_server:
+    <<: *common
+    volumes:
+      - .:/src/propose
+      - ./notebooks:/notebooks
+      - ./data:/data
+    ports:
+      - "8888:8888"

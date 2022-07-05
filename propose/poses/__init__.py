@@ -1,2 +1,3 @@
-from .base import *
-from .rat7m import *
+from .base import BasePose, YamlPose
+from .rat7m import Rat7mPose
+from .human36m import Human36mPose

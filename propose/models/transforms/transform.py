@@ -83,23 +83,35 @@ class GraphAffineCouplingTransform(CouplingTransform):
 
     def _coupling_transform_forward(self, inputs, transform_params):
         scale, shift = self._scale_and_shift(transform_params)
+        # _, shift = self._scale_and_shift(transform_params)
         log_scale = torch.log(scale)
-
+        #
         outputs = {**inputs, "x": dict(x=inputs["x"]["x"] * scale + shift)}
-
+        # outputs = {**inputs, "x": dict(x=inputs["x"]["x"] + shift)}
+        #
         if log_scale.dim() == 3:
             log_scale = log_scale.mean(dim=1)
+        #
         logabsdet = torchutils.sum_except_batch(log_scale, num_batch_dims=1)
+        # logabsdet = torch.zeros(log_scale.shape[0], 3).to(log_scale.device)
+        # if log_scale.shape[1] == 1:
+        #     logabsdet[:, -1:] = log_scale
+        # else:
+        #     logabsdet[:, :-1] = log_scale
+
         return outputs, logabsdet
 
     def _coupling_transform_inverse(self, inputs, transform_params):
         scale, shift = self._scale_and_shift(transform_params)
+        # _, shift = self._scale_and_shift(transform_params)
         log_scale = torch.log(scale)
 
         outputs = {**inputs, "x": dict(x=(inputs["x"]["x"] - shift) / scale)}
+        # outputs = {**inputs, "x": dict(x=(inputs["x"]["x"] - shift))}
 
         if log_scale.dim() == 3:
             log_scale = log_scale.mean(dim=1)
+
         logabsdet = -torchutils.sum_except_batch(log_scale, num_batch_dims=1)
         return outputs, logabsdet
 
@@ -117,7 +129,12 @@ class GraphActNorm(Transform):
             raise TypeError("Number of features must be a positive integer.")
         super().__init__()
 
-        self.register_buffer("initialized", torch.tensor(False, dtype=torch.bool))
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+
+        self.register_buffer(
+            "initialized",
+            torch.tensor(False, dtype=torch.bool, device=torch.device(self.device)),
+        )
         self.log_scale = nn.Parameter(torch.zeros(features))
         self.shift = nn.Parameter(torch.zeros(features))
 
@@ -134,7 +151,9 @@ class GraphActNorm(Transform):
             mu = (inputs / std).mean(dim=dims)
             self.log_scale.data = -torch.log(std)
             self.shift.data = -mu
-            self.initialized.data = torch.tensor(True, dtype=torch.bool)
+            self.initialized.data = torch.tensor(
+                True, dtype=torch.bool, device=torch.device(self.device)
+            )
 
     def forward(self, inputs, context=None):
         x = inputs["x"]["x"]
@@ -143,10 +162,12 @@ class GraphActNorm(Transform):
             self._initialize(x)
 
         scale, shift = self.scale.view(1, -1), self.shift.view(1, -1)
+
         scaled_x = scale * x + shift
 
         batch_size = x.shape[0]
         logabsdet = torch.sum(self.log_scale) * scaled_x.new_ones(batch_size)
+        # logabsdet = self.log_scale * scaled_x.new_ones(batch_size, 3)
 
         inputs_dict = inputs.to_dict()
         outputs = {**inputs_dict, "x": {**inputs_dict["x"], "x": scaled_x}}
@@ -173,12 +194,14 @@ class GraphActNorm(Transform):
 class GraphCompositeTransform(CompositeTransform):
     @staticmethod
     def _cascade(inputs, funcs):
-        batch_size = inputs["x"].batch.shape[0]
+        batch_size = inputs["x"].x.shape[0]
         outputs = inputs
         total_logabsdet = torch.zeros(batch_size, device=inputs["x"]["x"].device)
+        # total_logabsdet = torch.zeros(batch_size, 3, device=inputs["x"]["x"].device)
         for func in funcs:
             outputs, logabsdet = func(outputs)
             total_logabsdet += logabsdet
+
         return outputs, total_logabsdet
 
     def forward(self, inputs):

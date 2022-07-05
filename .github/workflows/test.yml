@@ -9,6 +9,8 @@ jobs:
       - uses: actions/checkout@v2
       - name: Setup Env
         run: echo "GITHUB_USER=${{ github.actor }}" >> .env && echo "GITHUB_TOKEN=${{ github.token }}" >> .env
+      - name: Pull sinzlab/pytorch base image
+        run: docker pull sinzlab/pytorch:v3.9-torch1.9.0-cuda11.1-dj0.12.7
       - name: Build test image
         run: docker-compose build pytest
       - name: Run tests and generate coverage report
