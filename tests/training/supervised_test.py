@@ -29,8 +29,9 @@ def test_updates_weights():
     flow = CondGraphFlow()
 
     num_samples = 2
+    batch_size = 2
     dataset = SinglePointDataset(samples=num_samples)
-    dataloader = DataLoader(dataset, batch_size=1)
+    dataloader = DataLoader(dataset, batch_size=batch_size)
 
     assert all([param.grad is None for param in flow.parameters()])
 
@@ -43,4 +44,4 @@ def test_updates_weights():
 
     supervised_trainer(dataloader, flow, epochs=1, optimizer=optimizer, use_mode=False)
 
-    assert optimizer.mock_calls == [call.zero_grad(), call.step()] * num_samples
+    assert optimizer.mock_calls == [call.zero_grad(), call.step()] * (num_samples // batch_size)
