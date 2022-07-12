@@ -7,6 +7,8 @@ def mpjpe(pred, gt, dim=None, mean=True):
     `mpjpe` is the mean per joint position error, which is the mean of the Euclidean distance between the predicted 3D
     joint positions and the ground truth 3D joint positions
 
+    Used in Protocol-I for Human3.6M dataset evaluation.
+
     :param pred: the predicted 3D pose
     :param gt: ground truth
     :param dim: the dimension to average over. If None, the average is taken over all dimensions
@@ -38,6 +40,8 @@ def pa_mpjpe(
     PA-MPJPE is the Procrustes mean per joint position error, which is the mean of the Euclidean distance between the
     predicted 3D joint positions and the ground truth 3D joint positions, after projecting the ground truth onto the
     predicted 3D skeleton.
+
+    Used in Protocol-II for Human3.6M dataset evaluation.
 
     Code adapted from:
     https://github.com/twehrbein/Probabilistic-Monocular-3D-Human-Pose-Estimation-with-Normalizing-Flows/

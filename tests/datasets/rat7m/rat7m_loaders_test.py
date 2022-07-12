@@ -16,7 +16,7 @@ from torch.utils.data import DataLoader
 
 import numpy as np
 
-path = "/tests/mock/data/mocap-mock.mat"
+path = "./tests/mock/data/mocap-mock.mat"
 
 
 def test_rat7m_mocap_loaded():

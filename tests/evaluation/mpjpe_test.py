@@ -1,4 +1,5 @@
-from propose.utils.mpjpe import mpjpe, pa_mpjpe
+from propose.evaluation.mpjpe import mpjpe, pa_mpjpe
+from propose.utils.reproducibility import set_random_seed
 
 import torch
 import numpy.testing as npt
@@ -8,25 +9,29 @@ from unittest import TestCase
 
 class MPJPETests(TestCase):
     def test_mpjpe(self):
-        self.assertAlmostEqual(
-            mpjpe(torch.Tensor([1, 2, 3]), torch.Tensor([4, 5, 6])).item(),
-            5.196152210235596,
-        )
+        error = mpjpe(torch.Tensor([1, 2, 3]), torch.Tensor([4, 5, 6])).item()
+
+        self.assertAlmostEqual(error, 5.196152210235596)
 
     def test_pa_mpjpe(self):
-        self.assertAlmostEqual(
-            pa_mpjpe(
-                torch.Tensor([[[1, 2, 3], [3, 4, 5]]]),
-                torch.Tensor([[[1, 2, 3], [3, 4, 5]]]),
-            ).item(),
-            0.0,
-        )
+        set_random_seed(1)
+        p_pred = torch.randn((1, 17, 3)).repeat(200, 1, 1).permute(1, 0, 2)
+        p_true = torch.randn((1, 17, 3)).permute(1, 0, 2)
+
+        error = pa_mpjpe(p_true, p_pred, dim=0).mean().item()
+
+        self.assertAlmostEqual(error, 1.4576131105422974)
 
     def test_against_wehrbein(self):
+        """
+        Test against Wehrbein et al. implementation.
+        Their implementation has different input dimensions to our pipeline, so we test whether our adaptation works.
+        """
+        set_random_seed(1)
         p_pred = torch.randn((200, 17, 3)) / 0.0036
         p_true = torch.randn((1, 17, 3)) / 0.0036
 
-        r1 = err_3dpe_parallel(
+        r1 = wehrbein_pampjpe(
             p_true.repeat(200, 1, 1), p_pred, return_sum=False, joints=17
         )
 
@@ -38,10 +43,10 @@ class MPJPETests(TestCase):
         npt.assert_allclose(r1, r2)
 
 
-### Code for testing the above functions ###
+# Code for testing the above functions
 # Original code from:
 # https://github.com/twehrbein/Probabilistic-Monocular-3D-Human-Pose-Estimation-with-Normalizing-Flows/
-
+#
 
 def procrustes_torch_parallel(p_gt, p_pred):
     # p_gt and p_pred need to be of shape (-1, 3, #joints)
@@ -110,7 +115,7 @@ def procrustes_torch_parallel(p_gt, p_pred):
     return d, Z, tform
 
 
-def err_3dpe_parallel(p_ref, p, return_sum=True, return_poses=False, joints=17):
+def wehrbein_pampjpe(p_ref, p, return_sum=True, return_poses=False, joints=17):
     p_ref, p = p_ref.view((-1, 3, joints)), p.view((-1, 3, joints))
     d, Z, tform = procrustes_torch_parallel(p_ref.clone(), p)
 

@@ -3,7 +3,7 @@ from torch_geometric.loader import DataLoader
 from propose.poses.human36m import Human36mPose
 
 from propose.utils.reproducibility import set_random_seed
-from propose.utils.mpjpe import mpjpe
+from propose.evaluation.mpjpe import mpjpe
 
 from propose.models.flows import CondGraphFlow
 

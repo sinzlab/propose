@@ -2,11 +2,9 @@ from propose.datasets.human36m.Human36mDataset import Human36mDataset
 from torch_geometric.loader import DataLoader
 
 from propose.utils.reproducibility import set_random_seed
-from propose.utils.mpjpe import mpjpe, pa_mpjpe
+from propose.evaluation.mpjpe import mpjpe, pa_mpjpe
 
 from propose.models.flows import CondGraphFlow
-
-import torch
 
 import os
 

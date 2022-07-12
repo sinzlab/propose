@@ -5,7 +5,7 @@ from tqdm import tqdm
 
 from torch_geometric.loader.dataloader import Collater
 
-from propose.utils.mpjpe import mpjpe
+from propose.evaluation.mpjpe import mpjpe
 
 
 def supervised_trainer(

@@ -78,7 +78,7 @@ services:
     volumes:
       - .:/src/propose
       - ./tests:/tests
-    entrypoint: [ "pytest" ]
+    entrypoint: [ "pytest", "/tests/"]
 
   notebook_server:
     <<: *common
