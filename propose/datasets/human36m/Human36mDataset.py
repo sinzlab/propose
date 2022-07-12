@@ -18,14 +18,15 @@ from tqdm import tqdm
 
 def tensor_to_graph(inputs, context, root, edges, context_edges, root_edges):
     """
-    Convert a tensor to a graph.
-    :param inputs: tensor of shape (batch_size, num_nodes, num_features)
-    :param context: tensor of shape (batch_size, num_nodes, num_context_features)
-    :param root: tensor of shape (batch_size, num_nodes)
-    :param edges: tensor of shape (batch_size, num_edges, 2)
-    :param context_edges: tensor of shape (batch_size, num_context_edges, 2)
-    :param root_edges: tensor of shape (batch_size, num_root_edges, 2)
-    :return: HeteroData
+    It takes in the inputs, context, root, and edges, and returns a HeteroData object
+
+    :param inputs: the input tensor
+    :param context: the context nodes
+    :param root: the root node
+    :param edges: the edges between the nodes in the graph
+    :param context_edges: the edges from the context to the inputs
+    :param root_edges: the edges from the root node to the other nodes
+    :return: A hetero data object.
     """
     data = HeteroData()
 
@@ -44,6 +45,13 @@ def tensor_to_graph(inputs, context, root, edges, context_edges, root_edges):
 
 
 def tensor_to_human36m_graph(inputs, context, context_edges):
+    """
+    It takes the input tensors, and converts them to a graph
+
+    :param inputs: the input tensor, which is a tensor of shape (num_frames, num_joints, 3)
+    :param context: the context of the graph, which is the same as the input to the model
+    :param context_edges: the edges that are used to compute the context
+    """
     pose = Human36mPose(np.zeros((1, 17, 3)))
     edges = torch.LongTensor(pose.edges).T
 
@@ -270,9 +278,18 @@ class Human36mDataset(Dataset):
             self.base_data.append(base_data)
 
     def __len__(self):
+        """
+        The function returns the length of the data attribute of the object
+        :return: The length of the data.
+        """
         return len(self.data)
 
     def __getitem__(self, item):
+        """
+        The function returns the data, base data, and a dictionary of the action, camera, subject, occlusion, and center3d
+
+        :param item: the index of the item we want to get
+        """
         if self.return_matrix:
             return (
                 self.data[item]["x"]["x"],
@@ -299,6 +316,16 @@ class Human36mDataset(Dataset):
 
     @classmethod
     def remove_root_edges(cls, edges, context_edges, num_context_samples):
+        """
+        We remove the root edges from the full edges, and then we subtract 1 from the full edges and context edges to
+        make them zero-indexed
+
+        :param cls: the class of the object
+        :param edges: the edges of the full graph
+        :param context_edges: the edges that are in the context graph
+        :param num_context_samples: The number of samples in the context
+        :return: The edges are being returned with the root edges removed.
+        """
         full_edges = edges[:, torch.where(edges[0] != 0)[0]]
         context_edges = context_edges[:, torch.where(context_edges[1] != 0)[0]]
         root_edges = edges[:, torch.where(edges[0] == 0)[0]]
@@ -311,6 +338,14 @@ class Human36mDataset(Dataset):
         return full_edges, root_edges, context_edges
 
     def _sample_context(self, gaussfit, num_context_samples):
+        """
+        Given a gaussian fit, sample from the gaussian distribution and return the samples
+
+        :param gaussfit: the output of the neural network, which is a 16x6 tensor. The first column is the probability of
+        the gaussian, the next two are the mean, and the last three are the covariance matrix
+        :param num_context_samples: number of samples to draw from the context distribution
+        :return: The samples are being returned.
+        """
         mean = torch.stack([gaussfit[:, 1], gaussfit[:, 2]], dim=1)
         cov = torch.stack([gaussfit[:, 3], gaussfit[:, 5]], dim=1).unsqueeze(
             2
@@ -321,6 +356,14 @@ class Human36mDataset(Dataset):
         return samples.view(samples.shape[0] * samples.shape[1], samples.shape[2])
 
     def _add_variance(self, pose2d, gaussfit):
+        """
+        It takes in a pose2d and a gaussfit, and if use_variance is true, it returns a concatenation of pose2d and the
+        square of the third and sixth columns of gaussfit. Otherwise, it just returns pose2d
+
+        :param pose2d: the 2D pose
+        :param gaussfit: the output of the gaussian fitting function
+        :return: The pose2d is being returned.
+        """
         if self.use_variance:
             res = torch.cat(
                 [
@@ -504,6 +547,10 @@ class NewestHumanDatasetNoRoot(Dataset):
             self.base_data.append(base_data)
 
     def __len__(self):
+        """
+        The function returns the length of the data attribute of the object
+        :return: The length of the data.
+        """
         return len(self.data)
 
     def __getitem__(self, item):
@@ -527,6 +574,14 @@ class NewestHumanDatasetNoRoot(Dataset):
         )  # returns: full data, base data
 
     def remove_root_edges(self, edges, context_edges):
+        """
+        It takes in the edges and context edges, and returns the full edges, root edges, and context edges
+
+        :param edges: the edges of the graph, in the form of a 2xN tensor, where N is the number of edges. The first
+        row is the source node, the second row is the destination node
+        :param context_edges: the edges that are in the context of the current node
+        :return: The full_edges, root_edges, and context_edges are being returned.
+        """
         full_edges = edges[:, torch.where(edges[0] != 0)[0]]
         context_edges = context_edges[:, 1:]
         root_edges = edges[:, torch.where(edges[0] == 0)[0]]

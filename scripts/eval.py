@@ -1,14 +1,16 @@
 from pathlib import Path
 from propose.datasets.human36m.preprocess import pickle_poses, pickle_cameras
+from propose.utils.imports import dynamic_import
 
 import argparse
 
-from eval.human36m import human36m
+from eval.human36m.human36m import run
 
 import os
 import yaml
 
 from pathlib import Path
+
 
 parser = argparse.ArgumentParser(description="Arguments for running the scripts")
 
@@ -31,6 +33,13 @@ parser.add_argument(
     default="mpii-prod.yaml",
     type=str,
     help="Experiment config file",
+)
+
+parser.add_argument(
+    "--script",
+    default="eval.human36m.human36m",
+    type=str,
+    help="Experiment script",
 )
 
 if __name__ == "__main__":
@@ -59,11 +68,8 @@ if __name__ == "__main__":
         if "experiment_name" not in config:
             config["experiment_name"] = args.experiment
 
-    if not args.wandb:
-        raise Exception("Wandb is required for evaluation experiments")
-
     if args.human36m:
-        human36m(use_wandb=args.wandb, config=config)
+        dynamic_import(args.script, "run")(use_wandb=args.wandb, config=config)
     else:
         print(
             "Not running any scripts as no arguments were passed. Run with --help for more information."
