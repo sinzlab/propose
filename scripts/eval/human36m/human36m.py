@@ -3,6 +3,7 @@ from torch_geometric.loader import DataLoader
 
 from propose.utils.reproducibility import set_random_seed
 from propose.evaluation.mpjpe import mpjpe, pa_mpjpe
+from propose.evaluation.pck import pck, human36m_joints_to_use
 
 from propose.models.flows import CondGraphFlow
 
@@ -20,6 +21,7 @@ def evaluate(flow, test_dataloader, temperature=1.0):
     pa_mpjpes = []
     single_mpjpes = []
     single_pa_mpjpes = []
+    pck_scores = []
 
     iter_dataloader = iter(test_dataloader)
 
@@ -28,6 +30,7 @@ def evaluate(flow, test_dataloader, temperature=1.0):
     for _ in pbar:
         batch, _, action = next(iter_dataloader)
         batch.to(flow.device)
+
         samples = flow.sample(200, batch, temperature=temperature)
 
         true_pose = batch["x"].x.cpu().numpy().reshape(-1, 16, 1, 3)
@@ -35,6 +38,17 @@ def evaluate(flow, test_dataloader, temperature=1.0):
 
         true_pose = np.insert(true_pose, 0, 0, axis=1)
         sample_poses = np.insert(sample_poses, 0, 0, axis=1)
+
+        has_correct_pose = (
+            pck(
+                true_pose[:, human36m_joints_to_use],
+                sample_poses[:, human36m_joints_to_use],
+            )
+            .any()
+            .int()
+            .unsqueeze(0)
+            .numpy()
+        )
 
         m = mpjpe(true_pose / 0.0036, sample_poses / 0.0036, dim=1)
         m_single = m[..., 0]
@@ -58,14 +72,17 @@ def evaluate(flow, test_dataloader, temperature=1.0):
         single_mpjpes += [m_single]
         single_pa_mpjpes += [pa_m_single]
 
+        pck_scores += [has_correct_pose]
+
         pbar.set_description(
             f"MPJPE: {np.concatenate(mpjpes).mean():.4f}, "
             f"PA MPJPE: {np.concatenate(pa_mpjpes).mean():.4f}, "
             f"Single MPJPE: {np.concatenate(single_mpjpes).mean():.4f} "
-            f"Single PA MPJPE: {np.concatenate(single_pa_mpjpes).mean():.4f}"
+            f"Single PA MPJPE: {np.concatenate(single_pa_mpjpes).mean():.4f} "
+            f"PCK: {np.concatenate(pck_scores).mean():.4f}"
         )
 
-    return mpjpes, pa_mpjpes, single_mpjpes, single_pa_mpjpes
+    return mpjpes, pa_mpjpes, single_mpjpes, single_pa_mpjpes, pck_scores
 
 
 def mpjpe_experiment(flow, config, name="test", **kwargs):
@@ -76,7 +93,7 @@ def mpjpe_experiment(flow, config, name="test", **kwargs):
     test_dataloader = DataLoader(
         test_dataset, batch_size=1, shuffle=True, pin_memory=False, num_workers=0
     )
-    test_res, test_res_pa, test_res_single, test_res_pa_single = evaluate(
+    test_res, test_res_pa, test_res_single, test_res_pa_single, test_res_pck = evaluate(
         flow, test_dataloader
     )
 
@@ -85,6 +102,7 @@ def mpjpe_experiment(flow, config, name="test", **kwargs):
         f"{name}/test_res_pa": np.concatenate(test_res_pa).mean(),
         f"{name}/test_res_single": np.concatenate(test_res_single).mean(),
         f"{name}/test_res_pa_single": np.concatenate(test_res_pa_single).mean(),
+        f"{name}/test_res_pck": np.concatenate(test_res_pck).mean(),
     }
 
     return res, test_dataset, test_dataloader
@@ -118,7 +136,7 @@ def run(use_wandb: bool = False, config: dict = None):
     config["cuda_accelerated"] = flow.set_device()
     flow.eval()
 
-    # # Test
+    # Test
     test_res, test_dataset, test_dataloader = mpjpe_experiment(
         flow,
         config,
