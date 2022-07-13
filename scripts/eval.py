@@ -1,10 +1,6 @@
-from pathlib import Path
-from propose.datasets.human36m.preprocess import pickle_poses, pickle_cameras
 from propose.utils.imports import dynamic_import
 
 import argparse
-
-from eval.human36m.human36m import run
 
 import os
 import yaml
