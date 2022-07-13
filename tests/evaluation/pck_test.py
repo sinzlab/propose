@@ -18,45 +18,66 @@ class PCKTests(unittest.TestCase):
         npt.assert_almost_equal(
             error.numpy(),
             torch.Tensor(
-                [[0.9412, 0.8824, 0.9412, 0.8824, 0.9412, 1.0000, 1.0000, 1.0000, 1.0000, 0.9412]]
+                [
+                    [
+                        0.9412,
+                        0.8824,
+                        0.9412,
+                        0.8824,
+                        0.9412,
+                        1.0000,
+                        1.0000,
+                        1.0000,
+                        1.0000,
+                        0.9412,
+                    ]
+                ]
             ).numpy(),
-            decimal=4
+            decimal=4,
         )
 
     def test_one_joint_wrong(self):
-        a = torch.Tensor([[
+        a = torch.Tensor(
             [
-                [1, 1, 1],
-            ],
-            [
-                [1, 1, 1],
-            ],
-            [
-                [1, 1, 1],
-            ],
-            [
-                [1, 1, 1],
-            ],
-        ]])
+                [
+                    [
+                        [1, 1, 1],
+                    ],
+                    [
+                        [1, 1, 1],
+                    ],
+                    [
+                        [1, 1, 1],
+                    ],
+                    [
+                        [1, 1, 1],
+                    ],
+                ]
+            ]
+        )
 
-        b = torch.Tensor([[
+        b = torch.Tensor(
             [
-                [1, 1, 1],
-                [1, 1, 1],
-            ],
-            [
-                [1, 10, 1],
-                [1, 1, 1],
-            ],
-            [
-                [1, 1, 1],
-                [1, 1, 1],
-            ],
-            [
-                [1, 1, 1],
-                [1, 1, 1],
-            ],
-        ]])
+                [
+                    [
+                        [1, 1, 1],
+                        [1, 1, 1],
+                    ],
+                    [
+                        [1, 10, 1],
+                        [1, 1, 1],
+                    ],
+                    [
+                        [1, 1, 1],
+                        [1, 1, 1],
+                    ],
+                    [
+                        [1, 1, 1],
+                        [1, 1, 1],
+                    ],
+                ]
+            ]
+        )
 
         n_joints = 4
         n_batches = 1
@@ -75,8 +96,10 @@ class PCKTests(unittest.TestCase):
 
         npt.assert_almost_equal(
             error.numpy(),
-            torch.Tensor([
-                [0.7500, 1.0000],
-            ]).numpy(),
-            decimal=4
+            torch.Tensor(
+                [
+                    [0.7500, 1.0000],
+                ]
+            ).numpy(),
+            decimal=4,
         )

@@ -41,19 +41,12 @@ def evaluate(flow, test_dataloader, temperature=1.0):
         sample_poses = np.insert(sample_poses, 0, 0, axis=1)
 
         pck_score = pck(
-                true_pose[:, human36m_joints_to_use] / 0.0036,
-                sample_poses[:, human36m_joints_to_use] / 0.0036,
-            )
+            true_pose[:, human36m_joints_to_use] / 0.0036,
+            sample_poses[:, human36m_joints_to_use] / 0.0036,
+        )
 
-        has_correct_pose = (
-            pck_score
-            .max()
-            .unsqueeze(0)
-            .numpy()
-        )
-        mean_correct_pose = (
-            pck_score.mean().unsqueeze(0).numpy()
-        )
+        has_correct_pose = pck_score.max().unsqueeze(0).numpy()
+        mean_correct_pose = pck_score.mean().unsqueeze(0).numpy()
 
         m = mpjpe(true_pose / 0.0036, sample_poses / 0.0036, dim=1)
         m_single = m[..., 0]
@@ -89,7 +82,14 @@ def evaluate(flow, test_dataloader, temperature=1.0):
             f"Mean PCK: {np.concatenate(mean_pck_scores).mean():.4f} "
         )
 
-    return mpjpes, pa_mpjpes, single_mpjpes, single_pa_mpjpes, pck_scores, mean_pck_scores
+    return (
+        mpjpes,
+        pa_mpjpes,
+        single_mpjpes,
+        single_pa_mpjpes,
+        pck_scores,
+        mean_pck_scores,
+    )
 
 
 def mpjpe_experiment(flow, config, name="test", **kwargs):
@@ -100,9 +100,14 @@ def mpjpe_experiment(flow, config, name="test", **kwargs):
     test_dataloader = DataLoader(
         test_dataset, batch_size=1, shuffle=True, pin_memory=False, num_workers=0
     )
-    test_res, test_res_pa, test_res_single, test_res_pa_single, test_res_pck, test_res_mean_pck = evaluate(
-        flow, test_dataloader
-    )
+    (
+        test_res,
+        test_res_pa,
+        test_res_single,
+        test_res_pa_single,
+        test_res_pck,
+        test_res_mean_pck,
+    ) = evaluate(flow, test_dataloader)
 
     res = {
         f"{name}/test_res": np.concatenate(test_res).mean(),

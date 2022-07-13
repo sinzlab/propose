@@ -4,7 +4,10 @@ human36m_joints_to_use = [1, 2, 3, 4, 5, 6, 8, 10, 11, 12, 13, 14, 15, 16]
 
 
 def pck(
-    poses_gt: torch.Tensor, poses_pred: torch.Tensor, threshold: float = 150, return_distances: bool = False
+    poses_gt: torch.Tensor,
+    poses_pred: torch.Tensor,
+    threshold: float = 150,
+    return_distances: bool = False,
 ) -> torch.BoolTensor:
     """
     It computes the percentage of frames in which the predicted pose is within a threshold distance of the ground truth
