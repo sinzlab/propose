@@ -95,7 +95,7 @@ def run(use_wandb, config):
             entity=os.environ["WANDB_USER"],
             config=config,
             job_type="evaluation",
-            name=f"{config['experiment_name']}_{time.strftime('%d/%m/%Y::%H:%M:%S')}",
+            name=f"{config['experiment_name']}_calibration_{time.strftime('%d/%m/%Y::%H:%M:%S')}",
             tags=config["tags"] if "tags" in config else None,
             group=config["group"] if "group" in config else None,
         )

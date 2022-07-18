@@ -17,8 +17,6 @@ import wandb
 
 
 def evaluate(flow, test_dataloader, temperature=1.0):
-    mpjpes = []
-    pa_mpjpes = []
     single_mpjpes = []
     single_pa_mpjpes = []
     pck_scores = []
@@ -32,10 +30,10 @@ def evaluate(flow, test_dataloader, temperature=1.0):
         batch, _, action = next(iter_dataloader)
         batch.to(flow.device)
 
-        samples = flow.sample(200, batch, temperature=temperature)
+        samples = flow.mode_sample(batch)
 
         true_pose = batch["x"].x.cpu().numpy().reshape(-1, 16, 1, 3)
-        sample_poses = samples["x"].x.detach().cpu().numpy().reshape(-1, 16, 200, 3)
+        sample_poses = samples["x"].x.detach().cpu().numpy().reshape(-1, 16, 1, 3)
 
         true_pose = np.insert(true_pose, 0, 0, axis=1)
         sample_poses = np.insert(sample_poses, 0, 0, axis=1)
@@ -50,7 +48,6 @@ def evaluate(flow, test_dataloader, temperature=1.0):
 
         m = mpjpe(true_pose / 0.0036, sample_poses / 0.0036, dim=1)
         m_single = m[..., 0]
-        m = np.min(m, axis=-1)
 
         pa_m = (
             pa_mpjpe(true_pose[0] / 0.0036, sample_poses[0] / 0.0036, dim=0)
@@ -59,14 +56,9 @@ def evaluate(flow, test_dataloader, temperature=1.0):
         )
 
         pa_m_single = pa_m[..., 0]
-        pa_m = np.min(pa_m, axis=-1)
 
-        m = m.tolist()
-        pa_m = pa_m.tolist()
         m_single = m_single.tolist()
 
-        mpjpes += [m]
-        pa_mpjpes += [pa_m]
         single_mpjpes += [m_single]
         single_pa_mpjpes += [pa_m_single]
 
@@ -74,8 +66,6 @@ def evaluate(flow, test_dataloader, temperature=1.0):
         mean_pck_scores += [mean_correct_pose]
 
         pbar.set_description(
-            f"MPJPE: {np.concatenate(mpjpes).mean():.4f}, "
-            f"PA MPJPE: {np.concatenate(pa_mpjpes).mean():.4f}, "
             f"Single MPJPE: {np.concatenate(single_mpjpes).mean():.4f} "
             f"Single PA MPJPE: {np.concatenate(single_pa_mpjpes).mean():.4f} "
             f"PCK: {np.concatenate(pck_scores).mean():.4f} "
@@ -83,8 +73,6 @@ def evaluate(flow, test_dataloader, temperature=1.0):
         )
 
     return (
-        mpjpes,
-        pa_mpjpes,
         single_mpjpes,
         single_pa_mpjpes,
         pck_scores,
@@ -101,8 +89,6 @@ def mpjpe_experiment(flow, config, name="test", **kwargs):
         test_dataset, batch_size=1, shuffle=True, pin_memory=False, num_workers=0
     )
     (
-        test_res,
-        test_res_pa,
         test_res_single,
         test_res_pa_single,
         test_res_pck,
@@ -110,8 +96,6 @@ def mpjpe_experiment(flow, config, name="test", **kwargs):
     ) = evaluate(flow, test_dataloader)
 
     res = {
-        f"{name}/test_res": np.concatenate(test_res).mean(),
-        f"{name}/test_res_pa": np.concatenate(test_res_pa).mean(),
         f"{name}/test_res_single": np.concatenate(test_res_single).mean(),
         f"{name}/test_res_pa_single": np.concatenate(test_res_pa_single).mean(),
         f"{name}/test_res_pck": np.concatenate(test_res_pck).mean(),
@@ -137,7 +121,7 @@ def run(use_wandb: bool = False, config: dict = None):
             entity=os.environ["WANDB_USER"],
             config=config,
             job_type="evaluation",
-            name=f"{config['experiment_name']}_human36m_{time.strftime('%d/%m/%Y::%H:%M:%S')}",
+            name=f"{config['experiment_name']}_single_{time.strftime('%d/%m/%Y::%H:%M:%S')}",
             tags=config["tags"] if "tags" in config else None,
             group=config["group"] if "group" in config else None,
         )
@@ -173,12 +157,18 @@ def run(use_wandb: bool = False, config: dict = None):
     if use_wandb:
         wandb.log(hard_res)
 
+    hard_dataset = Human36mDataset(
+        **config["dataset"],
+        occlusion_fractions=[],
+        hardsubset=True,
+    )
+
     # Occlusion Only
     mpjpes = []
     for i in tqdm(range(len(hard_dataset))):
         batch = hard_dataset[i][0]
         batch.cuda()
-        samples = flow.sample(200, batch.cuda())
+        samples = flow.mode_sample(batch.cuda())
 
         true_pose = (
             batch["x"]
@@ -191,7 +181,7 @@ def run(use_wandb: bool = False, config: dict = None):
             .x.detach()
             .cpu()
             .numpy()
-            .reshape(-1, 16, 200, 3)[:, np.insert(hard_dataset.occlusions[i], 9, False)]
+            .reshape(-1, 16, 1, 3)[:, np.insert(hard_dataset.occlusions[i], 9, False)]
         )
 
         m = mpjpe(true_pose / 0.0036, sample_poses / 0.0036, dim=1)
@@ -207,7 +197,7 @@ def run(use_wandb: bool = False, config: dict = None):
 
     print("MPJPE for best")
     print("---")
-    print(f"H36M: {test_res}")
-    print(f"H36MA: {hard_res}")
+    # print(f"H36M: {test_res}")
+    # print(f"H36MA: {hard_res}")
     print(f"Occl.: {occl_res}")
     print("---")

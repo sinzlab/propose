@@ -20,7 +20,7 @@ class MPJPETests(TestCase):
 
         error = pa_mpjpe(p_true, p_pred, dim=0).mean().item()
 
-        self.assertAlmostEqual(error, 1.4576131105422974)
+        self.assertAlmostEqual(error, 1.525496244430542)
 
     def test_against_wehrbein(self):
         """
@@ -40,7 +40,60 @@ class MPJPETests(TestCase):
 
         r2 = pa_mpjpe(p_true, p_pred, dim=0)
 
-        npt.assert_allclose(r1, r2)
+        # Wehrbein et al. implementation has a bug with shape.
+        # See self.test_wehrbein_is_wrong_proof()
+        npt.assert_array_equal(r1.shape, r2.shape)
+        npt.assert_array_equal(r2.shape, torch.Tensor([200]).numpy())
+        npt.assert_raises(AssertionError, npt.assert_allclose, r1, r2)
+
+    def test_wehrbein_is_wrong_proof(self):
+        """
+        Test whether the implementation in Wehrbein et al. is wrong.
+        At some point the procrustes implementation performs:
+         > torch.view(-1, 3, n_joints)
+        this is dangerous as the shape might be the same but the order is not.
+        This tests shows that this is the case.
+        """
+        p_gt = torch.Tensor(
+            [
+                [
+                    [1, 1, 1],
+                    [2, 2, 2],
+                    [3, 3, 3],
+                    [4, 4, 4],
+                ],
+                [
+                    [5, 5, 5],
+                    [6, 6, 6],
+                    [7, 7, 7],
+                    [8, 8, 8],
+                ],
+            ]
+        )
+
+        p_gt1 = p_gt.view(-1, 3, p_gt.shape[1])
+        p_gt2 = p_gt.permute(0, 2, 1)
+
+        x_range = torch.arange(p_gt.shape[0])
+        y_range = torch.arange(p_gt.shape[1])
+        z_range = torch.arange(p_gt.shape[2])
+
+        x_grid, y_grid, z_grid = torch.meshgrid(x_range, y_range, z_range)
+
+        index = torch.stack([x_grid, y_grid, z_grid], -1).view(-1, 3)
+
+        claim_a = []
+        claim_b = []
+        for i in index:
+            a = p_gt[i[0], i[1], i[2]]
+            b = p_gt2[i[0], i[2], i[1]]
+            c = p_gt1[i[0], i[2], i[1]]
+
+            claim_a.append(a == b)
+            claim_b.append(a == c)
+
+        self.assertTrue(all(claim_a))
+        self.assertFalse(all(claim_b))
 
 
 # Code for testing the above functions
@@ -55,9 +108,6 @@ def procrustes_torch_parallel(p_gt, p_pred):
 
     mu_gt = p_gt.mean(dim=2)
     mu_pred = p_pred.mean(dim=2)
-
-    # print(mu_gt)
-    # print(mu_pred)
 
     X0 = p_gt - mu_gt[:, :, None]
     Y0 = p_pred - mu_pred[:, :, None]

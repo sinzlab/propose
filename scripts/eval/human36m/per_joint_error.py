@@ -15,6 +15,10 @@ import numpy as np
 
 import wandb
 
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+
 
 def evaluate(flow, test_dataloader, temperature=1.0):
     mpjpes_not_occuled = []
@@ -54,16 +58,13 @@ def evaluate(flow, test_dataloader, temperature=1.0):
 
 
 def mpjpe_experiment(flow, config, **kwargs):
-    test_dataset = Human36mDataset(
-        **config["dataset"],
-        **kwargs,
-    )
+    test_dataset = Human36mDataset(**config["dataset"], **kwargs)
     test_dataloader = DataLoader(
         test_dataset, batch_size=1, shuffle=True, pin_memory=False, num_workers=0
     )
     mpjpes_not_occuled, mpjpes_occuled = evaluate(flow, test_dataloader)
 
-    return np.concatenate(mpjpes_not_occuled), np.concatenate(mpjpes_occuled)
+    return np.concatenate(mpjpes_not_occuled).T, np.concatenate(mpjpes_occuled).T
 
 
 def run(use_wandb: bool = False, config: dict = None):
@@ -82,7 +83,7 @@ def run(use_wandb: bool = False, config: dict = None):
             entity=os.environ["WANDB_USER"],
             config=config,
             job_type="evaluation",
-            name=f"{config['experiment_name']}_{time.strftime('%d/%m/%Y::%H:%M:%S')}",
+            name=f"{config['experiment_name']}_pje_{time.strftime('%d/%m/%Y::%H:%M:%S')}",
             tags=config["tags"] if "tags" in config else None,
             group=config["group"] if "group" in config else None,
         )
@@ -106,16 +107,45 @@ def run(use_wandb: bool = False, config: dict = None):
         test=True,
     )
 
-    if use_wandb:
-        wandb.log(
-            {
-                **{
-                    f"occluded/{key}": value
-                    for key, value in zip(marker_names, mpjpes_occuled)
-                },
-                **{
-                    f"not_occluded/{key}": value
-                    for key, value in zip(marker_names, mpjpes_not_occuled)
-                },
-            }
+    df_occluded = pd.DataFrame(
+        {key: value for key, value in zip(marker_names, mpjpes_occuled)}
+    )
+
+    df_not_occluded = pd.DataFrame(
+        {key: value for key, value in zip(marker_names, mpjpes_not_occuled)}
+    )
+
+    df = (
+        pd.concat(
+            [df_not_occluded, df_occluded], keys=["not_occluded", "occluded"], axis=1
         )
+        .stack()
+        .stack()
+        .to_frame()
+        .reset_index()
+    )
+
+    plt.figure(figsize=(15, 5))
+    sns.barplot(data=df, x="level_1", y=0, hue="level_2")
+    plt.xticks(rotation=90)
+    plt.ylabel("MPJPE")
+    plt.xlabel("Joint")
+    plt.legend(title="Occluded?")
+    plt.tight_layout()
+
+    output = {
+        "img": wandb.Image(plt.gcf(), caption="MPJPE"),
+        "occluded": {
+            key: list(filter(lambda x: x, value))
+            for key, value in zip(marker_names, mpjpes_occuled)
+        },
+        "not_occluded": {
+            key: list(filter(lambda x: x, value))
+            for key, value in zip(marker_names, mpjpes_not_occuled)
+        },
+    }
+
+    if use_wandb:
+        wandb.log(output)
+
+    plt.close()

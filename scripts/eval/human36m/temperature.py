@@ -16,7 +16,7 @@ import numpy as np
 import wandb
 
 
-def evaluate(flow, test_dataloader, temperature=1.0):
+def evaluate(flow, test_dataloader, temperature=1.0, limit=1000):
     mpjpes = []
     pa_mpjpes = []
     single_mpjpes = []
@@ -26,7 +26,10 @@ def evaluate(flow, test_dataloader, temperature=1.0):
 
     iter_dataloader = iter(test_dataloader)
 
-    pbar = tqdm(range(len(test_dataloader)))
+    if limit is None:
+        pbar = tqdm(range(len(test_dataloader)))
+    else:
+        pbar = tqdm(range(limit))
 
     for _ in pbar:
         batch, _, action = next(iter_dataloader)
@@ -92,7 +95,7 @@ def evaluate(flow, test_dataloader, temperature=1.0):
     )
 
 
-def mpjpe_experiment(flow, config, name="test", **kwargs):
+def mpjpe_experiment(flow, config, name="test", temperature=1.0, **kwargs):
     test_dataset = Human36mDataset(
         **config["dataset"],
         **kwargs,
@@ -107,7 +110,7 @@ def mpjpe_experiment(flow, config, name="test", **kwargs):
         test_res_pa_single,
         test_res_pck,
         test_res_mean_pck,
-    ) = evaluate(flow, test_dataloader)
+    ) = evaluate(flow, test_dataloader, temperature=temperature)
 
     res = {
         f"{name}/test_res": np.concatenate(test_res).mean(),
@@ -137,77 +140,32 @@ def run(use_wandb: bool = False, config: dict = None):
             entity=os.environ["WANDB_USER"],
             config=config,
             job_type="evaluation",
-            name=f"{config['experiment_name']}_human36m_{time.strftime('%d/%m/%Y::%H:%M:%S')}",
+            name=f"{config['experiment_name']}_temperature_{time.strftime('%d/%m/%Y::%H:%M:%S')}",
             tags=config["tags"] if "tags" in config else None,
             group=config["group"] if "group" in config else None,
         )
 
     flow = CondGraphFlow.from_pretrained(
-        f'ppierzc/propose_human36m/{config["experiment_name"]}:v20'
+        f'ppierzc/propose_human36m/{config["experiment_name"]}:latest'
     )
 
     config["cuda_accelerated"] = flow.set_device()
     flow.eval()
 
-    # Test
-    test_res, test_dataset, test_dataloader = mpjpe_experiment(
-        flow,
-        config,
-        occlusion_fractions=[],
-        test=True,
-        name="test",
-    )
+    temperatures = np.arange(0.1, 1.1, 0.1)
 
-    if use_wandb:
-        wandb.log(test_res)
-
-    # Hard
-    hard_res, hard_dataset, hard_dataloader = mpjpe_experiment(
-        flow,
-        config,
-        occlusion_fractions=[],
-        hardsubset=True,
-        name="hard",
-    )
-
-    if use_wandb:
-        wandb.log(hard_res)
-
-    # Occlusion Only
-    mpjpes = []
-    for i in tqdm(range(len(hard_dataset))):
-        batch = hard_dataset[i][0]
-        batch.cuda()
-        samples = flow.sample(200, batch.cuda())
-
-        true_pose = (
-            batch["x"]
-            .x.cpu()
-            .numpy()
-            .reshape(-1, 16, 1, 3)[:, np.insert(hard_dataset.occlusions[i], 9, False)]
-        )
-        sample_poses = (
-            samples["x"]
-            .x.detach()
-            .cpu()
-            .numpy()
-            .reshape(-1, 16, 200, 3)[:, np.insert(hard_dataset.occlusions[i], 9, False)]
+    for temperature in temperatures:
+        # Test
+        test_res, test_dataset, test_dataloader = mpjpe_experiment(
+            flow,
+            config,
+            occlusion_fractions=[],
+            test=True,
+            name="test",
+            temperature=temperature,
         )
 
-        m = mpjpe(true_pose / 0.0036, sample_poses / 0.0036, dim=1)
-        m = np.min(m, axis=-1)
+        test_res["temperature"] = temperature
 
-        m = m.tolist()
-
-        mpjpes += [m]
-
-    occl_res = np.nanmean(mpjpes)
-    if use_wandb:
-        wandb.log({"occl/best_mpjpe": occl_res})
-
-    print("MPJPE for best")
-    print("---")
-    print(f"H36M: {test_res}")
-    print(f"H36MA: {hard_res}")
-    print(f"Occl.: {occl_res}")
-    print("---")
+        if use_wandb:
+            wandb.log(test_res)

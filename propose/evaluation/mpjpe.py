@@ -62,15 +62,12 @@ def pa_mpjpe(
     if not isinstance(p_gt, torch.Tensor):
         p_gt = torch.Tensor(p_gt)
 
+    og_gt = p_gt.clone()
+
     p_gt = p_gt.repeat(1, p_pred.shape[1], 1)
 
-    p_gt = p_gt.permute(1, 0, 2).contiguous()
-    p_pred = p_pred.permute(1, 0, 2).contiguous()
-
-    p_gt = p_gt.view(-1, 3, p_gt.shape[1])
-    p_pred = p_pred.view(-1, 3, p_pred.shape[1])
-
-    og_gt = p_gt.clone()
+    p_gt = p_gt.permute(1, 2, 0).contiguous()
+    p_pred = p_pred.permute(1, 2, 0).contiguous()
 
     # Moving the tensors to the CPU as the following code is more efficient on the CPU
     p_pred = p_pred.cpu()
@@ -115,8 +112,6 @@ def pa_mpjpe(
 
     p_pred_projected = (
         scale[:, None, None] * torch.bmm(p_pred.transpose(1, 2), T) + mu_gt[:, None, :]
-    ).transpose(1, 2)
-
-    return torch.mean(
-        torch.sqrt(torch.sum((og_gt - p_pred_projected) ** 2, dim=1)), dim=1
     )
+
+    return mpjpe(og_gt, p_pred_projected.permute(1, 0, 2), dim=0)
