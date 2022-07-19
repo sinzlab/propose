@@ -12,6 +12,7 @@ setup(
     author_email="ppierzc@gmail.com",
     packages=find_packages(),
     install_requires=[],
+    include_package_data=True,
     package_data={
         "": [
             "*.yaml",
