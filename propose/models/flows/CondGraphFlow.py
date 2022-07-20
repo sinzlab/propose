@@ -97,6 +97,17 @@ class CondGraphFlow(GraphFlow):
         flow = cls.build_model(artifact.metadata)
 
         artifact_dir = artifact.download()
-        flow.load_state_dict(torch.load(artifact_dir + "/model.pt"))
+
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        flow.load_state_dict(
+            torch.load(artifact_dir + "/model.pt", map_location=torch.device(device))
+        )
 
         return flow
+
+    def set_device(self):
+        if torch.cuda.is_available():
+            self.to("cuda:0")
+            return True
+
+        return False

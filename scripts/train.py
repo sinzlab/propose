@@ -38,6 +38,13 @@ parser.add_argument(
 )
 
 parser.add_argument(
+    "--resume_id",
+    default="",
+    type=str,
+    help="Id of run which to resume",
+)
+
+parser.add_argument(
     "--experiment",
     default="mpii-prod.yaml",
     type=str,
@@ -76,6 +83,7 @@ if __name__ == "__main__":
 
         if args.wandb:
             wandb.init(
+                id=args.resume_id if args.resume_id else None,
                 project="propose_human36m",
                 entity=os.environ["WANDB_USER"],
                 config=config,

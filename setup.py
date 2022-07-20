@@ -10,6 +10,12 @@ setup(
     description="Probabilistic Pose Estimation",
     author="Paweł A. Pierzchlewicz",
     author_email="ppierzc@gmail.com",
-    packages=find_packages(exclude=[]),
+    packages=find_packages(),
     install_requires=[],
+    include_package_data=True,
+    package_data={
+        "": [
+            "*.yaml",
+        ]
+    },
 )

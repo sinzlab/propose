@@ -62,6 +62,7 @@ def human36m(use_wandb: bool = False, config: dict = None):
         )
 
     if use_wandb and wandb.run.resumed:
+        wandb.restore("checkpoint.pt", root="/tmp")
         checkpoint = torch.load("/tmp/checkpoint.pt")
 
         flow.load_state_dict(checkpoint["model"])
