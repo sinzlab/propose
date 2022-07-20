@@ -20,6 +20,16 @@ from propose.models.flows import CondGraphFlow
 flow = CondGraphFlow.from_pretrained('ppierzc/cgnf/cgnf_human36m:best')
 ```
 
+#### HRNet Loading
+You can also load a pretrained HRNet model.
+```python
+from propose.models.detectors import HRNet
+
+hrnet = HRNet.from_pretrained('ppierzc/cgnf/hrnet:v0')
+```
+This will load the HRNet model provided in the [repo](https://github.com/leoxiaobin/deep-high-resolution-net.pytorch).
+The model loaded here is the `pose_hrnet_w32_256x256` trained on the MPII dataset.
+
 ## Reproducing results
 ### Requirements
 This project requires that you have the following installed:

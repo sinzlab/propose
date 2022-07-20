@@ -5,6 +5,8 @@ from propose.models.flows.GraphFlow import GraphFlow
 from propose.models.nn.CondGNN import CondGNN
 from propose.models.nn.embedding import embeddings
 
+from torch_geometric.data import HeteroData
+
 from propose.models.transforms.transform import (
     GraphAffineCouplingTransform,
     GraphCompositeTransform,
@@ -22,6 +24,7 @@ class CondGraphFlow(GraphFlow):
         hidden_features=100,
         embedding_net=None,
         relations=None,
+        use_attention=True,
         # mask_idx=[0, 2, 5, 8, 10, 12, 15]
     ):
         """
@@ -41,6 +44,7 @@ class CondGraphFlow(GraphFlow):
                 out_features=out_features,
                 hidden_features=hidden_features,
                 relations=relations,
+                use_attention=use_attention,
             )
 
         coupling_constructor = GraphAffineCouplingTransform
@@ -63,11 +67,17 @@ class CondGraphFlow(GraphFlow):
             embedding_net=embedding_net,
         )
 
-    def forward(self, inputs):
+    def forward(self, inputs: HeteroData) -> torch.Tensor:
+        """
+        The function takes in a tensor of inputs and returns the log probability of the inputs
+
+        :param inputs: the input data, a tensor of size [batch_size, input_size]
+        :return: The log probability of the inputs.
+        """
         return self.log_prob(inputs)
 
     @classmethod
-    def build_model(cls, config):
+    def build_model(cls, config: dict) -> GraphFlow:
         """
         Builds a CondGraphFlow model from config
         :param config: Config dictionary
@@ -82,7 +92,7 @@ class CondGraphFlow(GraphFlow):
         return cls(**config["model"], embedding_net=embedding_net)
 
     @classmethod
-    def from_pretrained(cls, artifact_name):
+    def from_pretrained(cls, artifact_name: str) -> GraphFlow:
         """
         Constructs a pretrained model from the wandb model registry.
         :param artifact_name: Name of the artifact to load.
@@ -100,12 +110,17 @@ class CondGraphFlow(GraphFlow):
 
         device = "cuda" if torch.cuda.is_available() else "cpu"
         flow.load_state_dict(
-            torch.load(artifact_dir + "/model.pt", map_location=torch.device(device))
+            torch.load(artifact_dir + "/model.pt", map_location=torch.device(device)),
+            strict=False,
         )
 
         return flow
 
-    def set_device(self):
+    def set_device(self) -> bool:
+        """
+        If a GPU is available, move the model to the GPU
+        :return: a boolean value.
+        """
         if torch.cuda.is_available():
             self.to("cuda:0")
             return True

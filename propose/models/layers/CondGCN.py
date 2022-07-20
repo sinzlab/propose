@@ -5,6 +5,8 @@ import torch_sparse as ts
 
 from typing import Literal
 
+import itertools
+
 
 class CondGCN(nn.Module):
     """
@@ -20,6 +22,7 @@ class CondGCN(nn.Module):
         root_features: int = 3,
         aggr: Literal["add", "mean", "max"] = "add",
         relations: list[str] = None,
+        use_attention: bool = False,
     ) -> None:
         super().__init__()
 
@@ -48,9 +51,23 @@ class CondGCN(nn.Module):
         self.pool = nn.Linear(hidden_features, out_features)
         self.act = nn.ReLU()
 
+        self.attention = nn.Linear(in_features * 2, 1)
+        if use_attention:
+            self.use_attention = use_attention
+
         self.aggr = aggr
 
     def forward(self, x_dict: dict, edge_index_dict: dict) -> tuple[dict, dict]:
+        """
+        The function takes in a dictionary of node features and a dictionary of edge features, and returns a dictionary of
+        node features and a dictionary of edge features.
+
+        :param x_dict: a dictionary of node features
+        :type x_dict: dict
+        :param edge_index_dict: a dictionary of edge indices for each edge type
+        :type edge_index_dict: dict
+        :return: The output of the pooling layer.
+        """
         x = x_dict["x"]
 
         self_x = self.act(self.layers["x"](x))  # self loop values
@@ -90,9 +107,75 @@ class CondGCN(nn.Module):
             if dst_name != target:
                 continue
 
+            # attention mechanism
+            if self.use_attention and src_name == "x":
+                yield self.attention_mechanism(x_dict, src_name, dst_name, layer_name)
+                continue
+
             message = self.act(self.layers[layer_name](x_dict[src_name][src]))
 
             yield message, dst
+
+    def attention_mechanism(
+        self, x_dict: dict, src_name: str, dst_name: str, layer_name: str
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        """
+        We create a fully connected graph, then we use the attention mechanism to compute the attention
+        between each pair of nodes, which controls the computed message from each node to each other node
+
+        :param x_dict: a dictionary of node features
+        :type x_dict: dict
+        :param src_name: the name of the source node
+        :type src_name: str
+        :param dst_name: the name of the node that the message is being sent to
+        :type dst_name: str
+        :param layer_name: The name of the layer to use for the message
+        :type layer_name: str
+        :return: The message and the destination node.
+        """
+        n_nodes = x_dict[src_name].shape[0]
+
+        indexs = (
+            torch.Tensor(
+                list(itertools.product(list(range(n_nodes)), list(range(n_nodes))))
+            )
+            .long()
+            .t()
+            .to(self.device)
+        )
+
+        src = indexs[1]
+        dst = indexs[0]
+
+        src_x = x_dict[src_name][src]
+        dst_x = x_dict[dst_name][dst]
+
+        attention = self.attention(
+            torch.cat(
+                [
+                    src_x,
+                    dst_x,
+                ],
+                dim=-1,
+            )
+        )
+
+        attention = torch.softmax(attention, dim=0)
+
+        i = torch.arange(n_nodes).long().to(self.device)
+
+        message = self.act(self.layers[layer_name](x_dict[src_name][i]))
+        message = message.repeat(n_nodes, *[1] * (message.dim() - 1))
+
+        message = torch.multiply(message, attention)
+
+        message = message.reshape(
+            -1, n_nodes, message.shape[-2], message.shape[-1]
+        ).sum(0)
+
+        dst = dst.reshape(-1, n_nodes)[:, 0]
+
+        return message, dst
 
     def aggregate(
         self, message: tuple[torch.Tensor, torch.Tensor], self_x: torch.Tensor
@@ -160,10 +243,19 @@ class CondGCN(nn.Module):
         return aggr_message
 
     @property
-    def device(self):
+    def device(self) -> Literal["cpu", "cuda"]:
+        """
+        It returns the device of the module
+        :return: The device of the first parameter of the model.
+        """
         return next(self.parameters()).device
 
-    def _build_layers(self):
+    def _build_layers(self) -> nn.ModuleDict:
+        """
+        For each relation in the relations list, create a linear layer with the number of features of the first node in
+        the relation as the input size and the number of features of the hidden layer as the output size
+        :return: A dictionary of linear layers.
+        """
         layers_dict = {}
         for relation in self.relations:
             n_features: int = self.features[relation[0]]

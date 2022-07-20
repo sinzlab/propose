@@ -15,6 +15,8 @@ import numpy as np
 
 import wandb
 
+import torch
+
 
 def evaluate(flow, test_dataloader, temperature=1.0):
     mpjpes = []
@@ -28,11 +30,13 @@ def evaluate(flow, test_dataloader, temperature=1.0):
 
     pbar = tqdm(range(len(test_dataloader)))
 
+    flow.eval()
     for _ in pbar:
         batch, _, action = next(iter_dataloader)
         batch.to(flow.device)
 
-        samples = flow.sample(200, batch, temperature=temperature)
+        with torch.no_grad():
+            samples = flow.sample(200, batch, temperature=temperature)
 
         true_pose = batch["x"].x.cpu().numpy().reshape(-1, 16, 1, 3)
         sample_poses = samples["x"].x.detach().cpu().numpy().reshape(-1, 16, 200, 3)

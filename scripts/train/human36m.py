@@ -44,11 +44,7 @@ def human36m(use_wandb: bool = False, config: dict = None):
         wandb.config.num_params = num_params
 
     if "use_pretrained" in config:
-        artifact = wandb.run.use_artifact(
-            f'ppierzc/propose_human36m/{config["use_pretrained"]}', type="model"
-        )
-        artifact_dir = artifact.download()
-        flow.load_state_dict(torch.load(artifact_dir + "/model.pt"))
+        flow.from_pretrained(f'ppierzc/propose_human36m/{config["use_pretrained"]}')
 
     if config["cuda_accelerated"]:
         flow.to("cuda:0")
