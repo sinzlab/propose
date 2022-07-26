@@ -36,7 +36,6 @@ RUN python -m pip install --no-cache-dir nflows\
     brax\
     wandb\
     neuralpredictors\
-    gradio\
     yacs
 
 RUN pip install --upgrade pillow

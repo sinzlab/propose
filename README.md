@@ -30,8 +30,12 @@ hrnet = HRNet.from_pretrained('ppierzc/cgnf/hrnet:v0')
 This will load the HRNet model provided in the [repo](https://github.com/leoxiaobin/deep-high-resolution-net.pytorch).
 The model loaded here is the `pose_hrnet_w32_256x256` trained on the MPII dataset.
 
-## Reproducing results
 ### Requirements
+#### Requirements for the package
+The requirements for the package can be found in the [requirements.txt](/requirements.txt).
+
+#### Docker
+Alternatively, you can use [Docker](https://www.docker.com/) to run the package.
 This project requires that you have the following installed:
 - `docker`
 - `docker-compose`
@@ -50,15 +54,10 @@ docker pull sinzlab/pytorch:v3.9-torch1.9.0-cuda11.1-dj0.12.7
 5. You can now open JupyterLab in your browser at [`http://localhost:10101`](http://localhost:10101).
 
 #### Available Models
-| Model Name | description                                                        | Artifact path                   |
-| --- |--------------------------------------------------------------------|---------------------------------|
-| cGNF Human 3.6m | Model trained on the Human 3.6M dataset with MPII input keypoints. | ```ppierzc/cgnf/cgnf_human36m:best``` |
-
-### Run Evaluation
-You can run the evaluation script with the following command:
-```
-docker-compose run eval --human36m --experiment=cgnf_human36m 
-```
+| Model Name | description                                                                                                                                             | Artifact path                   | Import Code                      |
+| --- |---------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------|----------------------------------|
+| cGNF Human 3.6m | Model trained on the Human 3.6M dataset with MPII input keypoints.                                                                                      | ```ppierzc/cgnf/cgnf_human36m:best``` | ```from propose.models.flows import CondGraphFlow``` |
+ | HRNet | Instance of the [official](https://github.com/leoxiaobin/deep-high-resolution-net.pytorch) HRNet model trained on the MPII dataset with w32 and 256x256 | ```ppierzc/cgnf/hrnet:v0``` | ```from propose.models.detectors import HRNet``` |
 
 ### Run Tests
 To run the tests, from the root directory call:
@@ -71,17 +70,7 @@ docker-compose run pytest tests
 ## Data
 ### Rat7m
 You can download the Rat 7M dataset from [here](https://figshare.com/collections/Rat_7M/5295370).
-To preprocess the dataset run the following command.
-```
-docker-compose run preprocess --rat7m
-```
 
 ### Human3.6M dataset
 Due to license restrictions, the dataset is not included in the repository.
 You can download it from the official [website](http://vision.imar.ro/human3.6m).
-
-Download the *D3 Positions mono* by subject and place them into the `data/human36m/raw` directory.
-Then run the following command.
-```
-docker-compose run preprocess --human36m
-```
