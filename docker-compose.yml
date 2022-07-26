@@ -27,6 +27,13 @@ services:
       - ./scripts:/scripts
       - ./data:/data
 
+  pytest:
+    <<: *common
+    volumes:
+      - .:/src/propose
+      - ./tests:/tests
+    entrypoint: [ "pytest", "/tests/"]
+
   notebook_server:
     <<: *common
     volumes:
