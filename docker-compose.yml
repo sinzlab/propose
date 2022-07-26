@@ -73,6 +73,17 @@ services:
       - ./data:/data
     entrypoint: [ "python", "/scripts/preprocess.py" ]
 
+  demo:
+    image: propose
+    <<: *common
+    volumes:
+      - .:/src/propose
+      - ./scripts:/scripts
+      - ./data:/data
+    entrypoint: [ "python", "/scripts/demo.py" ]
+    ports:
+      - "7860:7860"
+
   pytest:
     <<: *common
     volumes:

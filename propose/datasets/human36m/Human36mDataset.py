@@ -16,54 +16,6 @@ import torch.distributions as D
 from tqdm import tqdm
 
 
-def tensor_to_graph(inputs, context, root, edges, context_edges, root_edges):
-    """
-    It takes in the inputs, context, root, and edges, and returns a HeteroData object
-
-    :param inputs: the input tensor
-    :param context: the context nodes
-    :param root: the root node
-    :param edges: the edges between the nodes in the graph
-    :param context_edges: the edges from the context to the inputs
-    :param root_edges: the edges from the root node to the other nodes
-    :return: A hetero data object.
-    """
-    data = HeteroData()
-
-    data["x"].x = inputs
-    data["x", "->", "x"].edge_index = edges
-    data["x", "<-", "x"].edge_index = edges
-
-    data["c"].x = context
-    data["c", "->", "x"].edge_index = context_edges
-
-    data["r"].x = root
-    data["r", "->", "x"].edge_index = root_edges
-    data["r", "<-", "x"].edge_index = root_edges
-
-    return data
-
-
-def tensor_to_human36m_graph(inputs, context, context_edges):
-    """
-    It takes the input tensors, and converts them to a graph
-
-    :param inputs: the input tensor, which is a tensor of shape (num_frames, num_joints, 3)
-    :param context: the context of the graph, which is the same as the input to the model
-    :param context_edges: the edges that are used to compute the context
-    """
-    pose = Human36mPose(np.zeros((1, 17, 3)))
-    edges = torch.LongTensor(pose.edges).T
-
-    edges, root_edges, context_edges = Human36mDataset.remove_root_edges(
-        edges, context_edges, 1
-    )
-
-    return tensor_to_graph(
-        inputs[1:], context, inputs[:1], edges, context_edges, root_edges
-    )
-
-
 class Human36mDataset(Dataset):
     """
     Dataset class for the Human36M dataset

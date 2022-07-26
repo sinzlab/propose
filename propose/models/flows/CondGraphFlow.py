@@ -24,7 +24,7 @@ class CondGraphFlow(GraphFlow):
         hidden_features=100,
         embedding_net=None,
         relations=None,
-        use_attention=True,
+        use_attention=False,
         # mask_idx=[0, 2, 5, 8, 10, 12, 15]
     ):
         """

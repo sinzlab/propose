@@ -52,8 +52,7 @@ class CondGCN(nn.Module):
         self.act = nn.ReLU()
 
         self.attention = nn.Linear(in_features * 2, 1)
-        if use_attention:
-            self.use_attention = use_attention
+        self.use_attention = use_attention
 
         self.aggr = aggr
 

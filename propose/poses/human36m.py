@@ -1,5 +1,30 @@
 from propose.poses.base import YamlPose
+
 import os
+
+import numpy as np
+
+from torch_geometric.data import HeteroData
+import torch
+
+MPII_2_H36M = [
+    6,
+    2,
+    1,
+    0,
+    3,
+    4,
+    5,
+    7,
+    8,
+    9,
+    13,
+    14,
+    15,
+    12,
+    11,
+    10,
+]
 
 
 class Human36mPose(YamlPose):
@@ -13,98 +38,73 @@ class Human36mPose(YamlPose):
 
         super().__init__(pose_matrix, path)
 
+    def conditional_graph(self, context: "BasePose") -> HeteroData:
+        graph_dict = self._construct_conditional_graph_dict(context)
 
-data = """
-spine:
-    Hip:
-      id: 0
-      data_id: 0
-      parent_id: -1
+        edges = graph_dict[("x", "->", "x")]["edge_index"]
+        context_edges = graph_dict[("c", "->", "x")]["edge_index"]
 
-    Spine:
-      id: 7
-      data_id: 12
-      parent_id: 0
+        edges, root_edges, context_edges = self.remove_root_edges(
+            edges, context_edges, num_context_samples=1
+        )
 
-    Thorax:
-      id: 8
-      data_id: 13
-      parent_id: 7
+        graph_dict[("x", "->", "x")]["edge_index"] = edges
+        graph_dict[("x", "<-", "x")]["edge_index"] = edges
+        graph_dict[("c", "->", "x")]["edge_index"] = context_edges
+        graph_dict[("r", "->", "x")] = dict(edge_index=root_edges)
+        graph_dict[("r", "<-", "x")] = dict(edge_index=root_edges)
 
-    Neck:
-      id: 9
-      data_id: 14
-      parent_id: 8
+        graph_dict["r"] = dict(x=graph_dict["x"]["x"][..., :1, :])
+        graph_dict["x"]["x"] = graph_dict["x"]["x"][..., 1:, :]
+        graph_dict["c"]["x"] = graph_dict["c"]["x"][..., 1:, :]
 
-head:
-    Head:
-      id: 10
-      data_id: 15
-      parent_id: 9
+        return HeteroData(graph_dict)
 
-leg_r:
-    RHip:
-      id: 1
-      data_id: 1
-      parent_id: 0
+    @classmethod
+    def remove_root_edges(cls, edges, context_edges, num_context_samples):
+        """
+        We remove the root edges from the full edges, and then we subtract 1 from the full edges and context edges to
+        make them zero-indexed
 
-    RKnee:
-      id: 2
-      data_id: 2
-      parent_id: 1
+        :param cls: the class of the object
+        :param edges: the edges of the full graph
+        :param context_edges: the edges that are in the context graph
+        :param num_context_samples: The number of samples in the context
+        :return: The edges are being returned with the root edges removed.
+        """
+        full_edges = edges[:, torch.where(edges[0] != 0)[0]]
+        context_edges = context_edges[:, torch.where(context_edges[1] != 0)[0]]
+        root_edges = edges[:, torch.where(edges[0] == 0)[0]]
 
-    RFoot:
-      id: 3
-      data_id: 3
-      parent_id: 2
+        full_edges -= 1
+        context_edges[0] -= num_context_samples
+        context_edges[1] -= 1
+        root_edges[1] -= 1
 
-leg_l:
-    LHip:
-      id: 4
-      data_id: 6
-      parent_id: 0
-
-    LKnee:
-      id: 5
-      data_id: 7
-      parent_id: 4
-
-    LFoot:
-      id: 6
-      data_id: 8
-      parent_id: 5
+        return full_edges, root_edges, context_edges
 
 
-arm_l:
-    LShoulder:
-      id: 11
-      data_id: 17
-      parent_id: 8
+class MPIIPose(YamlPose):
+    """
+    Pose Class for the Human3.6M dataset.
+    """
 
-    LElbow:
-      id: 12
-      data_id: 18
-      parent_id: 11
+    def __init__(self, pose_matrix, **kwargs):
+        dirname = os.path.dirname(__file__)
+        path = os.path.join(dirname, "metadata/mpii.yaml")
 
-    LWrist:
-      id: 13
-      data_id: 19
-      parent_id: 12
+        super().__init__(pose_matrix, path)
 
+    def to_human36m(self):
+        """
+        Convert the pose to the Human3.6M format.
+        :return: A Human3.6M pose.
+        """
 
-arm_r:
-    RShoulder:
-      id: 14
-      data_id: 25
-      parent_id: 8
-
-    RElbow:
-      id: 15
-      data_id: 26
-      parent_id: 14
-
-    RWrist:
-      id: 16
-      data_id: 27
-      parent_id: 15
-"""
+        pose_matrix = self.pose_matrix.copy()
+        pose_matrix = pose_matrix[:, MPII_2_H36M]
+        pose_matrix = np.insert(pose_matrix, 9, 0, axis=1)
+        pose = Human36mPose(pose_matrix)
+        pose.occluded_markers = self.occluded_markers[0, MPII_2_H36M, 0]
+        pose.occluded_markers = np.insert(pose.occluded_markers, 9, True, axis=0)
+        return pose
