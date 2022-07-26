@@ -7,27 +7,9 @@ from pathlib import Path
 from typing import Union
 
 from propose.datasets.human36m.loaders import load_poses, load_cameras
+from propose.poses.human36m import MPII_2_H36M
 
 PathType = Union[str, Path]
-
-MPII_2_H36M = [
-    6,
-    2,
-    1,
-    0,
-    3,
-    4,
-    5,
-    7,
-    8,
-    9,
-    13,
-    14,
-    15,
-    12,
-    11,
-    10,
-]  # Tranform MPII to H36M
 
 
 def process_pose(pose):

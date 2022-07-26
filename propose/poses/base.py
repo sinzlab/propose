@@ -7,6 +7,9 @@ from abc import ABC, abstractmethod
 
 from propose.cameras import Camera
 
+import torch
+from torch_geometric.data import HeteroData
+
 
 class BasePose(ABC):
     """
@@ -16,11 +19,18 @@ class BasePose(ABC):
     marker_names = []
     adjacency_matrix = None
 
-    def __init__(self, pose_matrix: np.ndarray):
+    def __init__(self, pose_matrix: np.ndarray, occluded_markers: list[bool] = None):
         """
         :param pose_matrix: A ndarray (frames, markers, positions), where frames and markers are optional dimensions.
+        :param occluded_markers: A list of booleans indicating which markers are occluded.
         """
         self.pose_matrix = pose_matrix
+
+        if occluded_markers is None:
+            if len(self.pose_matrix.shape) == 2:
+                self.occluded_markers = [False] * self.pose_matrix.shape[0]
+            if len(self.pose_matrix.shape) == 3:
+                self.occluded_markers = [False] * self.pose_matrix.shape[1]
 
         self.__array_struct__ = self.pose_matrix.__array_struct__
 
@@ -208,6 +218,46 @@ class BasePose(ABC):
             camera.world_to_camera_view(self.pose_matrix, translate=translate)
         )
 
+    def to_graph(self) -> tuple[torch.FloatTensor, torch.LongTensor]:
+        """
+        This function takes in a list of edges and a pose matrix and returns a tuple of a node features and an edge_index.
+        These can be used to construct a graph from torch_geometric.
+        :return: node features and edge_index
+        """
+        edge_index = torch.LongTensor(self.edges).T
+
+        return torch.FloatTensor(self.pose_matrix), edge_index
+
+    def _construct_conditional_graph_dict(self, context: "BasePose") -> dict:
+        """
+        > It takes a context pose and returns a dictionary of the data required to construct a conditional graph
+
+        :param context: "BasePose"
+        :type context: "BasePose"
+        :return: A dictionary of dictionaries.
+        """
+        context_node_features = context.pose_matrix
+        context_edge_index = (
+            torch.arange(0, context.pose_matrix.shape[1])[
+                ~torch.BoolTensor(context.occluded_markers)
+            ]
+            .unsqueeze(0)
+            .repeat(2, 1)
+        )
+
+        data = {
+            "x": dict(x=torch.FloatTensor(self.pose_matrix).squeeze()),
+            "c": dict(x=torch.FloatTensor(context_node_features).squeeze()),
+            ("x", "->", "x"): dict(edge_index=torch.LongTensor(self.edges).T),
+            ("x", "<-", "x"): dict(edge_index=torch.LongTensor(self.edges).T),
+            ("c", "->", "x"): dict(edge_index=torch.LongTensor(context_edge_index)),
+        }
+
+        return data
+
+    def conditional_graph(self, context: "BasePose") -> HeteroData:
+        return HeteroData(self._construct_conditional_graph_dict(context))
+
 
 class YamlPose(BasePose):
     def __init__(self, pose_matrix, path):
@@ -270,7 +320,7 @@ class YamlPose(BasePose):
     @property
     def bone_lengths(self):
         diff = torch.diff(self.pose_matrix[..., self.edges, :], dim=-2).squeeze()
-        dist = torm.norm(diff, dim=-1)
+        dist = torch.norm(diff, dim=-1)
         return dist
 
     @property

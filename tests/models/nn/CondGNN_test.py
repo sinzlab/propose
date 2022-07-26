@@ -138,6 +138,7 @@ def test_forward(cond_gcn_mock, module_list_mock):
         root_features=in_features,
         hidden_features=hidden_features,
         relations=None,
+        use_attention=False,
     )
     assert cond_gcn_mock.mock_calls[1] == call(
         in_features=hidden_features,
@@ -146,4 +147,5 @@ def test_forward(cond_gcn_mock, module_list_mock):
         root_features=hidden_features,
         hidden_features=hidden_features,
         relations=None,
+        use_attention=False,
     )

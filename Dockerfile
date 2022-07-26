@@ -35,7 +35,10 @@ RUN python -m pip install --no-cache-dir nflows\
     imageio-ffmpeg\
     brax\
     wandb\
-    neuralpredictors
+    neuralpredictors\
+    yacs
+
+RUN pip install --upgrade pillow
 
 RUN pip install git+https://github.com/sinzlab/neuralpredictors.git
 RUN pip install torch-scatter -f https://data.pyg.org/whl/torch-1.9.0+cu111.html
