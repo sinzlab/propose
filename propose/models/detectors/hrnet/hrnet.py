@@ -48,7 +48,7 @@ class HRNet(PoseHighResolutionNet):
             #  print(name,'\t')
             new_state_dict[name] = v
 
-        model.load_state_dict(new_state_dict)
+        model.load_state_dict(new_state_dict, strict=False)
 
         return model
 

@@ -21,7 +21,7 @@ class CondGNN(nn.Module):
         hidden_features: int = 10,
         root_features: int = 3,
         relations: list[str] = None,
-        use_attention: bool = True,
+        use_attention: bool = False,
     ):
         super().__init__()
 
