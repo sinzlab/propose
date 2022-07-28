@@ -25,6 +25,7 @@ class CondGraphFlow(GraphFlow):
         embedding_net=None,
         relations=None,
         use_attention=False,
+        root_features=3,
         # mask_idx=[0, 2, 5, 8, 10, 12, 15]
     ):
         """
@@ -34,7 +35,9 @@ class CondGraphFlow(GraphFlow):
         :param context_features: Number of features in the context after embedding.
         :param hidden_features: Number of features in the hidden layers.
         :param embedding_net: (optional) Network to embed the context. default: nn.Identity
-        :param gcn_type: (optional) Type of GCN to use. default: slow
+        :param relations: (optional) List of relations to use. default: None
+        :param use_attention: (optional) Whether to use attention. default: False
+        :param root_features: (optional) Number of features in the root node. default: 3
         """
 
         def create_net(in_features, out_features):
@@ -45,6 +48,7 @@ class CondGraphFlow(GraphFlow):
                 hidden_features=hidden_features,
                 relations=relations,
                 use_attention=use_attention,
+                root_features=root_features,
             )
 
         coupling_constructor = GraphAffineCouplingTransform
