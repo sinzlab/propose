@@ -109,6 +109,6 @@ class MPIIPose(YamlPose):
 
         pose = Human36mPose(pose_matrix)
         pose.occluded_markers = self.occluded_markers[:, MPII_2_H36M]
-        pose.occluded_markers = np.insert(pose.occluded_markers, 9, True, axis=0)
+        pose.occluded_markers = np.insert(pose.occluded_markers, 9, True, axis=1)
 
         return pose
