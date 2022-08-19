@@ -4,6 +4,7 @@ import wandb
 from propose.models.flows.GraphFlow import GraphFlow
 from propose.models.nn.CondGNN import CondGNN
 from propose.models.nn.embedding import embeddings
+from propose.poses.human36m import MPIIPose, Human36mPose
 
 from torch_geometric.data import HeteroData
 
@@ -130,3 +131,24 @@ class CondGraphFlow(GraphFlow):
             return True
 
         return False
+
+    @classmethod
+    def preprocess(
+        cls, coordinates, confidence, threshold=0.3, detected_pose_type="mpii"
+    ):
+        if detected_pose_type == "mpii":
+            pose_2d = MPIIPose(coordinates)
+            pose_2d.occluded_markers = confidence < threshold
+            pose_2d = pose_2d.to_human36m()
+        elif detected_pose_type == "human36m":
+            pose_2d = Human36mPose(coordinates)
+            pose_2d.occluded_markers = confidence < threshold
+        else:
+            raise NotImplementedError(
+                f"Detected pose type {detected_pose_type} not implemented"
+            )
+
+        pose_2d.pose_matrix = pose_2d.pose_matrix - pose_2d.pose_matrix[:, 0]
+        pose_2d.pose_matrix[..., 1] = -pose_2d.pose_matrix[..., 1]
+
+        return Human36mPose().conditional_graph(pose_2d)

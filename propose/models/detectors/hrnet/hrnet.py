@@ -1,5 +1,4 @@
 import torch
-import torch.backends.cudnn as cudnn
 
 from collections import OrderedDict
 
@@ -7,6 +6,7 @@ import os
 
 from .models.pose_hrnet import PoseHighResolutionNet
 from .config import config
+from .utils import crop_image_to_human
 
 import numpy as np
 
@@ -114,3 +114,13 @@ class HRNet(PoseHighResolutionNet):
         preds = coords.copy() * 4
 
         return preds, maxvals
+
+    @classmethod
+    def preprocess(cls, image: torch.Tensor) -> torch.Tensor:
+        cropped_image = crop_image_to_human(image)
+
+        pred_image = torch.Tensor(cropped_image)
+        pred_image = pred_image.view(1, *pred_image.shape)
+        pred_image = pred_image.permute(0, 3, 1, 2)
+
+        return pred_image

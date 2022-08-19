@@ -32,9 +32,12 @@ class Human36mPose(YamlPose):
     Pose Class for the Human3.6M dataset.
     """
 
-    def __init__(self, pose_matrix, **kwargs):
+    def __init__(self, pose_matrix=None, **kwargs):
         dirname = os.path.dirname(__file__)
         path = os.path.join(dirname, "metadata/human36m.yaml")
+
+        if pose_matrix is None:
+            pose_matrix = np.zeros((1, 17, 3))
 
         super().__init__(pose_matrix, path)
 
