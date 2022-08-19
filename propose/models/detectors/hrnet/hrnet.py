@@ -8,6 +8,8 @@ from .models.pose_hrnet import PoseHighResolutionNet
 from .config import config
 from .utils import crop_image_to_human
 
+from propose.poses.human36m import MPIIPose
+
 import numpy as np
 
 import wandb
@@ -90,7 +92,7 @@ class HRNet(PoseHighResolutionNet):
         preds *= pred_mask
         return preds, maxvals
 
-    def pose_estimate(self, input: torch.Tensor) -> np.array:
+    def pose_estimate(self, input: torch.Tensor, threshold: float = 0.3) -> np.array:
         batch_heatmaps = self.forward(input)
 
         coords, maxvals = self.get_max_preds(batch_heatmaps.detach().numpy())
@@ -115,7 +117,10 @@ class HRNet(PoseHighResolutionNet):
 
         preds = coords.copy() * 4
 
-        return preds, maxvals
+        pose_2d = MPIIPose(preds)
+        pose_2d.occluded_markers = maxvals < threshold
+
+        return pose_2d
 
     @classmethod
     def preprocess(cls, images: torch.Tensor) -> torch.Tensor:

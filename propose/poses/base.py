@@ -139,7 +139,10 @@ class BasePose(ABC):
                 for j in range(edge_vals.shape[-1])
             ]
 
-    def plot(self, ax, plot_type="groups", **kwargs):
+    def plot(self, ax=None, plot_type="groups", **kwargs):
+        if ax is None:
+            ax = plt.gca()
+
         if plot_type == "groups":
             return self._plot_groups(ax, **kwargs)
 
