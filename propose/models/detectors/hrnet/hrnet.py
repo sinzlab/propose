@@ -125,7 +125,7 @@ class HRNet(PoseHighResolutionNet):
         cropped_images = []
         for image in tqdm(images):
             cropped_image = crop_image_to_human(image, detector)
-            cropped_images.append(cropped_image)
+            cropped_images.append(torch.Tensor(cropped_image))
 
         cropped_images = torch.stack(cropped_images)
         pred_image = cropped_images.permute(0, 3, 1, 2)

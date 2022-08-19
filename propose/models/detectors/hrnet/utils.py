@@ -5,6 +5,9 @@ from torchvision.transforms import Pad
 
 
 def crop_image_to_human(input_image, detector):
+    if isinstance(input_image, torch.Tensor):
+        input_image = input_image.numpy()
+
     detections = detector(input_image)
     detections = (
         detections.pandas()
@@ -44,7 +47,7 @@ def crop_image_to_human(input_image, detector):
     cropped_image = cropped_image / 255
 
     cropped_image = rescale(
-        cropped_image, 256 / cropped_image.shape[0], multichannel=True
+        cropped_image, 256 / cropped_image.shape[0], channel_axis=-1
     )
     cropped_image = cropped_image[:256, :256]
     padder = Pad(
