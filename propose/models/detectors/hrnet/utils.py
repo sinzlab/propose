@@ -4,10 +4,7 @@ from neuralpredictors.data.transforms import rescale
 from torchvision.transforms import Pad
 
 
-def crop_image_to_human(input_image):
-    detector = torch.hub.load("ultralytics/yolov5", "yolov5s", pretrained=True)
-    detector.eval()
-
+def crop_image_to_human(input_image, detector):
     detections = detector(input_image)
     detections = (
         detections.pandas()

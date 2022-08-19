@@ -12,6 +12,8 @@ import numpy as np
 
 import wandb
 
+from tqdm import tqdm
+
 
 class HRNet(PoseHighResolutionNet):
     @classmethod
@@ -116,11 +118,16 @@ class HRNet(PoseHighResolutionNet):
         return preds, maxvals
 
     @classmethod
-    def preprocess(cls, image: torch.Tensor) -> torch.Tensor:
-        cropped_image = crop_image_to_human(image)
+    def preprocess(cls, images: torch.Tensor) -> torch.Tensor:
+        detector = torch.hub.load("ultralytics/yolov5", "yolov5s", pretrained=True)
+        detector.eval()
 
-        pred_image = torch.Tensor(cropped_image)
-        pred_image = pred_image.view(1, *pred_image.shape)
-        pred_image = pred_image.permute(0, 3, 1, 2)
+        cropped_images = []
+        for image in tqdm(images):
+            cropped_image = crop_image_to_human(image)
+            cropped_images.append(cropped_image)
+
+        cropped_images = torch.stack(cropped_images)
+        pred_image = cropped_images.permute(0, 3, 1, 2)
 
         return pred_image
