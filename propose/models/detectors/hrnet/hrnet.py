@@ -92,7 +92,7 @@ class HRNet(PoseHighResolutionNet):
         preds *= pred_mask
         return preds, maxvals
 
-    def pose_estimate(self, input: torch.Tensor, threshold: float = 0.3) -> np.array:
+    def pose_estimate(self, input: torch.Tensor) -> np.array:
         batch_heatmaps = self.forward(input)
 
         coords, maxvals = self.get_max_preds(batch_heatmaps.detach().numpy())
@@ -117,18 +117,20 @@ class HRNet(PoseHighResolutionNet):
 
         preds = coords.copy() * 4
 
-        pose_2d = MPIIPose(preds)
-        pose_2d.occluded_markers = maxvals < threshold
-
-        return pose_2d
+        return preds, maxvals
 
     @classmethod
-    def preprocess(cls, images: torch.Tensor) -> torch.Tensor:
-        detector = torch.hub.load("ultralytics/yolov5", "yolov5s", pretrained=True)
+    def preprocess(cls, images: torch.Tensor, detector: torch.nn.Module = None) -> torch.Tensor:
+        if detector is None:
+            detector = torch.hub.load("ultralytics/yolov5", "yolov5s", pretrained=True)
+
         detector.eval()
 
+        if len(images.shape) == 3:
+            images = images.unsqueeze(0)
+
         cropped_images = []
-        for image in tqdm(images):
+        for image in images:
             cropped_image = crop_image_to_human(image, detector)
             cropped_images.append(torch.Tensor(cropped_image))
 
