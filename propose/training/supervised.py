@@ -66,7 +66,7 @@ def supervised_trainer(
             prior_loss = loss[n_posterior:].mean()
             posterior_loss = loss[:n_posterior].mean()
 
-            mse_mode_pose = torch.Tensor([0])
+            mse_mode_pose = torch.Tensor([0]).to(device)
             if use_mode:
                 scaling = 0.0036  # the std with which the data was normalized
 

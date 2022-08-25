@@ -120,7 +120,9 @@ class HRNet(PoseHighResolutionNet):
         return preds, maxvals
 
     @classmethod
-    def preprocess(cls, images: torch.Tensor, detector: torch.nn.Module = None) -> torch.Tensor:
+    def preprocess(
+        cls, images: torch.Tensor, detector: torch.nn.Module = None
+    ) -> torch.Tensor:
         if detector is None:
             detector = torch.hub.load("ultralytics/yolov5", "yolov5s", pretrained=True)
 
