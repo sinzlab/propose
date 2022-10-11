@@ -135,6 +135,7 @@ class CondGraphFlow(GraphFlow):
 
     @classmethod
     def preprocess(cls, pose_2d: propose.poses.Human36mPose) -> HeteroData:
+        pose_2d.pose_matrix = pose_2d.pose_matrix * 0.0139
         pose_2d.pose_matrix = pose_2d.pose_matrix - pose_2d.pose_matrix[:, 0]
         pose_2d.pose_matrix[..., 1] = -pose_2d.pose_matrix[..., 1]
 

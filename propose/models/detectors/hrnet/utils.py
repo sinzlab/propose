@@ -22,7 +22,7 @@ def crop_image_to_human(input_image, detector):
 
     center = (xy[0] + width / 2, xy[1] - height / 2)
 
-    side = max([width, height])
+    side = max([width, height]) + 10
 
     crop_size = [
         int(center[0] - side / 2),

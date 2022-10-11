@@ -172,7 +172,7 @@ class Human36mDataset(Dataset):
 
             for p in occlusion_fractions:
                 mask = ~self.occlusions[i]
-                mask = np.insert(mask, 9, False)
+                mask = np.insert(mask, 8, False)
 
                 mask[: int(p * context_edges.shape[-1])] = 0
 
@@ -182,7 +182,7 @@ class Human36mDataset(Dataset):
 
                 if mpii:
                     mask = ~self.occlusions[i]
-                    mask = np.insert(mask, 9, False)
+                    mask = np.insert(mask, 8, False)
                     rand_idx = np.random.choice(
                         np.arange(0, len(mask)), int(len(mask) * p), replace=False
                     )
