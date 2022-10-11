@@ -1,6 +1,7 @@
 from unittest.mock import MagicMock
 
 import numpy as np
+
 import propose.preprocessing.image as pp
 from propose.poses import Rat7mPose
 

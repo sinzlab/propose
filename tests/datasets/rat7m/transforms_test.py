@@ -2,9 +2,10 @@ from collections import namedtuple
 from unittest.mock import MagicMock, patch
 
 import numpy as np
+from tests.mock.cameras import create_mock_camera
+
 import propose.datasets.rat7m.transforms as tr
 from propose.poses import Rat7mPose
-from tests.mock.cameras import create_mock_camera
 
 
 @patch("propose.datasets.rat7m.transforms.pp")

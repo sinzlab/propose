@@ -1,4 +1,5 @@
 import numpy as np
+
 import propose.preprocessing.rat7m as pp
 from propose.poses import Rat7mPose
 

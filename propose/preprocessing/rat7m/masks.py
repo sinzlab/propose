@@ -1,5 +1,6 @@
 import numpy as np
 import numpy.typing as npt
+
 from propose.poses import Rat7mPose
 
 Mask = npt.NDArray[bool]  # bool array, where True means that frame is to be masked

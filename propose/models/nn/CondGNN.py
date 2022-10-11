@@ -2,8 +2,9 @@ from typing import Union
 
 import torch
 import torch.nn as nn
-from propose.models.layers.CondGCN import CondGCN
 from torch_geometric.data import HeteroData
+
+from propose.models.layers.CondGCN import CondGCN
 
 
 class CondGNN(nn.Module):

@@ -3,6 +3,7 @@ from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
 import numpy as np
+
 from propose.datasets.human36m.loaders import load_poses  # , pickle_poses
 
 

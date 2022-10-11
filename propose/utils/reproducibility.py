@@ -1,4 +1,5 @@
 import random
+import subprocess
 from warnings import warn
 
 import numpy as np
@@ -38,12 +39,12 @@ def check_uncommitted_changes() -> bool:
     """
     Checks if there are uncommited changes.
     """
-    import subprocess
-
-
     uncommitted = subprocess.check_output(["git", "status", "--porcelain"]).decode("utf-8").strip() != ""
+
     if uncommitted:
         warn("There are uncommitted changes in the repository. The current logged commit hash will not be correct.")
+
+    return uncommitted
 
 
 def get_package_version(package_name: str) -> str:

@@ -1,4 +1,5 @@
 import numpy as np
+
 from propose.cameras import Camera
 from propose.poses import BasePose
 

@@ -1,10 +1,11 @@
 from collections import namedtuple
 
-import propose.preprocessing.rat7m as pp
 import torch
 import torch.nn.functional as F
-from propose.poses.rat7m import Rat7mPose
 from torch_geometric.data import HeteroData
+
+import propose.preprocessing.rat7m as pp
+from propose.poses.rat7m import Rat7mPose
 
 
 class ScalePose(object):

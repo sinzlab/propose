@@ -3,6 +3,7 @@ from unittest import TestCase
 
 import numpy as np
 import numpy.testing as npt
+
 from propose.poses import YamlPose
 
 dirname = os.path.dirname(__file__)

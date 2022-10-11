@@ -1,7 +1,8 @@
 import numpy.testing as npt
 import torch
-from propose.training.utils import get_x_graph
 from torch_geometric.data import HeteroData
+
+from propose.training.utils import get_x_graph
 
 
 def test_only_x_is_returned():

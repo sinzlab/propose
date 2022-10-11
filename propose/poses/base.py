@@ -3,8 +3,9 @@ from abc import ABC, abstractmethod
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
-from propose.cameras import Camera
 from torch_geometric.data import HeteroData
+
+from propose.cameras import Camera
 
 from .utils import yaml_pose_loader
 

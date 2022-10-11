@@ -3,6 +3,7 @@ from unittest import TestCase
 
 import torch
 import torch.testing as tt
+
 from propose.models.layers.CondGCN import CondGCN
 
 

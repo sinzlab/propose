@@ -1,6 +1,7 @@
 from unittest import TestCase
 
 import numpy as np
+
 from propose.poses import Human36mPose
 
 

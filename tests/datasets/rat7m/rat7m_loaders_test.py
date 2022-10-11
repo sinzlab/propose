@@ -1,8 +1,10 @@
 from unittest.mock import MagicMock, patch
 
 import numpy as np
-import propose.datasets.rat7m.transforms as tr
 from neuralpredictors.data.transforms import ScaleInputs, ToTensor
+from torch.utils.data import DataLoader
+
+import propose.datasets.rat7m.transforms as tr
 from propose.cameras import Camera
 from propose.datasets.rat7m.loaders import (
     load_cameras,
@@ -11,7 +13,6 @@ from propose.datasets.rat7m.loaders import (
     temporal_split_dataset,
 )
 from propose.poses import Rat7mPose
-from torch.utils.data import DataLoader
 
 path = "./tests/mock/data/mocap-mock.mat"
 

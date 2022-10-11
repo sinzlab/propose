@@ -1,7 +1,8 @@
 import numpy as np
+from tests.mock.cameras import create_mock_camera
+
 import propose.preprocessing.rat7m as pp
 from propose.poses import Rat7mPose
-from tests.mock.cameras import create_mock_camera
 
 
 def test_mask_nans():

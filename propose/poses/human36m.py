@@ -2,8 +2,9 @@ import os
 
 import numpy as np
 import torch
-from propose.poses.base import YamlPose
 from torch_geometric.data import HeteroData
+
+from propose.poses.base import YamlPose
 
 MPII_2_H36M = [
     6,
