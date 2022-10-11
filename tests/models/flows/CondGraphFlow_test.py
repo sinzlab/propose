@@ -1,7 +1,6 @@
 from unittest import TestCase
 
 import torch
-
 from propose.models.flows import CondGraphFlow
 
 

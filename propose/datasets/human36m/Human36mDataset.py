@@ -1,18 +1,13 @@
 import pickle
-
-import numpy as np
-
 from pathlib import Path
 
-from torch.utils.data import Dataset
-from propose.poses.human36m import Human36mPose
-
-from torch_geometric.data import HeteroData
-from torch_geometric.loader.dataloader import Collater
-
+import numpy as np
 import torch
 import torch.distributions as D
-
+from propose.poses.human36m import Human36mPose
+from torch.utils.data import Dataset
+from torch_geometric.data import HeteroData
+from torch_geometric.loader.dataloader import Collater
 from tqdm import tqdm
 
 

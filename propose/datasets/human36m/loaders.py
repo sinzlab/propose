@@ -1,14 +1,13 @@
 import os
-import cdflib
-import numpy as np
 import pickle
-
-from xml.dom import minidom
 from pathlib import Path
 from typing import Union
+from xml.dom import minidom
 
-from propose.poses.utils import load_data_ids
+import cdflib
+import numpy as np
 from propose.cameras import Camera
+from propose.poses.utils import load_data_ids
 
 PathType = Union[str, Path]
 

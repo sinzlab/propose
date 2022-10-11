@@ -1,13 +1,8 @@
-from propose.models.nn.embedding import (
-    Embedding,
-    LinearEmbedding,
-    SplitEmbedding,
-    JoinEmbedding,
-    SplitLinearEmbedding,
-)
-
 import torch
 import torch.testing as tt
+from propose.models.nn.embedding import (Embedding, JoinEmbedding,
+                                         LinearEmbedding, SplitEmbedding,
+                                         SplitLinearEmbedding)
 
 
 def test_smoke():

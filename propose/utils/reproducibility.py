@@ -1,7 +1,9 @@
-import numpy as np
-import torch
 import random
+from warnings import warn
+
+import numpy as np
 import pkg_resources
+import torch
 
 
 def set_random_seed(seed):
@@ -32,16 +34,16 @@ def get_commit_hash() -> str:
     return subprocess.check_output(["git", "rev-parse", "--short", "HEAD"]).decode("utf-8").strip()
 
 
-def check_uncommited_changes() -> bool:
+def check_uncommitted_changes() -> bool:
     """
     Checks if there are uncommited changes.
     """
     import subprocess
 
-    return (
-        subprocess.check_output(["git", "status", "--porcelain"]).decode("utf-8").strip()
-        != ""
-    )
+
+    uncommitted = subprocess.check_output(["git", "status", "--porcelain"]).decode("utf-8").strip() != ""
+    if uncommitted:
+        warn("There are uncommitted changes in the repository. The current logged commit hash will not be correct.")
 
 
 def get_package_version(package_name: str) -> str:

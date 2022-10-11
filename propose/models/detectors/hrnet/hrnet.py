@@ -1,20 +1,15 @@
-import torch
-
+import os
 from collections import OrderedDict
 
-import os
-
-from .models.pose_hrnet import PoseHighResolutionNet
-from .config import config
-from .utils import crop_image_to_human
-
-from propose.poses.human36m import MPIIPose
-
 import numpy as np
-
+import torch
 import wandb
-
+from propose.poses.human36m import MPIIPose
 from tqdm import tqdm
+
+from .config import config
+from .models.pose_hrnet import PoseHighResolutionNet
+from .utils import crop_image_to_human
 
 
 class HRNet(PoseHighResolutionNet):

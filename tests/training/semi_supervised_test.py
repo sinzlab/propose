@@ -1,9 +1,9 @@
+from unittest.mock import MagicMock, call
+
+from propose.datasets.toy import SinglePointDataset, ThreePointDataset
 from propose.models.flows import CondGraphFlow
 from propose.training.semi_supervised import semi_supervised_trainer
-from propose.datasets.toy import SinglePointDataset, ThreePointDataset
-
 from torch_geometric.loader import DataLoader
-from unittest.mock import MagicMock, call
 
 
 def test_smoke_single():

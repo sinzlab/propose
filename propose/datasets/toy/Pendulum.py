@@ -1,14 +1,12 @@
-import brax
-import torch
-from torch_geometric.data import HeteroData
-
-from tqdm import tqdm
-from torch.utils.data import Dataset
 from collections import namedtuple
-
 from itertools import combinations
 
+import brax
+import torch
 from propose.training.utils import get_x_graph
+from torch.utils.data import Dataset
+from torch_geometric.data import HeteroData
+from tqdm import tqdm
 
 
 class PendulumDataset(Dataset):

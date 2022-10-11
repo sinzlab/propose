@@ -1,11 +1,9 @@
-from propose.datasets.human36m.Human36mDataset import Human36mDataset
-
-from torch_geometric.loader import DataLoader
-
 from unittest.mock import patch
 
 import propose.datasets.rat7m.transforms as tr
 from neuralpredictors.data.transforms import ToTensor
+from propose.datasets.human36m.Human36mDataset import Human36mDataset
+from torch_geometric.loader import DataLoader
 
 # @patch('propose.datasets.human36m.Human36mDataset.Human36mPose')
 # def test_works_with_data_loader():

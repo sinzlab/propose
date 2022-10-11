@@ -1,7 +1,6 @@
-from propose.models.distributions.StandardNormal import StandardNormal
-
-import numpy.testing as npt
 import numpy as np
+import numpy.testing as npt
+from propose.models.distributions.StandardNormal import StandardNormal
 
 
 def test_StandardNormal_smoke():

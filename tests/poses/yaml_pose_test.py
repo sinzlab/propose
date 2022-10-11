@@ -1,10 +1,9 @@
-from propose.poses import YamlPose
-import numpy as np
-import numpy.testing as npt
-
+import os
 from unittest import TestCase
 
-import os
+import numpy as np
+import numpy.testing as npt
+from propose.poses import YamlPose
 
 dirname = os.path.dirname(__file__)
 path = os.path.join(dirname, "../mock/data/mock_pose.yaml")

@@ -1,16 +1,12 @@
-from propose.cameras import Camera
-from propose.poses import Rat7mPose
-from propose.datasets.rat7m import Rat7mDataset
-import propose.datasets.rat7m.transforms as tr
-
-from neuralpredictors.data.transforms import ScaleInputs, ToTensor
-
 from collections import namedtuple
 
-import scipy.io as sio
-
 import numpy as np
-
+import propose.datasets.rat7m.transforms as tr
+import scipy.io as sio
+from neuralpredictors.data.transforms import ScaleInputs, ToTensor
+from propose.cameras import Camera
+from propose.datasets.rat7m import Rat7mDataset
+from propose.poses import Rat7mPose
 from torch.utils.data import DataLoader
 from torch.utils.data.sampler import SubsetRandomSampler
 

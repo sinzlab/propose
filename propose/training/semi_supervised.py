@@ -1,11 +1,10 @@
+import warnings
+
 import torch
 import torch.nn.functional as F
-
 from tqdm import tqdm
 
 from .utils import get_x_graph
-
-import warnings
 
 
 def semi_supervised_trainer(dataloader, flow, optimizer=None, epochs=100):

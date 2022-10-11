@@ -1,10 +1,9 @@
+from unittest import TestCase
+
+import numpy.testing as npt
+import torch
 from propose.evaluation.mpjpe import mpjpe, pa_mpjpe
 from propose.utils.reproducibility import set_random_seed
-
-import torch
-import numpy.testing as npt
-
-from unittest import TestCase
 
 
 class MPJPETests(TestCase):

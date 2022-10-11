@@ -1,6 +1,5 @@
-from propose.poses import BasePose
-
 import numpy.typing as npt
+from propose.poses import BasePose
 
 Image = npt.NDArray[float]
 

@@ -1,12 +1,10 @@
-from propose.poses import Rat7mPose
-import propose.datasets.rat7m.transforms as tr
-from tests.mock.cameras import create_mock_camera
-
+from collections import namedtuple
 from unittest.mock import MagicMock, patch
 
-from collections import namedtuple
-
 import numpy as np
+import propose.datasets.rat7m.transforms as tr
+from propose.poses import Rat7mPose
+from tests.mock.cameras import create_mock_camera
 
 
 @patch("propose.datasets.rat7m.transforms.pp")

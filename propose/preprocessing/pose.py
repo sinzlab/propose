@@ -1,7 +1,6 @@
-from propose.poses import BasePose
-from propose.cameras import Camera
-
 import numpy as np
+from propose.cameras import Camera
+from propose.poses import BasePose
 
 
 def normalize_std(pose: BasePose) -> BasePose:

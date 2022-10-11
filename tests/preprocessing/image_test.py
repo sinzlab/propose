@@ -1,10 +1,8 @@
-import propose.preprocessing.image as pp
-
 from unittest.mock import MagicMock
 
-from propose.poses import Rat7mPose
-
 import numpy as np
+import propose.preprocessing.image as pp
+from propose.poses import Rat7mPose
 
 
 def test_square_crop_to_pose():

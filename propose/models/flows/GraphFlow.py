@@ -1,11 +1,9 @@
 """Basic definitions for the flows module."""
 
 import nflows.utils.typechecks as check
-
-from nflows.flows.base import Flow
-
-from torch_geometric.data import HeteroData
 import torch
+from nflows.flows.base import Flow
+from torch_geometric.data import HeteroData
 
 
 class GraphFlow(Flow):

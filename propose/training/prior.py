@@ -1,20 +1,14 @@
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import seaborn as sns
 import torch
 import torch.nn as nn
-
+from propose.poses.human36m import Human36mPose
+from torch_geometric.loader.dataloader import Collater
 from tqdm import tqdm
 
 from .utils import get_x_graph
-
-from torch_geometric.loader.dataloader import Collater
-
-import matplotlib.pyplot as plt
-from propose.poses.human36m import Human36mPose
-import seaborn as sns
-import numpy as np
-
-import pandas as pd
-
-import torch.nn as nn
 
 
 def prior_trainer(

@@ -1,9 +1,8 @@
+from typing import Optional, Union
+
 import torch
 import torch.nn as nn
 from torch import Tensor
-
-from typing import Optional, Union
-
 from torch_geometric.nn.dense import DenseSAGEConv
 
 

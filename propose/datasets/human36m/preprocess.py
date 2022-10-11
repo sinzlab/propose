@@ -1,12 +1,11 @@
 import os
-import cdflib
-import numpy as np
 import pickle
-
 from pathlib import Path
 from typing import Union
 
-from propose.datasets.human36m.loaders import load_poses, load_cameras
+import cdflib
+import numpy as np
+from propose.datasets.human36m.loaders import load_cameras, load_poses
 from propose.poses.human36m import MPII_2_H36M
 
 PathType = Union[str, Path]

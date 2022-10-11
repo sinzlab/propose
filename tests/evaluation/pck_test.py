@@ -1,8 +1,7 @@
 import unittest
 
-import torch
 import numpy.testing as npt
-
+import torch
 from propose.evaluation.pck import pck
 from propose.utils.reproducibility import set_random_seed
 

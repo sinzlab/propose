@@ -1,8 +1,7 @@
 import unittest
+from unittest.mock import MagicMock, patch
 
 from propose.models.detectors import HRNet
-
-from unittest.mock import MagicMock, patch
 
 
 class HRNetTests(unittest.TestCase):

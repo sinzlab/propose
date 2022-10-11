@@ -1,5 +1,5 @@
-import torch
 import numpy as np
+import torch
 
 
 def mpjpe(pred, gt, dim=None, mean=True):

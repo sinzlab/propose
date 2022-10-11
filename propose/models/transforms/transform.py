@@ -1,12 +1,10 @@
+import nflows.utils.typechecks as check
 import torch
-from torch import nn
-
-from torch_geometric.data import HeteroData
-
+from nflows.transforms.base import CompositeTransform, Transform
 from nflows.transforms.coupling import CouplingTransform
 from nflows.utils import torchutils
-import nflows.utils.typechecks as check
-from nflows.transforms.base import Transform, CompositeTransform
+from torch import nn
+from torch_geometric.data import HeteroData
 
 
 class GraphAffineCouplingTransform(CouplingTransform):
