@@ -4,9 +4,12 @@ import numpy as np
 import propose.datasets.rat7m.transforms as tr
 from neuralpredictors.data.transforms import ScaleInputs, ToTensor
 from propose.cameras import Camera
-from propose.datasets.rat7m.loaders import (load_cameras, load_mocap,
-                                            static_loader,
-                                            temporal_split_dataset)
+from propose.datasets.rat7m.loaders import (
+    load_cameras,
+    load_mocap,
+    static_loader,
+    temporal_split_dataset,
+)
 from propose.poses import Rat7mPose
 from torch.utils.data import DataLoader
 

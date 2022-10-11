@@ -3,8 +3,7 @@ from unittest.mock import MagicMock
 
 import torch
 import torch.testing as tt
-from propose.datasets.toy.Point import (SinglePointDataset,
-                                        SinglePointPriorDataset)
+from propose.datasets.toy.Point import SinglePointDataset, SinglePointPriorDataset
 from propose.models.distributions import StandardNormal
 from propose.models.flows.GraphFlow import GraphFlow
 from propose.models.nn.embedding import embeddings

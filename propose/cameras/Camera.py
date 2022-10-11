@@ -1,7 +1,7 @@
+from typing import Optional
+
 import numpy as np
 import numpy.typing as npt
-
-from typing import Optional
 
 Point2D = npt.NDArray[float]
 Point3D = npt.NDArray[float]
