@@ -31,17 +31,26 @@ def get_commit_hash() -> str:
     Returns the current commit hash shortend to 7 characters.
     """
 
-    return subprocess.check_output(["git", "rev-parse", "--short", "HEAD"]).decode("utf-8").strip()
+    return (
+        subprocess.check_output(["git", "rev-parse", "--short", "HEAD"])
+        .decode("utf-8")
+        .strip()
+    )
 
 
 def check_uncommitted_changes() -> bool:
     """
     Checks if there are uncommited changes.
     """
-    uncommitted = subprocess.check_output(["git", "diff", "--name-only"]).decode("utf-8").strip() != ""
+    uncommitted = (
+        subprocess.check_output(["git", "diff", "--name-only"]).decode("utf-8").strip()
+        != ""
+    )
 
     if uncommitted:
-        warn("There are uncommitted changes in the repository. The current logged commit hash will not be correct.")
+        warn(
+            "There are uncommitted changes in the repository. The current logged commit hash will not be correct."
+        )
 
     return uncommitted
 
