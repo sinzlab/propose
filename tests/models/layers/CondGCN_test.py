@@ -1,11 +1,10 @@
-from propose.models.layers.CondGCN import CondGCN
+import types
+from unittest import TestCase
 
 import torch
 import torch.testing as tt
 
-import types
-
-from unittest import TestCase
+from propose.models.layers.CondGCN import CondGCN
 
 
 class CondGCNTests(TestCase):

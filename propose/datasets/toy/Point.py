@@ -1,10 +1,9 @@
-import torch
-import torch.distributions as D
-
-from torch.utils.data.dataset import Dataset
-from torch_geometric.data import HeteroData
 from itertools import combinations
 
+import torch
+import torch.distributions as D
+from torch.utils.data.dataset import Dataset
+from torch_geometric.data import HeteroData
 from torch_geometric.loader.dataloader import Collater
 
 

@@ -1,19 +1,15 @@
 from unittest import TestCase
-
 from unittest.mock import MagicMock
-
-from propose.models.flows.GraphFlow import GraphFlow
-from propose.models.distributions import StandardNormal
-from propose.models.transforms.transform import GraphCompositeTransform
-from propose.models.nn.embedding import embeddings
-
-
-from propose.datasets.toy.Point import SinglePointDataset, SinglePointPriorDataset
-
-from torch_geometric.loader import DataLoader
 
 import torch
 import torch.testing as tt
+from torch_geometric.loader import DataLoader
+
+from propose.datasets.toy.Point import SinglePointDataset, SinglePointPriorDataset
+from propose.models.distributions import StandardNormal
+from propose.models.flows.GraphFlow import GraphFlow
+from propose.models.nn.embedding import embeddings
+from propose.models.transforms.transform import GraphCompositeTransform
 
 
 class TestGraphFlow(TestCase):

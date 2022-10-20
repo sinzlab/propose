@@ -1,8 +1,7 @@
-import torch
-
 import numpy.testing as npt
-
+import torch
 from torch_geometric.data import HeteroData
+
 from propose.training.utils import get_x_graph
 
 

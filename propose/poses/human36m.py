@@ -1,11 +1,10 @@
-from propose.poses.base import YamlPose
-
 import os
 
 import numpy as np
-
-from torch_geometric.data import HeteroData
 import torch
+from torch_geometric.data import HeteroData
+
+from propose.poses.base import YamlPose
 
 MPII_2_H36M = [
     6,
@@ -32,9 +31,12 @@ class Human36mPose(YamlPose):
     Pose Class for the Human3.6M dataset.
     """
 
-    def __init__(self, pose_matrix, **kwargs):
+    def __init__(self, pose_matrix=None, **kwargs):
         dirname = os.path.dirname(__file__)
         path = os.path.join(dirname, "metadata/human36m.yaml")
+
+        if pose_matrix is None:
+            pose_matrix = np.zeros((1, 17, 3))
 
         super().__init__(pose_matrix, path)
 
@@ -100,11 +102,12 @@ class MPIIPose(YamlPose):
         Convert the pose to the Human3.6M format.
         :return: A Human3.6M pose.
         """
-
         pose_matrix = self.pose_matrix.copy()
         pose_matrix = pose_matrix[:, MPII_2_H36M]
         pose_matrix = np.insert(pose_matrix, 9, 0, axis=1)
+
         pose = Human36mPose(pose_matrix)
         pose.occluded_markers = self.occluded_markers[0, MPII_2_H36M, 0]
         pose.occluded_markers = np.insert(pose.occluded_markers, 9, True, axis=0)
+
         return pose

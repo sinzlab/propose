@@ -1,18 +1,18 @@
 import torch
 import wandb
+from torch_geometric.data import HeteroData
 
+import propose.poses
+from propose.models.distributions import StandardNormal
 from propose.models.flows.GraphFlow import GraphFlow
 from propose.models.nn.CondGNN import CondGNN
 from propose.models.nn.embedding import embeddings
-
-from torch_geometric.data import HeteroData
-
 from propose.models.transforms.transform import (
+    GraphActNorm,
     GraphAffineCouplingTransform,
     GraphCompositeTransform,
-    GraphActNorm,
 )
-from propose.models.distributions import StandardNormal
+from propose.poses.human36m import Human36mPose, MPIIPose
 
 
 class CondGraphFlow(GraphFlow):
@@ -25,6 +25,7 @@ class CondGraphFlow(GraphFlow):
         embedding_net=None,
         relations=None,
         use_attention=False,
+        root_features=3,
         # mask_idx=[0, 2, 5, 8, 10, 12, 15]
     ):
         """
@@ -34,7 +35,9 @@ class CondGraphFlow(GraphFlow):
         :param context_features: Number of features in the context after embedding.
         :param hidden_features: Number of features in the hidden layers.
         :param embedding_net: (optional) Network to embed the context. default: nn.Identity
-        :param gcn_type: (optional) Type of GCN to use. default: slow
+        :param relations: (optional) List of relations to use. default: None
+        :param use_attention: (optional) Whether to use attention. default: False
+        :param root_features: (optional) Number of features in the root node. default: 3
         """
 
         def create_net(in_features, out_features):
@@ -45,6 +48,7 @@ class CondGraphFlow(GraphFlow):
                 hidden_features=hidden_features,
                 relations=relations,
                 use_attention=use_attention,
+                root_features=root_features,
             )
 
         coupling_constructor = GraphAffineCouplingTransform
@@ -126,3 +130,11 @@ class CondGraphFlow(GraphFlow):
             return True
 
         return False
+
+    @classmethod
+    def preprocess(cls, pose_2d: propose.poses.Human36mPose) -> HeteroData:
+        pose_2d.pose_matrix = pose_2d.pose_matrix * 0.0139
+        pose_2d.pose_matrix = pose_2d.pose_matrix - pose_2d.pose_matrix[:, 0]
+        pose_2d.pose_matrix[..., 1] = -pose_2d.pose_matrix[..., 1]
+
+        return Human36mPose().conditional_graph(pose_2d)

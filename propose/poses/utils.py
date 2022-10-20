@@ -1,5 +1,6 @@
-import yaml
 import functools
+
+import yaml
 
 
 def load_data_ids(path: str) -> list:

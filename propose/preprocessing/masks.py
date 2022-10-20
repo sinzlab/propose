@@ -1,8 +1,8 @@
-from propose.cameras import Camera
-from propose.poses import BasePose
-
 import numpy as np
 import numpy.typing as npt
+
+from propose.cameras import Camera
+from propose.poses import BasePose
 
 Mask = npt.NDArray[bool]  # bool array, where True means that frame is to be masked
 

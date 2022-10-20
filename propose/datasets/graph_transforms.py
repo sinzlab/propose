@@ -1,9 +1,8 @@
 import numpy as np
 import torch
 import torch.distributions as D
-
-from torch_geometric.loader.dataloader import Collater
 from torch_geometric.data import HeteroData
+from torch_geometric.loader.dataloader import Collater
 
 
 class ScaleGraphPose(object):

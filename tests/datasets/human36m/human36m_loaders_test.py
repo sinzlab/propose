@@ -1,11 +1,10 @@
-from propose.datasets.human36m.loaders import load_poses  # , pickle_poses
-
-from unittest.mock import patch, MagicMock
+from pathlib import Path
 from unittest import TestCase
+from unittest.mock import MagicMock, patch
 
 import numpy as np
 
-from pathlib import Path
+from propose.datasets.human36m.loaders import load_poses  # , pickle_poses
 
 
 class TestHuman36MPoseLoader(TestCase):

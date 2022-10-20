@@ -1,10 +1,8 @@
+import nflows.utils.typechecks as check
+import numpy as np
+import torch
 from nflows.distributions.base import Distribution
 from nflows.utils import torchutils
-import nflows.utils.typechecks as check
-
-import torch
-
-import numpy as np
 
 
 class StandardNormal(Distribution):

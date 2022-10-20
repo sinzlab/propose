@@ -1,11 +1,9 @@
-import torch
-import torch.nn as nn
-
-import torch_sparse as ts
-
+import itertools
 from typing import Literal
 
-import itertools
+import torch
+import torch.nn as nn
+import torch_sparse as ts
 
 
 class CondGCN(nn.Module):

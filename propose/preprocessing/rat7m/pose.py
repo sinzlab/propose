@@ -1,6 +1,6 @@
-from propose.poses import Rat7mPose
-
 import numpy as np
+
+from propose.poses import Rat7mPose
 
 
 def switch_arms_elbows(pose: Rat7mPose) -> Rat7mPose:

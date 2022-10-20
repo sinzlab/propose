@@ -1,7 +1,8 @@
-from propose.poses import Human36mPose
+from unittest import TestCase
+
 import numpy as np
 
-from unittest import TestCase
+from propose.poses import Human36mPose
 
 
 class Human36mPoseTest(TestCase):

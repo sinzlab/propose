@@ -1,6 +1,6 @@
-from propose.poses.base import BasePose
-
 import numpy as np
+
+from propose.poses.base import BasePose
 
 
 class Rat7mPose(BasePose):

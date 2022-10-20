@@ -1,19 +1,15 @@
 import pickle
-
-import numpy as np
-
 from pathlib import Path
 
-from torch.utils.data import Dataset
-from propose.poses.human36m import Human36mPose
-
-from torch_geometric.data import HeteroData
-from torch_geometric.loader.dataloader import Collater
-
+import numpy as np
 import torch
 import torch.distributions as D
-
+from torch.utils.data import Dataset
+from torch_geometric.data import HeteroData
+from torch_geometric.loader.dataloader import Collater
 from tqdm import tqdm
+
+from propose.poses.human36m import Human36mPose
 
 
 class Human36mDataset(Dataset):
@@ -172,7 +168,7 @@ class Human36mDataset(Dataset):
 
             for p in occlusion_fractions:
                 mask = ~self.occlusions[i]
-                mask = np.insert(mask, 9, False)
+                mask = np.insert(mask, 8, False)
 
                 mask[: int(p * context_edges.shape[-1])] = 0
 
@@ -182,7 +178,7 @@ class Human36mDataset(Dataset):
 
                 if mpii:
                     mask = ~self.occlusions[i]
-                    mask = np.insert(mask, 9, False)
+                    mask = np.insert(mask, 8, False)
                     rand_idx = np.random.choice(
                         np.arange(0, len(mask)), int(len(mask) * p), replace=False
                     )

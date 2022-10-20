@@ -1,13 +1,10 @@
 import numpy as np
 import torch
+from nflows.distributions import StandardNormal
+from nflows.flows import Flow
+from nflows.transforms import AffineCouplingTransform, BatchNorm, CompositeTransform
 from torch import nn
 from torch.nn import functional as F
-
-from nflows.flows import Flow
-
-from nflows.transforms import AffineCouplingTransform, CompositeTransform, BatchNorm
-
-from nflows.distributions import StandardNormal
 
 
 class NF(Flow):

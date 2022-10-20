@@ -1,8 +1,9 @@
+import os
 import re
+from pathlib import Path
+
 import ffmpeg
 from tqdm import tqdm
-import os
-from pathlib import Path
 
 CHUNK_SIZE = 3500
 

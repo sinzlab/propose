@@ -1,18 +1,15 @@
-from propose.cameras import Camera
-from propose.poses import Rat7mPose
-from propose.datasets.rat7m import Rat7mDataset
-import propose.datasets.rat7m.transforms as tr
-
-from neuralpredictors.data.transforms import ScaleInputs, ToTensor
-
 from collections import namedtuple
 
-import scipy.io as sio
-
 import numpy as np
-
+import scipy.io as sio
+from neuralpredictors.data.transforms import ScaleInputs, ToTensor
 from torch.utils.data import DataLoader
 from torch.utils.data.sampler import SubsetRandomSampler
+
+import propose.datasets.rat7m.transforms as tr
+from propose.cameras import Camera
+from propose.datasets.rat7m import Rat7mDataset
+from propose.poses import Rat7mPose
 
 TemporalSplit = namedtuple("TemporalSplit", ["train", "validation", "test"])
 

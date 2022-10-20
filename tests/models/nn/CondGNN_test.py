@@ -1,13 +1,11 @@
-from propose.models.nn.CondGNN import CondGNN
-from propose.models.layers.CondGCN import CondGCN
-
-from torch_geometric.data import HeteroData
-
-import torch.testing as tt
+from unittest.mock import MagicMock, call, patch
 
 import torch
+import torch.testing as tt
+from torch_geometric.data import HeteroData
 
-from unittest.mock import MagicMock, patch, call
+from propose.models.layers.CondGCN import CondGCN
+from propose.models.nn.CondGNN import CondGNN
 
 
 def test_smoke():

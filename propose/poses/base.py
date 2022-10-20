@@ -1,14 +1,13 @@
-import numpy as np
-import matplotlib.pyplot as plt
-
-from .utils import yaml_pose_loader
-
 from abc import ABC, abstractmethod
+
+import matplotlib.pyplot as plt
+import numpy as np
+import torch
+from torch_geometric.data import HeteroData
 
 from propose.cameras import Camera
 
-import torch
-from torch_geometric.data import HeteroData
+from .utils import yaml_pose_loader
 
 
 class BasePose(ABC):
@@ -139,7 +138,10 @@ class BasePose(ABC):
                 for j in range(edge_vals.shape[-1])
             ]
 
-    def plot(self, ax, plot_type="groups", **kwargs):
+    def plot(self, ax=None, plot_type="groups", **kwargs):
+        if ax is None:
+            ax = plt.gca()
+
         if plot_type == "groups":
             return self._plot_groups(ax, **kwargs)
 

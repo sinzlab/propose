@@ -1,9 +1,7 @@
 import torch
 import torch.nn as nn
-
-from tqdm import tqdm
-
 from torch_geometric.loader.dataloader import Collater
+from tqdm import tqdm
 
 from propose.evaluation.mpjpe import mpjpe
 
@@ -66,7 +64,7 @@ def supervised_trainer(
             prior_loss = loss[n_posterior:].mean()
             posterior_loss = loss[:n_posterior].mean()
 
-            mse_mode_pose = torch.Tensor([0])
+            mse_mode_pose = torch.Tensor([0]).to(device)
             if use_mode:
                 scaling = 0.0036  # the std with which the data was normalized
 

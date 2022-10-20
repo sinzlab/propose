@@ -1,11 +1,10 @@
-from propose.datasets.rat7m.Rat7mDataset import Rat7mDataset
-from propose.poses.rat7m import Rat7mPose
-
-from neuralpredictors.data.datasets.base import TransformDataset
-
-from unittest.mock import MagicMock, patch, call
+from unittest.mock import MagicMock, call, patch
 
 import numpy as np
+from neuralpredictors.data.datasets.base import TransformDataset
+
+from propose.datasets.rat7m.Rat7mDataset import Rat7mDataset
+from propose.poses.rat7m import Rat7mPose
 
 
 @patch("propose.datasets.rat7m.Rat7mDataset.Rat7mPose")

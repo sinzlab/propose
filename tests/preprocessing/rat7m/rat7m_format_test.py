@@ -1,4 +1,5 @@
-from unittest.mock import MagicMock, patch, call
+from unittest.mock import MagicMock, call, patch
+
 import propose.preprocessing.rat7m.format as pp
 
 

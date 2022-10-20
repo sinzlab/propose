@@ -1,8 +1,7 @@
-from propose.poses.utils import yaml_pose_loader, load_data_ids
-
+import os
 from unittest import TestCase
 
-import os
+from propose.poses.utils import load_data_ids, yaml_pose_loader
 
 dirname = os.path.dirname(__file__)
 path = os.path.join(dirname, "../mock/data/mock_pose.yaml")

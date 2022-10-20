@@ -1,5 +1,6 @@
-from propose.cameras import Camera
 import numpy as np
+
+from propose.cameras import Camera
 
 
 def set_global_vars():

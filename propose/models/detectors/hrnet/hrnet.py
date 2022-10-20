@@ -1,16 +1,16 @@
-import torch
-import torch.backends.cudnn as cudnn
-
+import os
 from collections import OrderedDict
 
-import os
-
-from .models.pose_hrnet import PoseHighResolutionNet
-from .config import config
-
 import numpy as np
-
+import torch
 import wandb
+from tqdm import tqdm
+
+from propose.poses.human36m import MPIIPose
+
+from .config import config
+from .models.pose_hrnet import PoseHighResolutionNet
+from .utils import crop_image_to_human
 
 
 class HRNet(PoseHighResolutionNet):
@@ -114,3 +114,25 @@ class HRNet(PoseHighResolutionNet):
         preds = coords.copy() * 4
 
         return preds, maxvals
+
+    @classmethod
+    def preprocess(
+        cls, images: torch.Tensor, detector: torch.nn.Module = None
+    ) -> torch.Tensor:
+        if detector is None:
+            detector = torch.hub.load("ultralytics/yolov5", "yolov5s", pretrained=True)
+
+        detector.eval()
+
+        if len(images.shape) == 3:
+            images = images.unsqueeze(0)
+
+        cropped_images = []
+        for image in images:
+            cropped_image = crop_image_to_human(image, detector)
+            cropped_images.append(torch.Tensor(cropped_image))
+
+        cropped_images = torch.stack(cropped_images)
+        pred_image = cropped_images.permute(0, 3, 1, 2)
+
+        return pred_image

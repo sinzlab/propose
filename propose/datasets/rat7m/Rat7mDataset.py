@@ -1,9 +1,9 @@
 import os
-
 import pickle
-import imageio
 
+import imageio
 from neuralpredictors.data.datasets.base import TransformDataset
+
 from propose.poses.rat7m import Rat7mPose
 
 CHUNK_SIZE = 3500

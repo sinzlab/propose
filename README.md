@@ -54,10 +54,10 @@ docker pull sinzlab/pytorch:v3.9-torch1.9.0-cuda11.1-dj0.12.7
 5. You can now open JupyterLab in your browser at [`http://localhost:10101`](http://localhost:10101).
 
 #### Available Models
-| Model Name | description                                                                                                                                             | Artifact path                   | Import Code                      |
-| --- |---------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------|----------------------------------|
-| cGNF Human 3.6m | Model trained on the Human 3.6M dataset with MPII input keypoints.                                                                                      | ```ppierzc/cgnf/cgnf_human36m:best``` | ```from propose.models.flows import CondGraphFlow``` |
- | HRNet | Instance of the [official](https://github.com/leoxiaobin/deep-high-resolution-net.pytorch) HRNet model trained on the MPII dataset with w32 and 256x256 | ```ppierzc/cgnf/hrnet:v0``` | ```from propose.models.detectors import HRNet``` |
+| Model Name | description                                                                                                                                             | Artifact path                                 | Import Code                      |
+| --- |---------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------|----------------------------------|
+| cGNF Human 3.6m | Model trained on the Human 3.6M dataset with MPII input keypoints.                                                                                      | ```ppierzc/propose_human36m/mpii-prod:best``` | ```from propose.models.flows import CondGraphFlow``` |
+ | HRNet | Instance of the [official](https://github.com/leoxiaobin/deep-high-resolution-net.pytorch) HRNet model trained on the MPII dataset with w32 and 256x256 | ```ppierzc/cgnf/hrnet:v0```                   | ```from propose.models.detectors import HRNet``` |
 
 ### Run Tests
 To run the tests, from the root directory call:

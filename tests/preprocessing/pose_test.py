@@ -1,11 +1,9 @@
-from propose.poses import Rat7mPose
-import propose.preprocessing as pp
-
+import numpy as np
+from scipy.spatial.transform import Rotation as R
 from tests.mock.cameras import create_mock_camera
 
-import numpy as np
-
-from scipy.spatial.transform import Rotation as R
+import propose.preprocessing as pp
+from propose.poses import Rat7mPose
 
 
 def test_normalize_std():
